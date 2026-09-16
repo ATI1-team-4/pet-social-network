@@ -234,12 +234,14 @@ Para evitar subcarpetas innecesariamente anidadas y permitir identificar inmedia
 
 Seguimos una metodología ágil donde cada tarea del tablero Kanban corresponde a un issue de GitHub (`#<issue-id>`).
 
-### 🛡️ Ramas principales (protegidas)
-- `main`: rama de producción. Contiene únicamente código estable, probado y listo para entrega.
+### 🛡️ Ramas principales
+- `main`: rama de producción protegida. Contiene únicamente código estable, probado y listo para entrega oficial.
 - `develop`: rama de integración continua. Es el punto de partida y convergencia del trabajo activo del equipo.
 
 > [!WARNING]
-> Está terminantemente prohibido hacer push directo a las ramas `main` o `develop`. Todo cambio debe integrarse a través de un Pull Request revisado y aprobado.
+> **Protección estricta de `main`:** está terminantemente prohibido hacer push directo a la rama `main`. Todo paso a producción debe integrarse exclusivamente a través de un Pull Request con revisión, aprobación obligatoria de al menos un compañero y con todos los controles de Integración Continua (CI) en verde.
+>
+> Para la rama `develop`, con el fin de mantener un ritmo de desarrollo ágil durante el sprint, no se exigen aprobaciones bloqueantes, pero se mantiene la directriz de trabajar en ramas de tarea (`feat/...`, `fix/...`) e integrar mediante Pull Request para que el CI valide automáticamente que ningún cambio rompa el sistema.
 
 ### 🌿 Ramas de trabajo
 Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` que surgen de `main`). Para mantener total coherencia con los commits, el prefijo de la rama se alinea directamente con el tipo de tarea:
@@ -262,7 +264,7 @@ Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` q
    Closes #<issue-id>
    ```
    *Esto cerrará el issue automáticamente al fusionar el PR y moverá la tarjeta asociada a **Done** en el tablero Kanban del proyecto.*
-3. Verifica que los 5 controles de Integración Continua (CI) pasen en verde y solicita la aprobación de al menos un compañero del equipo.
+3. Verifica que los 5 controles de Integración Continua (CI) pasen en verde. Para la integración en `develop` la revisión de un compañero es recomendada; para la integración de un release hacia `main`, la aprobación formal de al menos un revisor es obligatoria y requerida por GitHub.
 4. Al hacer **Merge**:
    - GitHub **elimina la rama remota automáticamente** gracias a la política activa del repositorio (*Automatically delete head branches*).
    - En tu máquina local, actualiza `develop` y elimina la rama local que ya fue integrada:
