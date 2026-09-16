@@ -7,6 +7,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+.ruff_cache/
 
 # Base de datos y almacenamiento de datos local
 data/

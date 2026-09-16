@@ -25,6 +25,8 @@ Petly conecta a dueños y amantes de los animales para compartir experiencias, b
 | Base de datos | SQLite | Persistencia relacional de datos en volumen Docker |
 | Contenedores | Docker y Docker Compose | Estandarización y aislamiento del entorno de desarrollo |
 | Recarga en vivo | django-browser-reload | Refresco automático del navegador ante cambios en plantillas y estilos |
+| Calidad de código | Ruff | Linter y formateador ultrarrápido según PEP 8 |
+| Integración continua | GitHub Actions | Automatización de pruebas, verificación de migraciones y estilos |
 | Control de versiones | Git y GitHub | Repositorio y control de versiones |
 | Gestión del proyecto | GitHub Projects | Tablero Kanban y trazabilidad de issues |
 
@@ -181,10 +183,14 @@ pet-social-network/
 ├── .dockerignore                 # Reglas de exclusión para imágenes Docker
 ├── .editorconfig                 # Reglas automáticas de formato e indentación
 ├── .env.dev                      # Variables de entorno para desarrollo local
+├── .github/                      # Flujos automatizados de GitHub Actions
+│   └── workflows/
+│       └── ci.yml                # Pipeline de Integración Continua (CI)
 ├── .gitignore                    # Reglas de exclusión de Git
 ├── Dockerfile                    # Definición de la imagen del contenedor web
 ├── docker-compose.yml            # Orquestación de servicios (web y base de datos)
 ├── manage.py                     # Utilidad de línea de comandos de Django
+├── pyproject.toml                # Configuración de reglas y exclusiones de Ruff
 └── requirements.txt              # Dependencias de Python del proyecto
 ```
 
@@ -255,10 +261,36 @@ Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` q
    ```markdown
    Closes #<issue-id>
    ```
-3. Solicita la revisión de al menos un compañero del equipo. Una vez aprobado y verificado, se realiza la fusión (merge).
+3. Verifica que las pruebas automáticas de Integración Continua (CI) pasen en verde y solicita la revisión de al menos un compañero del equipo. Una vez aprobado y verificado, se realiza la fusión (merge).
 
 > [!IMPORTANT]
 > **Eliminación obligatoria de ramas:** una vez fusionado el Pull Request en `develop`, la rama de trabajo remota debe eliminarse en GitHub. En tu máquina local, actualiza `develop` y elimina la rama con `git branch -d nombre-de-la-rama` para evitar acumulación de ramas huérfanas.
+
+### Integración continua (CI) con GitHub Actions
+
+El repositorio cuenta con un pipeline automatizado en [.github/workflows/ci.yml](.github/workflows/ci.yml) que se dispara automáticamente ante cada `push` y `pull_request` hacia las ramas `develop` y `main`.
+
+El pipeline ejecuta de manera nativa los siguientes 5 controles de calidad:
+
+1. **Calidad de código y estilo (Ruff):**
+   - Ejecuta `ruff check .` para detectar variables sin usar, imports innecesarios y malas prácticas.
+   - Ejecuta `ruff format --check .` para verificar que todo el código cumpla con el formato estricto de PEP 8.
+   - *Comandos locales para auto-formatear antes de hacer commit:*
+     ```bash
+     ruff format .      # Formatea automáticamente todo el proyecto
+     ruff check --fix . # Corrige automáticamente errores de código e imports
+     ```
+2. **Chequeo de configuración de Django:**
+   - Ejecuta `python manage.py check --fail-level WARNING` para garantizar que la configuración del proyecto y de las aplicaciones sea válida.
+3. **Verificación de migraciones pendientes:**
+   - Ejecuta `python manage.py makemigrations --check --dry-run` para impedir que se suban modificaciones a los modelos sin su respectivo archivo de migración.
+4. **Compilación de estilos de Tailwind CSS v4:**
+   - Ejecuta `tailwindcss -i theme/static_src/src/styles.css -o theme/static/css/dist/styles.css --minify` para validar que las hojas de estilos compilen limpiamente.
+5. **Suite de pruebas unitarias:**
+   - Ejecuta `python manage.py test` para verificar que todas las pruebas pasen exitosamente.
+
+> [!WARNING]
+> Ningún Pull Request debe fusionarse si el flujo de Integración Continua no finaliza en **verde (✅)**.
 
 ### Formato de commits
 Utilizamos Conventional Commits en minúsculas y en español, haciendo referencia al issue correspondiente:

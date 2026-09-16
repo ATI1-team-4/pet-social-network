@@ -1,0 +1,43 @@
+[tool.ruff]
+# Longitud de línea adecuada para Django
+line-length = 100
+target-version = "py312"
+
+# Excluir directorios que no deben ser analizados
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    ".ruff_cache",
+    ".pytest_cache",
+    "__pycache__",
+    "data",
+    "media",
+    "staticfiles",
+    "static",
+    "theme/static",
+    "labs",
+    "*/migrations/*",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # Errores de pycodestyle
+    "W",   # Advertencias de pycodestyle
+    "F",   # Pyflakes (errores de código y variables/imports no usados)
+    "I",   # isort (orden de importaciones)
+    "DJ",  # Reglas específicas de Django
+]
+ignore = [
+    "E501",  # Longitud de línea
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"config/settings.py" = ["E402"]
+"apps/*/admin.py" = ["F401"]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+

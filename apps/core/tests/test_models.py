@@ -6,6 +6,7 @@ from apps.core.models import TimeStampedModel
 
 class ConcreteTimeStampedModel(TimeStampedModel):
     """Modelo concreto auxiliar para comprobar la herencia del modelo abstracto."""
+
     name = models.CharField(max_length=50)
 
     class Meta:

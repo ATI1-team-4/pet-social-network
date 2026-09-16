@@ -1,0 +1,58 @@
+name: Integración continua (CI)
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Pruebas, calidad y estilos
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verificar calidad de código y estilo (Ruff)
+        run: |
+          ruff check .
+          ruff format --check .
+
+
+      - name: Verificar configuración del sistema de Django
+        run: |
+          python manage.py check --fail-level WARNING
+
+      - name: Verificar que no falten migraciones por generar
+        run: |
+          python manage.py makemigrations --check --dry-run
+
+      - name: Compilar y validar estilos de Tailwind CSS v4
+        run: |
+          tailwindcss -i theme/static_src/src/styles.css -o theme/static/css/dist/styles.css --minify
+
+      - name: Ejecutar suite de pruebas unitarias
+        run: |
+          python manage.py test
+

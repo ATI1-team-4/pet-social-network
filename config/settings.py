@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Construir rutas dentro del proyecto de esta forma: BASE_DIR / 'subdirectorio'.
@@ -20,7 +21,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Cargar variables de entorno de desarrollo desde .env.dev (o .env)
 load_dotenv(BASE_DIR / '.env.dev')
 load_dotenv(BASE_DIR / '.env')
-
 
 
 # Configuraciones iniciales de desarrollo - no aptas para producción
@@ -55,8 +55,7 @@ CSRF_TRUSTED_ORIGINS = [
 # Identificación del dominio propio para enlaces absolutos (correos, recuperación de clave)
 SITE_DOMAIN = os.environ.get('SITE_DOMAIN', 'localhost:8000')
 SITE_PROTOCOL = os.environ.get('SITE_PROTOCOL', 'http')
-SITE_URL = f"{SITE_PROTOCOL}://{SITE_DOMAIN}"
-
+SITE_URL = f'{SITE_PROTOCOL}://{SITE_DOMAIN}'
 
 
 DJANGO_APPS = [
@@ -136,7 +135,6 @@ DATABASES = {
 }
 
 
-
 # Validación de contraseñas
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
 
@@ -183,7 +181,6 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-
 # Correo electrónico
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
@@ -227,4 +224,3 @@ LOGGING = {
         },
     },
 }
-

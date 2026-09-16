@@ -17,6 +17,7 @@ Incluir otro archivo de URLs:
     1. Importar la función include(): from django.urls import include, path
     2. Agregar ruta a urlpatterns: path('blog/', include('blog.urls'))
 """
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -31,5 +32,3 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns.append(path('__reload__/', include('django_browser_reload.urls')))
-
-

@@ -6,6 +6,7 @@ class TimeStampedModel(models.Model):
     Modelo base abstracto que provee campos de auditoría temporal
     (creación y última modificación) para rastreo de registros.
     """
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Fecha de creación',
