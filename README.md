@@ -57,7 +57,6 @@ python manage.py migrate
 
 # 5. Iniciar el servidor de desarrollo
 python manage.py runserver
-
 ```
 
 La aplicación estará accesible en `http://127.0.0.1:8000/`.
@@ -77,6 +76,85 @@ El proyecto incluye el archivo [.env.dev](.env.dev) preconfigurado para desarrol
 | `DATABASE_DIR` | Carpeta local donde se guarda la base de datos SQLite | `data` |
 | `DATABASE_NAME` | Nombre del archivo de base de datos | `db.sqlite3` |
 
+## Estructura del proyecto
+
+El proyecto implementa una arquitectura modular donde las funcionalidades de negocio se agrupan en el subdirectorio `apps/`, manteniendo la raíz despejada y facilitando el trabajo colaborativo entre frontend, backend y base de datos:
+
+```text
+pet-social-network/
+├── apps/                         # Paquete contenedor de aplicaciones modulares
+│   ├── __init__.py
+│   └── <module_name>/            # Ejemplo de estructura interna estándar (ej. accounts)
+│       ├── admin.py              # Configuración para el panel de administración
+│       ├── apps.py               # Configuración de la app (name = 'apps.<module_name>')
+│       ├── forms.py              # Formularios y validaciones de entrada
+│       ├── models.py             # Modelos de datos del módulo
+│       ├── services.py           # Capa de lógica de negocio desacoplada
+│       ├── urls.py               # Enrutamiento específico del módulo
+│       ├── views.py              # Controladores de vista
+│       ├── templates/            # Plantillas aisladas por espacio de nombres
+│       │   └── <module_name>/
+│       │       └── example.html
+│       └── tests/                # Pruebas unitarias del módulo
+├── config/                       # Configuración central del proyecto Django
+│   ├── settings.py               # Ajustes generales, middleware y apps instaladas
+│   ├── urls.py                   # Enrutador principal de la aplicación
+│   ├── wsgi.py                   # Punto de entrada WSGI para despliegue tradicional
+│   └── asgi.py                   # Punto de entrada ASGI para WebSockets y asincronía
+├── data/                         # Almacenamiento local de base de datos SQLite (ignorado en Git)
+├── media/                        # Archivos multimedia subidos por usuarios (ignorado en Git)
+│   ├── avatars/
+│   ├── pets/
+│   └── posts/
+├── static/                       # Recursos estáticos fuente durante el desarrollo
+│   ├── css/                      # Hojas de estilo CSS del frontend
+│   ├── js/                       # Scripts JavaScript del cliente
+│   └── img/                      # Logotipos, íconos y gráficos estáticos del sistema
+├── templates/                    # Plantillas globales y componentes compartidos
+│   ├── base.html                 # Plantilla maestra con estructura HTML5 compartida
+│   ├── components/               # Componentes reutilizables (navbar, footer, cards, alertas)
+│   └── layouts/                  # Diseños de página base (feed, perfil, auth)
+├── .editorconfig                 # Reglas automáticas de formato e indentación
+├── .env.dev                      # Variables de entorno para desarrollo local
+├── .gitignore                    # Reglas de exclusión de Git
+├── manage.py                     # Utilidad de línea de comandos de Django
+└── requirements.txt              # Dependencias de Python del proyecto
+```
+
+> [!NOTE]
+> La carpeta `apps/<module_name>/` en este diagrama funciona como **plantilla de referencia arquitectónica**. Ninguna aplicación ha sido creada aún en el proyecto.
+
+### Principios de la arquitectura modular
+
+| Carpeta | Propósito | Reglas de configuración |
+| :--- | :--- | :--- |
+| `apps/` | Aloja los dominios de negocio separados en submódulos independientes | Cada app configurará su clase en `apps.py` con `name = 'apps.<nombre_app>'` para su registro limpio en `INSTALLED_APPS`. |
+| `templates/` | Plantilla base global y componentes de interfaz reutilizables | Las plantillas maestras y componentes globales van en la raíz (`templates/base.html`, `templates/components/`), mientras que las vistas específicas de módulo van en `apps/<nombre_app>/templates/<nombre_app>/`. |
+| `static/` | Archivos CSS, JavaScript e imágenes estáticas del sistema | Carpeta fuente conectada a Django mediante `STATICFILES_DIRS = [BASE_DIR / 'static']`. En producción, `collectstatic` compila en `staticfiles/`. |
+| `media/` | Archivos multimedia subidos por los usuarios en tiempo de ejecución | Configurada con `MEDIA_ROOT = BASE_DIR / 'media'` y `MEDIA_URL = 'media/'`. Su contenido está completamente excluido de Git. |
+
+## Nomenclatura y almacenamiento de archivos multimedia (`media/`)
+
+> [!NOTE]
+> **Estructura y convención preliminar:**
+> La organización de carpetas y los patrones de nombres presentados a continuación representan **únicamente una propuesta de ejemplo**. La estructura definitiva para el almacenamiento de archivos multimedia aún no está confirmada ni cerrada para mantenerse de esta forma exacta, quedando sujeta a revisión y consenso del equipo según evolucionen los modelos de datos.
+
+Para evitar subcarpetas innecesariamente anidadas y permitir identificar inmediatamente al propietario y contexto de cualquier archivo, se plantea como referencia una estructura por categoría con **nombres de archivo autodescriptivos**:
+
+| Categoría | Convención del nombre de archivo | Ejemplo ilustrativo | Ventaja de identificación |
+| :--- | :--- | :--- | :--- |
+| **Avatar de usuario** | `avatars/user_{user_id}_avatar_{timestamp}.{ext}` | `media/avatars/user_42_avatar_20260915_143000.webp` | Identifica al usuario dueño directamente desde el archivo. |
+| **Foto de mascota** | `pets/user_{owner_id}_pet_{pet_id}_{tipo}_{id_unico}.{ext}` | `media/pets/user_42_pet_7_avatar_20260915_143000.jpg` | Asocia la mascota con su dueño actual y el ID de la mascota. |
+| **Multimedia de post** | `posts/user_{author_id}_post_{post_id}_{tipo}_{hash}.{ext}` | `media/posts/user_42_post_105_img_9f8e7d6c.png` | Atribuye el contenido al autor y post para auditoría y moderación. |
+
+> [!IMPORTANT]
+> **Nota sobre los identificadores únicos:**
+> La forma exacta de generar el identificador único final (sea mediante marca de tiempo `timestamp`, UUIDv4, hash criptográfico o combinaciones de los mismos) **aún no está fijada de manera definitiva**. Los patrones y sufijos mostrados en la tabla anterior son **ejemplos ilustrativos** para modelar el principio de diseño: que el propio nombre del archivo identifique con certeza quién es el usuario propietario y a qué recurso pertenece.
+
+### Ventajas técnicas de la nomenclatura autodescriptiva
+- **Autonomía del archivo:** Si el archivo se descarga, se comparte o se almacena en la nube (ejemplo: AWS S3), conserva su identidad y trazabilidad sin depender de su ruta.
+- **Búsqueda inmediata:** Permite auditar y listar todos los recursos de un usuario en consola con comandos directos (ejemplo: `ls media/pets/user_42_*`).
+- **Estructura limpia:** Mantiene las carpetas planas y organizadas por tipo de recurso en lugar de cientos de subdirectorios aislados.
 
 ## Flujo de trabajo en Git y GitHub Projects
 

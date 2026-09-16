@@ -35,7 +35,11 @@ local_settings.py
 *.sqlite3-journal
 data/*.sqlite3
 data/*.sqlite3-journal
-media/
+media/*
+!media/.gitkeep
+!media/*/
+media/*/*
+!media/*/.gitkeep
 staticfiles/
 
 # Variables de entorno y secretos
