@@ -208,8 +208,8 @@ Para evitar subcarpetas innecesariamente anidadas y permitir identificar inmedia
 | **Multimedia de post** | `posts/user_{author_id}_post_{post_id}_{tipo}_{hash}.{ext}` | `media/posts/user_42_post_105_img_9f8e7d6c.png` | Atribuye el contenido al autor y post para auditoría y moderación. |
 
 > [!IMPORTANT]
-> **Nota sobre los identificadores únicos:**
-> La forma exacta de generar el identificador único final (sea mediante marca de tiempo `timestamp`, UUIDv4, hash criptográfico o combinaciones de los mismos) **aún no está fijada de manera definitiva**. Los patrones y sufijos mostrados en la tabla anterior son **ejemplos ilustrativos** para modelar el principio de diseño: que el propio nombre del archivo identifique con certeza quién es el usuario propietario y a qué recurso pertenece.
+> **Nota sobre la estructura de carpetas e identificadores únicos:**
+> Tanto la **organización de subcarpetas** (`avatars/`, `pets/`, `posts/`) como los nombres y la generación del identificador único (sea mediante marca de tiempo `timestamp`, UUIDv4, hash criptográfico o combinaciones de los mismos) son **únicamente propuestas y ejemplos ilustrativos de cómo podría estructurarse**. Ninguno de estos patrones está cerrado de forma definitiva; representan una guía de referencia para el principio de diseño (que los archivos sean fácilmente identificables y trazables) y la estructura final quedará sujeta a consenso del equipo según evolucionen los modelos de datos.
 
 ### Ventajas técnicas de la nomenclatura autodescriptiva
 - **Autonomía del archivo:** Si el archivo se descarga, se comparte o se almacena en la nube (ejemplo: AWS S3), conserva su identidad y trazabilidad sin depender de su ruta.
