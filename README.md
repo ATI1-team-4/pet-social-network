@@ -19,38 +19,103 @@ Petly conecta a dueños y amantes de los animales para compartir experiencias, b
 
 | Componente | Tecnología | Propósito |
 | :--- | :--- | :--- |
-| Lenguaje | Python 3.14+ | Lenguaje base del proyecto |
+| Lenguaje | Python 3.12+ | Lenguaje base del proyecto |
 | Framework web | Django 6.1+ | Backend, ORM y arquitectura web |
 | Estilos CSS | Tailwind CSS v4 | Sistema de diseño y utilidades visuales |
-| Base de datos | SQLite | Persistencia relacional de datos |
+| Base de datos | SQLite | Persistencia relacional de datos en volumen Docker |
+| Contenedores | Docker y Docker Compose | Estandarización y aislamiento del entorno de desarrollo |
+| Recarga en vivo | django-browser-reload | Refresco automático del navegador ante cambios en plantillas y estilos |
 | Control de versiones | Git y GitHub | Repositorio y control de versiones |
 | Gestión del proyecto | GitHub Projects | Tablero Kanban y trazabilidad de issues |
 
 ## Puesta en marcha
 
-Sigue estos pasos para configurar y ejecutar el proyecto en tu entorno local:
+### Opción recomendada: Docker y Docker Compose
+
+> [!TIP]
+> **Recomendación para usuarios de Windows:**
+> Es preferible ejecutar el proyecto dentro de un entorno **WSL 2 (Windows Subsystem for Linux)** junto con **Docker Desktop** (con la integración de WSL activada en *Settings > Resources > WSL integration*). Para obtener el máximo rendimiento de lectura/escritura y detección inmediata de cambios en caliente, asegúrate de clonar y abrir el proyecto dentro del sistema de archivos nativo de Linux (por ejemplo en `~/development/...` o `/home/<usuario>/...`) y **no** en rutas montadas de Windows (`/mnt/c/...`).
+
+#### 1. Iniciar los contenedores
 
 ```bash
 # 1. Clonar el repositorio y entrar a la carpeta
-git clone <url-del-repositorio>
+git clone https://github.com/ATI1-team-4/pet-social-network.git
 cd pet-social-network
 
-# 2. Crear y activar el entorno virtual
+# 2. Construir las imágenes y levantar los servicios en segundo plano
+docker compose up -d --build
+
+# 3. Aplicar las migraciones iniciales de base de datos dentro del contenedor
+docker compose exec web python manage.py migrate
+```
+
+La aplicación estará lista y accesible en [http://localhost:8000/](http://localhost:8000/).
+
+---
+
+### Recarga automática en el navegador (Live Reload)
+
+El entorno de desarrollo incluye recarga automática en vivo mediante **`django-browser-reload`** y el compilador continuo de **Tailwind CSS v4**:
+- Al modificar y guardar cualquier archivo de plantilla HTML (`.html`), hoja de estilos (`.css`) o vista de Python (`.py`), **la pestaña de tu navegador se recarga sola de forma inmediata**, sin necesidad de presionar `F5`.
+- Tailwind CSS se ejecuta en segundo plano dentro del contenedor `petly_web` y recompila las nuevas clases en ~150 ms.
+- Esta funcionalidad está condicionada exclusivamente a `DEBUG=True` en [config/settings.py](config/settings.py) y [config/urls.py](config/urls.py), por lo que se desactiva por completo en producción sin generar sobrecarga.
+
+---
+
+### Gestión e instalación de dependencias en Docker
+
+Para garantizar que todos los desarrolladores mantengan exactamente las mismas librerías y evitar discrepancias entre el entorno local y el contenedor, la instalación de dependencias debe realizarse dentro del contenedor y luego versionarse en `requirements.txt`:
+
+```bash
+# Opción A: Entrar a la terminal interactiva del contenedor web
+docker compose exec web bash
+pip install <nombre-del-paquete>
+pip freeze > requirements.txt
+exit
+
+# Opción B: Instalar directamente desde la terminal anfitriona
+docker compose exec web pip install <nombre-del-paquete>
+# Luego agrega el paquete con su versión exacta a requirements.txt
+```
+
+> [!IMPORTANT]
+> Cada vez que agregues o actualices librerías en `requirements.txt`, ejecuta `docker compose up -d --build` para reconstruir la imagen y asegurar que todo el equipo trabaje con las dependencias actualizadas.
+
+---
+
+### Comandos frecuentes de Docker
+
+| Acción | Comando |
+| :--- | :--- |
+| Iniciar contenedores en segundo plano | `docker compose up -d` |
+| Reconstruir e iniciar contenedores | `docker compose up -d --build` |
+| Ver logs en vivo de Django y Tailwind | `docker compose logs -f web` |
+| Ver logs en vivo de la base de datos | `docker compose logs -f db` |
+| Ejecutar las pruebas unitarias | `docker compose exec web python manage.py test` |
+| Crear un superusuario administrador | `docker compose exec web python manage.py createsuperuser` |
+| Detener los contenedores | `docker compose down` |
+
+---
+
+### Opción alternativa: Entorno virtual local (.venv)
+
+Si prefieres ejecutar el proyecto directamente en tu máquina sin Docker:
+
+```bash
+# 1. Crear y activar el entorno virtual
 python3 -m venv .venv
 source .venv/bin/activate
 
-# 3. Actualizar pip e instalar dependencias
-pip install --upgrade pip
+# 2. Instalar dependencias
 pip install -r requirements.txt
 
-# 4. Aplicar las migraciones de base de datos (crea data/db.sqlite3)
+# 3. Aplicar migraciones
 python manage.py migrate
 
-# 5. Iniciar el servidor de desarrollo
+# 4. Iniciar el servidor
 python manage.py runserver
 ```
-
-La aplicación estará accesible en `http://127.0.0.1:8000/`.
 
 ### Variables de entorno (`.env.dev`)
 
@@ -92,7 +157,6 @@ pet-social-network/
 │   ├── urls.py                   # Enrutador principal de la aplicación
 │   ├── wsgi.py                   # Punto de entrada WSGI para despliegue tradicional
 │   └── asgi.py                   # Punto de entrada ASGI para WebSockets y asincronía
-├── data/                         # Almacenamiento local de base de datos SQLite (ignorado en Git)
 ├── media/                        # Archivos multimedia subidos por usuarios (ignorado en Git)
 │   ├── avatars/
 │   ├── pets/
@@ -105,9 +169,13 @@ pet-social-network/
 │   ├── components/               # Componentes reutilizables (navbar, footer, mensajes)
 │   └── layouts/                  # Diseños de página base
 ├── theme/                        # Aplicación de Tailwind CSS (fuente y compilación de estilos)
+│   └── static_src/src/styles.css # Hoja de estilos fuente con tokens y temas personalizados
+├── .dockerignore                 # Reglas de exclusión para imágenes Docker
 ├── .editorconfig                 # Reglas automáticas de formato e indentación
 ├── .env.dev                      # Variables de entorno para desarrollo local
 ├── .gitignore                    # Reglas de exclusión de Git
+├── Dockerfile                    # Definición de la imagen del contenedor web
+├── docker-compose.yml            # Orquestación de servicios (web y base de datos)
 ├── manage.py                     # Utilidad de línea de comandos de Django
 └── requirements.txt              # Dependencias de Python del proyecto
 ```
