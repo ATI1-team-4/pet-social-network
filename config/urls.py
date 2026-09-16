@@ -27,8 +27,9 @@ urlpatterns = [
     path('', include('apps.core.urls')),
 ]
 
-# Servir archivos multimedia durante el desarrollo local
+# Rutas y servicios auxiliares exclusivos para desarrollo local
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns.append(path('__reload__/', include('django_browser_reload.urls')))
 
 

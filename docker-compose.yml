@@ -1,0 +1,36 @@
+# Configuración del entorno de desarrollo con Docker Compose para Petly
+services:
+  # Contenedor dedicado para la base de datos (almacenamiento persistente SQLite)
+  db:
+    image: alpine:3.21
+    container_name: petly_db
+    volumes:
+      - petly_db_data:/data
+    command: sh -c "mkdir -p /data && chmod 777 /data && echo 'Contenedor de base de datos Petly listo' && tail -f /dev/null"
+    healthcheck:
+      test: ["CMD", "test", "-d", "/data"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Contenedor de la aplicación web Django
+  web:
+    build: .
+    container_name: petly_web
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.dev
+    volumes:
+      # Sincroniza el código en tiempo real para recarga automática (hot-reload)
+      - .:/app
+      # Conecta con el volumen de la base de datos gestionado por el contenedor db
+      - petly_db_data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "tailwindcss -i theme/static_src/src/styles.css -o theme/static/css/dist/styles.css --watch --poll & python manage.py runserver 0.0.0.0:8000"
+
+# Volumen persistente para la base de datos
+volumes:
+  petly_db_data:

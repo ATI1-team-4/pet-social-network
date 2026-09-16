@@ -1,0 +1,21 @@
+# Entornos virtuales locales
+.venv/
+venv/
+
+# Caché y archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Base de datos y almacenamiento de datos local
+data/
+*.sqlite3
+labs/
+
+# Control de versiones
+.git/
+.gitignore
+
+# Archivos de configuración de Docker
+.dockerignore

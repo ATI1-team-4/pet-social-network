@@ -96,6 +96,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Recarga automática en el navegador exclusiva para desarrollo (Live Reload)
+# No se carga ni afecta el entorno de producción (DEBUG=False)
+if DEBUG:
+    INSTALLED_APPS.append('django_browser_reload')
+    MIDDLEWARE.append('django_browser_reload.middleware.BrowserReloadMiddleware')
+
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
@@ -186,3 +192,39 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+
+# Configuración de registro de eventos (logging) hacia la consola del contenedor
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} [{name}:{lineno}] {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
