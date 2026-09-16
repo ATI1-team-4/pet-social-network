@@ -15,16 +15,6 @@ Petly conecta a dueños y amantes de los animales para compartir experiencias, b
   - *Socialización:* aprendizaje y convivencia segura para animales domésticos.
 - **Comunicación y confianza:** mensajería directa por chat, sistema de reputación para encuentros presenciales y moderación de contenido.
 
-## Equipo de desarrollo
-
-| Rol | Responsable |
-| :--- | :--- |
-| Product owners | María Paula Herrero & Sofía Marcano |
-| UX/UI developer | Oriana Arellano |
-| Database administrator | Bryan Silva |
-| Frontend developer | Stefany Martínez |
-| Backend developer | Edwyn Guzmán |
-
 ## Tecnologías
 
 | Componente | Tecnología | Propósito |
@@ -278,3 +268,13 @@ from apps.accounts.models import UserProfile
   - `base.html` actúa como cascarón raíz mínimo e independiente de componentes de navegación.
   - **Regla de herencia de layouts:** cualquier plantilla dentro de `templates/layouts/` (como `app.html` o un futuro `auth.html`) debe heredar obligatoriamente de `base.html` mediante `{% extends 'base.html' %}`.
   - Enlaces de navegación resueltos siempre mediante la etiqueta `{% url %}`.
+
+## Equipo de desarrollo
+
+| Rol | Responsable |
+| :--- | :--- |
+| Product owners | María Paula Herrero & Sofía Marcano |
+| UX/UI developer | Oriana Arellano |
+| Database administrator | Bryan Silva |
+| Frontend developer | Stefany Martínez |
+| Backend developer | Edwyn Guzmán |
