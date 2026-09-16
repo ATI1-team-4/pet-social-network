@@ -46,11 +46,19 @@ cd pet-social-network
 # 2. Construir las imágenes y levantar los servicios en segundo plano
 docker compose up -d --build
 
-# 3. Aplicar las migraciones iniciales de base de datos dentro del contenedor
+# 3. Aplicar las migraciones (obligatorio la primera vez que se inicia el proyecto)
 docker compose exec web python manage.py migrate
 ```
 
 La aplicación estará lista y accesible en [http://localhost:8000/](http://localhost:8000/).
+
+> [!NOTE]
+> **Migraciones iniciales y persistencia en el volumen de Docker:**
+> - La ejecución del comando de migraciones (`python manage.py migrate`) es **estrictamente obligatoria la primera vez** que levantas el proyecto para inicializar el archivo `db.sqlite3` con todas las tablas del sistema dentro del volumen.
+> - La base de datos SQLite vive y se resguarda dentro del **volumen administrado por Docker (`petly_db_data`)**, el cual opera de forma totalmente aislada de tu sistema de archivos local.
+> - Aunque elimines archivos en tu máquina anfitriona o no exista una carpeta local `data/`, **la base de datos dentro del volumen NO se borra ni se ve afectada**.
+> - La base de datos únicamente se reiniciará o borrará si ejecutas explícitamente `docker compose down -v` (con la bandera `-v` de volúmenes). Con el comando habitual `docker compose down`, todos tus datos se conservan íntegros para el siguiente inicio.
+
 
 ---
 
