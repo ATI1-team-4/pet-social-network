@@ -52,20 +52,31 @@ source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# 4. Aplicar las migraciones de base de datos
+# 4. Aplicar las migraciones de base de datos (crea data/db.sqlite3)
 python manage.py migrate
 
 # 5. Iniciar el servidor de desarrollo
 python manage.py runserver
+
 ```
 
 La aplicación estará accesible en `http://127.0.0.1:8000/`.
 
-> [!TIP]
-> Recuerda activar siempre el entorno virtual (`source .venv/bin/activate`) antes de ejecutar cualquier comando de Django o instalar nuevas dependencias.
+### Variables de entorno (`.env.dev`)
 
-> [!WARNING]
-> Nunca incluyas en tus commits la base de datos local `db.sqlite3`, la carpeta del entorno virtual `.venv/`, ni archivos con claves secretas como `.env`. Todos ellos están protegidos en el `.gitignore`.
+El proyecto incluye el archivo [.env.dev](.env.dev) preconfigurado para desarrollo local con las siguientes variables:
+
+| Variable | Propósito | Valor por defecto |
+| :--- | :--- | :--- |
+| `SECRET_KEY` | Clave criptográfica para firmas de sesiones y tokens | Clave de desarrollo local |
+| `DEBUG` | Modo depuración con mensajes detallados de error | `True` |
+| `ALLOWED_HOSTS` | Lista de dominios válidos a los que responde el servidor | `localhost,127.0.0.1` |
+| `CSRF_TRUSTED_ORIGINS` | Orígenes permitidos para validación segura de formularios POST | `http://localhost:8000,http://127.0.0.1:8000` |
+| `SITE_DOMAIN` | Dominio propio para generar enlaces absolutos en correos | `localhost:8000` |
+| `SITE_PROTOCOL` | Protocolo de conexión (`http` o `https`) | `http` |
+| `DATABASE_DIR` | Carpeta local donde se guarda la base de datos SQLite | `data` |
+| `DATABASE_NAME` | Nombre del archivo de base de datos | `db.sqlite3` |
+
 
 ## Flujo de trabajo en Git y GitHub Projects
 

@@ -31,15 +31,20 @@ venv.bak/
 # Django
 *.log
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
+*.sqlite3
+*.sqlite3-journal
+data/*.sqlite3
+data/*.sqlite3-journal
 media/
 staticfiles/
 
 # Variables de entorno y secretos
 .env
+.env.prod
 .env.local
 .env.*.local
+!.env.dev
+
 
 # IDEs y editores
 .vscode/
