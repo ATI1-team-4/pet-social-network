@@ -1,21 +1,21 @@
-# Petly - Red social para mascotas
+# 🐾 Petly - Red social para mascotas
 
 Plataforma colaborativa para amantes de los animales, desarrollada para la materia **Aplicaciones con Tecnología Internet (Semestre 2026-1)** de la Escuela de Computación de la Universidad Central de Venezuela.
 
-## Sobre el proyecto
+## 📖 Sobre el proyecto
 
 Petly conecta a dueños y amantes de los animales para compartir experiencias, buscar adopción responsable, encontrar pareja o socializar a sus mascotas de forma segura.
 
-### Funcionalidades principales
-- **Perfiles dobles:** cada usuario maneja su perfil principal de humano y puede registrar múltiples perfiles para sus mascotas asociadas.
-- **Muro y multimedia:** publicaciones con fotos, videos, audios y enlaces, con soporte para menciones y comentarios anidados en hilo.
-- **Feeds especializados:**
-  - *Adopción responsable:* avisos de adopción, postulaciones y transferencia acordada de la mascota al nuevo dueño.
-  - *Búsqueda de pareja:* filtro y conexión entre mascotas compatibles.
-  - *Socialización:* aprendizaje y convivencia segura para animales domésticos.
-- **Comunicación y confianza:** mensajería directa por chat, sistema de reputación para encuentros presenciales y moderación de contenido.
+### ✨ Funcionalidades principales
+-  **Perfiles dobles:** cada usuario maneja su perfil principal de humano y puede registrar múltiples perfiles para sus mascotas asociadas.
+-  **Muro y multimedia:** publicaciones con fotos, videos, audios y enlaces, con soporte para menciones y comentarios anidados en hilo.
+-  **Feeds especializados:**
+   -  *Adopción responsable:* avisos de adopción, postulaciones y transferencia acordada de la mascota al nuevo dueño.
+   -  *Búsqueda de pareja:* filtro y conexión entre mascotas compatibles.
+   -  *Socialización:* aprendizaje y convivencia segura para animales domésticos.
+-  **Comunicación y confianza:** mensajería directa por chat, sistema de reputación para encuentros presenciales y moderación de contenido.
 
-## Tecnologías
+## 🛠️ Tecnologías
 
 | Componente | Tecnología | Propósito |
 | :--- | :--- | :--- |
@@ -30,9 +30,9 @@ Petly conecta a dueños y amantes de los animales para compartir experiencias, b
 | Control de versiones | Git y GitHub | Repositorio y control de versiones |
 | Gestión del proyecto | GitHub Projects | Tablero Kanban y trazabilidad de issues |
 
-## Puesta en marcha
+## 🚀 Puesta en marcha
 
-### Opción recomendada: Docker y Docker Compose
+### 🐳 Opción recomendada: Docker y Docker Compose
 
 > [!TIP]
 > **Recomendación para usuarios de Windows:**
@@ -64,7 +64,7 @@ La aplicación estará lista y accesible en [http://localhost:8000/](http://loca
 
 ---
 
-### Recarga automática en el navegador (Live Reload)
+### ⚡ Recarga automática en el navegador (Live Reload)
 
 El entorno de desarrollo incluye recarga automática en vivo mediante **`django-browser-reload`** y el compilador continuo de **Tailwind CSS v4**:
 - Al modificar y guardar cualquier archivo de plantilla HTML (`.html`), hoja de estilos (`.css`) o vista de Python (`.py`), **la pestaña de tu navegador se recarga sola de forma inmediata**, sin necesidad de presionar `F5`.
@@ -73,7 +73,7 @@ El entorno de desarrollo incluye recarga automática en vivo mediante **`django-
 
 ---
 
-### Gestión e instalación de dependencias en Docker
+### 📦 Gestión e instalación de dependencias en Docker
 
 Para garantizar que todos los desarrolladores mantengan exactamente las mismas librerías y evitar discrepancias entre el entorno local y el contenedor, la instalación de dependencias debe realizarse dentro del contenedor y luego versionarse en `requirements.txt`:
 
@@ -94,7 +94,7 @@ docker compose exec web pip install <nombre-del-paquete>
 
 ---
 
-### Comandos frecuentes de Docker
+### 💻 Comandos frecuentes de Docker
 
 | Acción | Comando |
 | :--- | :--- |
@@ -108,7 +108,7 @@ docker compose exec web pip install <nombre-del-paquete>
 
 ---
 
-### Opción alternativa: Entorno virtual local (.venv)
+### 🐍 Opción alternativa: Entorno virtual local (.venv)
 
 Si prefieres ejecutar el proyecto directamente en tu máquina sin Docker:
 
@@ -127,7 +127,7 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-### Variables de entorno (`.env.dev`)
+### 🔐 Variables de entorno (`.env.dev`)
 
 El proyecto incluye el archivo [.env.dev](.env.dev) preconfigurado para desarrollo local con las siguientes variables:
 
@@ -142,7 +142,7 @@ El proyecto incluye el archivo [.env.dev](.env.dev) preconfigurado para desarrol
 | `DATABASE_DIR` | Carpeta local donde se guarda la base de datos SQLite | `data` |
 | `DATABASE_NAME` | Nombre del archivo de base de datos | `db.sqlite3` |
 
-## Estructura del proyecto
+## 📁 Estructura del proyecto
 
 El proyecto implementa una arquitectura modular donde las funcionalidades de negocio se agrupan en el subdirectorio `apps/`, manteniendo la raíz despejada y facilitando el trabajo colaborativo entre frontend, backend y base de datos:
 
@@ -197,7 +197,7 @@ pet-social-network/
 > [!NOTE]
 > La carpeta `apps/<module_name>/` en este diagrama funciona como **plantilla de referencia arquitectónica** para la creación de futuros módulos. Actualmente, el proyecto cuenta con la aplicación inicial **`apps.core`**, la cual actúa como núcleo del sistema proveyendo modelos base abstractos (`TimeStampedModel` para auditoría temporal), utilidades transversales y la vista de inicio del portal público.
 
-### Principios de la arquitectura modular
+### 🏛️ Principios de la arquitectura modular
 
 | Carpeta | Propósito | Reglas de configuración |
 | :--- | :--- | :--- |
@@ -207,7 +207,7 @@ pet-social-network/
 | `static/` | Archivos JavaScript e imágenes estáticas del sistema | Carpeta fuente conectada a Django mediante `STATICFILES_DIRS = [BASE_DIR / 'static']`. En producción, `collectstatic` compila en `staticfiles/`. |
 | `media/` | Archivos multimedia subidos por los usuarios en tiempo de ejecución | Configurada con `MEDIA_ROOT = BASE_DIR / 'media'` y `MEDIA_URL = 'media/'`. Su contenido está completamente excluido de Git. |
 
-## Nomenclatura y almacenamiento de archivos multimedia (`media/`)
+## 🖼️ Nomenclatura y almacenamiento de archivos multimedia (`media/`)
 
 > [!NOTE]
 > **Estructura y convención preliminar:**
@@ -225,23 +225,23 @@ Para evitar subcarpetas innecesariamente anidadas y permitir identificar inmedia
 > **Nota sobre la estructura de carpetas e identificadores únicos:**
 > Tanto la **organización de subcarpetas** (`avatars/`, `pets/`, `posts/`) como los nombres y la generación del identificador único (sea mediante marca de tiempo `timestamp`, UUIDv4, hash criptográfico o combinaciones de los mismos) son **únicamente propuestas y ejemplos ilustrativos de cómo podría estructurarse**. Ninguno de estos patrones está cerrado de forma definitiva; representan una guía de referencia para el principio de diseño (que los archivos sean fácilmente identificables y trazables) y la estructura final quedará sujeta a consenso del equipo según evolucionen los modelos de datos.
 
-### Ventajas técnicas de la nomenclatura autodescriptiva
+### 💡 Ventajas técnicas de la nomenclatura autodescriptiva
 - **Autonomía del archivo:** Si el archivo se descarga, se comparte o se almacena en la nube (ejemplo: AWS S3), conserva su identidad y trazabilidad sin depender de su ruta.
 - **Búsqueda inmediata:** Permite auditar y listar todos los recursos de un usuario en consola con comandos directos (ejemplo: `ls media/pets/user_42_*`).
 - **Estructura limpia:** Mantiene las carpetas planas y organizadas por tipo de recurso en lugar de cientos de subdirectorios aislados.
 
-## Flujo de trabajo en Git y GitHub Projects
+## 🔄 Flujo de trabajo en Git y GitHub Projects
 
 Seguimos una metodología ágil donde cada tarea del tablero Kanban corresponde a un issue de GitHub (`#<issue-id>`).
 
-### Ramas principales (protegidas)
+### 🛡️ Ramas principales (protegidas)
 - `main`: rama de producción. Contiene únicamente código estable, probado y listo para entrega.
 - `develop`: rama de integración continua. Es el punto de partida y convergencia del trabajo activo del equipo.
 
 > [!WARNING]
 > Está terminantemente prohibido hacer push directo a las ramas `main` o `develop`. Todo cambio debe integrarse a través de un Pull Request revisado y aprobado.
 
-### Ramas de trabajo
+### 🌿 Ramas de trabajo
 Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` que surgen de `main`). Para mantener total coherencia con los commits, el prefijo de la rama se alinea directamente con el tipo de tarea:
 
 | Tipo de rama | Formato | Propósito | Ejemplo |
@@ -255,18 +255,25 @@ Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` q
 | Estilo | `style/<issue-id>-<slug>` | Corrección de formato o indentación según PEP 8 | `style/8-ajustar-pep8` |
 | Mantenimiento | `chore/<issue-id>-<slug>` | Ajuste de configuración, dependencias o tooling | `chore/10-ajustar-settings` |
 
-### Pull Requests y cierre automático de tareas
+### 🔀 Pull Requests y cierre automático de tareas
 1. Al concluir tu tarea, abre un Pull Request con destino a la rama `develop`.
-2. En la descripción del Pull Request, utiliza la palabra clave de cierre:
+2. En la descripción del Pull Request, utiliza la palabra clave de cierre vinculada al issue:
    ```markdown
    Closes #<issue-id>
    ```
-3. Verifica que las pruebas automáticas de Integración Continua (CI) pasen en verde y solicita la revisión de al menos un compañero del equipo. Una vez aprobado y verificado, se realiza la fusión (merge).
+   *Esto cerrará el issue automáticamente al fusionar el PR y moverá la tarjeta asociada a **Done** en el tablero Kanban del proyecto.*
+3. Verifica que los 5 controles de Integración Continua (CI) pasen en verde y solicita la aprobación de al menos un compañero del equipo.
+4. Al hacer **Merge**:
+   - GitHub **elimina la rama remota automáticamente** gracias a la política activa del repositorio (*Automatically delete head branches*).
+   - En tu máquina local, actualiza `develop` y elimina la rama local que ya fue integrada:
+     ```bash
+     git checkout develop
+     git pull origin develop
+     git branch -d nombre-de-la-rama
+     git fetch -p   # Limpia las referencias locales a ramas remotas ya eliminadas
+     ```
 
-> [!IMPORTANT]
-> **Eliminación obligatoria de ramas:** una vez fusionado el Pull Request en `develop`, la rama de trabajo remota debe eliminarse en GitHub. En tu máquina local, actualiza `develop` y elimina la rama con `git branch -d nombre-de-la-rama` para evitar acumulación de ramas huérfanas.
-
-### Integración continua (CI) con GitHub Actions
+### 🤖 Integración continua (CI) con GitHub Actions
 
 El repositorio cuenta con un pipeline automatizado en [.github/workflows/ci.yml](.github/workflows/ci.yml) que se dispara automáticamente ante cada `push` y `pull_request` hacia las ramas `develop` y `main`.
 
@@ -292,7 +299,7 @@ El pipeline ejecuta de manera nativa los siguientes 5 controles de calidad:
 > [!WARNING]
 > Ningún Pull Request debe fusionarse si el flujo de Integración Continua no finaliza en **verde (✅)**.
 
-### Formato de commits
+### 📝 Formato de commits
 Utilizamos Conventional Commits en minúsculas y en español, haciendo referencia al issue correspondiente:
 
 ```text
@@ -309,7 +316,7 @@ Utilizamos Conventional Commits en minúsculas y en español, haciendo referenci
 | `test` | Incorporación o ajuste de pruebas | `test(#10): agregar pruebas unitarias de autenticación` |
 | `chore` | Actualización de dependencias o configuración | `chore(#10): actualizar librerías en requirements` |
 
-## Guía de estilo de código
+## 📐 Guía de estilo de código
 
 Para mantener un código limpio, legible y uniforme entre todos los desarrolladores del equipo, se establecen las siguientes reglas obligatorias:
 
@@ -318,7 +325,7 @@ Para mantener un código limpio, legible y uniforme entre todos los desarrollado
 > - **Código en inglés:** todos los identificadores (nombres de variables, funciones, clases, métodos, modelos, campos de base de datos, rutas de URLs y nombres de archivos) deben escribirse estrictamente en **inglés**.
 > - **Comentarios en español:** todos los comentarios en el código, notas técnicas y cadenas de documentación (docstrings) deben redactarse exclusivamente en **español**.
 
-### Convenciones de Python y PEP 8
+### 🐍 Convenciones de Python y PEP 8
 
 | Elemento | Convención | Idioma | Ejemplo |
 | :--- | :--- | :--- | :--- |
@@ -328,7 +335,7 @@ Para mantener un código limpio, legible y uniforme entre todos los desarrollado
 | Indentación | 4 espacios (soft tabs) | - | Configurado automáticamente vía `.editorconfig` con tecla Tab |
 | Longitud de línea | 88 a 100 caracteres | - | Límite para legibilidad en revisiones |
 
-### Organización de importaciones
+### 📦 Organización de importaciones
 Las importaciones en la cabecera de cada archivo deben agruparse en tres bloques separados por una línea en blanco:
 
 ```python
@@ -343,7 +350,7 @@ from django.db import models
 from apps.accounts.models import UserProfile
 ```
 
-### Comentarios y documentación (docstrings)
+### 💬 Comentarios y documentación (docstrings)
 - Redacta siempre los comentarios y docstrings en **español**, explicando el **porqué** de decisiones complejas y evitando comentar lo obvio.
 - Emplea docstrings descriptivos al inicio de clases y funciones:
   ```python
@@ -357,7 +364,7 @@ from apps.accounts.models import UserProfile
       pet.save()
   ```
 
-### Buenas prácticas en Django
+### 🎯 Buenas prácticas en Django
 - **Modelos:**
   - Identificadores de clases y campos siempre en inglés (`class Pet(models.Model):`, `name = models.CharField(max_length=100)`).
   - Implementar siempre el método `__str__` para identificar las instancias en el panel de administración.
@@ -377,12 +384,10 @@ from apps.accounts.models import UserProfile
   - **Regla de herencia de layouts:** cualquier plantilla dentro de `templates/layouts/` (como `app.html` o un futuro `auth.html`) debe heredar obligatoriamente de `base.html` mediante `{% extends 'base.html' %}`.
   - Enlaces de navegación resueltos siempre mediante la etiqueta `{% url %}`.
 
-## Equipo de desarrollo
-
-| Rol | Responsable |
-| :--- | :--- |
-| Product owners | María Paula Herrero & Sofía Marcano |
-| UX/UI developer | Oriana Arellano |
-| Database administrator | Bryan Silva |
-| Frontend developer | Stefany Martínez |
-| Backend developer | Edwyn Guzmán |
+## 👥 Equipo de desarrollo
+Este proyecto es diseñado y construido por:
+* **Product Owners**: María Paula Herrero & Sofía Marcano.
+* **UX/UI Developer**: Oriana Arellano.
+* **Database Administrator**: Bryan Silva.
+* **Frontend Developer**: Stefany Martínez.
+* **Backend Developer**: Edwyn Guzmán.
