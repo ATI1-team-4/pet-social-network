@@ -1,23 +1,31 @@
-<header class="navbar">
-    <div class="container navbar-inner">
-        <!-- Logotipo y marca -->
-        <a href="/" class="navbar-brand">
-            <span class="brand-icon">🐾</span>
-            <span>Petly</span>
-        </a>
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 transition-all">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <!-- Logotipo y marca -->
+            <div class="flex items-center gap-4">
+                <a href="{% url 'core:home' %}" class="flex items-center gap-2.5 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center font-bold text-xl shadow-sm group-hover:bg-brand-600 group-hover:scale-105 transition-all duration-200">
+                        🐾
+                    </div>
+                    <span class="font-bold text-xl tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors">
+                        Petly
+                    </span>
+                </a>
+            </div>
 
-        <!-- Navegación central preliminar -->
-        <nav>
-            <ul class="navbar-links">
-                <li><a href="#">Comunidad</a></li>
-                <li><a href="#">Mascotas</a></li>
-                <li><a href="#">Adopción</a></li>
-            </ul>
-        </nav>
+            <!-- Navegación central -->
+            <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+                <a href="#" class="hover:text-brand-600 transition-colors">Comunidad</a>
+                <a href="#" class="hover:text-brand-600 transition-colors">Mascotas</a>
+                <a href="#" class="hover:text-brand-600 transition-colors">Adopción</a>
+            </nav>
 
-        <!-- Identificador académico -->
-        <div>
-            <span class="badge">ATI 2026-1</span>
+            <!-- Acciones e identificación académica -->
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                    ATI 2026-1
+                </span>
+            </div>
         </div>
     </div>
 </header>

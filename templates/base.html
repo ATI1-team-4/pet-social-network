@@ -1,4 +1,4 @@
-{% load static %}
+{% load static tailwind_tags %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -12,25 +12,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Estilos base del sistema (Vanilla CSS) -->
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <!-- Tailwind CSS (incluye estilos base del sistema) compilado mediante django-tailwind -->
+    {% tailwind_css %}
 
     {% block extra_head %}{% endblock %}
 </head>
-<body>
-    <!-- Barra de navegación global -->
-    {% include 'components/navbar.html' %}
-
-    <!-- Mensajes y alertas del sistema -->
-    {% include 'components/messages.html' %}
-
-    <!-- Contenido principal de la página -->
-    <main class="main-content container">
+<body class="{% block body_class %}{% endblock %}">
+    {% block layout %}
         {% block content %}{% endblock %}
-    </main>
-
-    <!-- Pie de página global -->
-    {% include 'components/footer.html' %}
+    {% endblock %}
 
     <!-- Scripts JavaScript base -->
     <script src="{% static 'js/main.js' %}"></script>

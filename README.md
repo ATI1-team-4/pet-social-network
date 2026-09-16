@@ -31,6 +31,7 @@ Petly conecta a dueños y amantes de los animales para compartir experiencias, b
 | :--- | :--- | :--- |
 | Lenguaje | Python 3.14+ | Lenguaje base del proyecto |
 | Framework web | Django 6.1+ | Backend, ORM y arquitectura web |
+| Estilos CSS | Tailwind CSS v4 | Sistema de diseño y utilidades visuales |
 | Base de datos | SQLite | Persistencia relacional de datos |
 | Control de versiones | Git y GitHub | Repositorio y control de versiones |
 | Gestión del proyecto | GitHub Projects | Tablero Kanban y trazabilidad de issues |
@@ -106,14 +107,14 @@ pet-social-network/
 │   ├── avatars/
 │   ├── pets/
 │   └── posts/
-├── static/                       # Recursos estáticos fuente durante el desarrollo
-│   ├── css/                      # Hojas de estilo CSS del frontend
-│   ├── js/                       # Scripts JavaScript del cliente
-│   └── img/                      # Logotipos, íconos y gráficos estáticos del sistema
+├── static/                       # Recursos estáticos del sistema
+│   ├── images/                   # Logotipos, íconos y gráficos estáticos del sistema
+│   └── js/                       # Scripts JavaScript del cliente (main.js)
 ├── templates/                    # Plantillas globales y componentes compartidos
 │   ├── base.html                 # Plantilla maestra con estructura HTML5 compartida
-│   ├── components/               # Componentes reutilizables (navbar, footer, cards, alertas)
-│   └── layouts/                  # Diseños de página base (feed, perfil, auth)
+│   ├── components/               # Componentes reutilizables (navbar, footer, mensajes)
+│   └── layouts/                  # Diseños de página base
+├── theme/                        # Aplicación de Tailwind CSS (fuente y compilación de estilos)
 ├── .editorconfig                 # Reglas automáticas de formato e indentación
 ├── .env.dev                      # Variables de entorno para desarrollo local
 ├── .gitignore                    # Reglas de exclusión de Git
@@ -122,15 +123,16 @@ pet-social-network/
 ```
 
 > [!NOTE]
-> La carpeta `apps/<module_name>/` en este diagrama funciona como **plantilla de referencia arquitectónica**. Ninguna aplicación ha sido creada aún en el proyecto.
+> La carpeta `apps/<module_name>/` en este diagrama funciona como **plantilla de referencia arquitectónica** para la creación de futuros módulos. Actualmente, el proyecto cuenta con la aplicación inicial **`apps.core`**, la cual actúa como núcleo del sistema proveyendo modelos base abstractos (`TimeStampedModel` para auditoría temporal), utilidades transversales y la vista de inicio del portal público.
 
 ### Principios de la arquitectura modular
 
 | Carpeta | Propósito | Reglas de configuración |
 | :--- | :--- | :--- |
-| `apps/` | Aloja los dominios de negocio separados en submódulos independientes | Cada app configurará su clase en `apps.py` con `name = 'apps.<nombre_app>'` para su registro limpio en `INSTALLED_APPS`. |
-| `templates/` | Plantilla base global y componentes de interfaz reutilizables | Las plantillas maestras y componentes globales van en la raíz (`templates/base.html`, `templates/components/`), mientras que las vistas específicas de módulo van en `apps/<nombre_app>/templates/<nombre_app>/`. |
-| `static/` | Archivos CSS, JavaScript e imágenes estáticas del sistema | Carpeta fuente conectada a Django mediante `STATICFILES_DIRS = [BASE_DIR / 'static']`. En producción, `collectstatic` compila en `staticfiles/`. |
+| `apps/` | Aloja los dominios del sistema separados en submódulos independientes | Cada app configura su clase en `apps.py` con `name = 'apps.<nombre_app>'` y su enrutador `urls.py` con `app_name = '<nombre_app>'` para la resolución inversa con `{% url %}`. |
+| `theme/` | Gestión y compilación del sistema de diseño Tailwind CSS | Contiene la configuración de estilos fuente y genera el paquete CSS unificado en `theme/static/css/dist/styles.css`. |
+| `templates/` | Plantilla base global, layouts intermedios y componentes reutilizables | `base.html` es el cascarón raíz. Todo layout dentro de `templates/layouts/` (ej. `app.html`) debe heredar obligatoriamente de `base.html` con `{% extends 'base.html' %}`. Las plantillas de cada módulo van en `apps/<nombre_app>/templates/<nombre_app>/`. |
+| `static/` | Archivos JavaScript e imágenes estáticas del sistema | Carpeta fuente conectada a Django mediante `STATICFILES_DIRS = [BASE_DIR / 'static']`. En producción, `collectstatic` compila en `staticfiles/`. |
 | `media/` | Archivos multimedia subidos por los usuarios en tiempo de ejecución | Configurada con `MEDIA_ROOT = BASE_DIR / 'media'` y `MEDIA_URL = 'media/'`. Su contenido está completamente excluido de Git. |
 
 ## Nomenclatura y almacenamiento de archivos multimedia (`media/`)
@@ -264,7 +266,15 @@ from apps.accounts.models import UserProfile
   - Definir la clase `Meta` con `verbose_name`, `verbose_name_plural` y ordenamiento predeterminado (`ordering`).
   - Utilizar campos de fecha automáticos (`auto_now_add=True` para creación, `auto_now=True` para actualización).
 - **Vistas y URLs:**
-  - Nombres de funciones, clases y rutas en inglés (ejemplo: `name='pet-list'`, `name='pet-detail'`).
+  - Nombres de funciones, clases y rutas en inglés (ejemplo: `name='home'`, `name='pet-list'`).
+  - **Espacios de nombres obligatorios (`app_name`):** cada archivo `urls.py` de aplicación debe declarar su identificador `app_name = '<nombre_app>'` para evitar colisiones entre módulos.
+  - **Resolución inversa obligatoria:** queda terminantemente prohibido quemar rutas estáticas a mano en el código o en las plantillas (ejemplo: `href="/inicio/"` o `redirect('/inicio/')`). Todos los enlaces y redirecciones deben resolverse dinámicamente mediante:
+    - En plantillas HTML: `{% url '<nombre_app>:<nombre_ruta>' %}`
+    - En redirecciones Python (FBVs): `redirect('<nombre_app>:<nombre_ruta>')`
+    - En código Python general / pruebas: `reverse('<nombre_app>:<nombre_ruta>')`
+    - En atributos de clase (CBVs): `reverse_lazy('<nombre_app>:<nombre_ruta>')`
   - Mantener las vistas delgadas delegando la lógica de negocio a modelos o capas de servicio.
 - **Plantillas HTML:**
-  - Estructura semántica HTML5 heredando de `base.html`.
+  - `base.html` actúa como cascarón raíz mínimo e independiente de componentes de navegación.
+  - **Regla de herencia de layouts:** cualquier plantilla dentro de `templates/layouts/` (como `app.html` o un futuro `auth.html`) debe heredar obligatoriamente de `base.html` mediante `{% extends 'base.html' %}`.
+  - Enlaces de navegación resueltos siempre mediante la etiqueta `{% url %}`.

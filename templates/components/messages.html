@@ -1,9 +1,9 @@
 {% if messages %}
-<div class="container messages-container">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 pt-4 space-y-2">
     {% for message in messages %}
-    <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}" role="alert">
+    <div class="p-4 rounded-xl text-sm border flex items-center justify-between shadow-sm transition-all {% if message.tags == 'error' %}bg-rose-50 border-rose-200 text-rose-800{% elif message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800{% elif message.tags == 'warning' %}bg-amber-50 border-amber-200 text-amber-800{% else %}bg-sky-50 border-sky-200 text-sky-800{% endif %}" role="alert">
         <span>{{ message }}</span>
-        <button type="button" class="alert-close" onclick="this.parentElement.remove()" aria-label="Cerrar">✕</button>
+        <button type="button" class="text-xs font-semibold opacity-70 hover:opacity-100 ml-4 p-1 rounded-lg hover:bg-black/5 transition-colors" onclick="this.parentElement.remove()" aria-label="Cerrar">✕</button>
     </div>
     {% endfor %}
 </div>

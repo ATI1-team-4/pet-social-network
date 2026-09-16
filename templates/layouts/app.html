@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block body_class %}flex flex-col{% endblock %}
+
+{% block layout %}
+    <!-- Barra de navegación global -->
+    {% include 'components/navbar.html' %}
+
+    <!-- Mensajes y alertas del sistema -->
+    {% include 'components/messages.html' %}
+
+    <!-- Contenido principal de la aplicación -->
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Pie de página global -->
+    {% include 'components/footer.html' %}
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - Petly{% endblock %}
+
+{% block content %}
+<main class="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-16 text-center">
+    <!-- Insignia de estado del entorno -->
+    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 shadow-2xs text-xs text-slate-600 mb-8 font-medium">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Entorno de desarrollo activo</span>
+    </div>
+
+    <!-- Ícono distintivo de la marca -->
+    <div class="w-20 h-20 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-3xl mb-6">
+        🐾
+    </div>
+
+    <!-- Título principal con escala tipográfica para escritorio -->
+    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight">
+        Bienvenido a Petly
+    </h1>
+
+    <!-- Párrafo descriptivo amplio y despejado -->
+    <p class="mt-4 text-base sm:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed font-light">
+        Plataforma para la comunidad de mascotas. La arquitectura base del sistema está configurada y lista para comenzar el desarrollo.
+    </p>
+
+    <!-- Sección de tecnologías utilizadas -->
+    <div class="mt-12 w-full max-w-2xl mx-auto">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400 mb-4">
+            Tecnologías del proyecto
+        </p>
+
+        <div class="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
+            <!-- Python -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs font-medium text-slate-700 hover:border-slate-300 transition-colors">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <span>Python 3.14</span>
+            </div>
+
+            <!-- Django -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs font-medium text-slate-700 hover:border-slate-300 transition-colors">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                <span>Django 6.1</span>
+            </div>
+
+            <!-- Tailwind CSS -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs font-medium text-slate-700 hover:border-slate-300 transition-colors">
+                <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                <span>Tailwind CSS v4</span>
+            </div>
+
+            <!-- SQLite -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs font-medium text-slate-700 hover:border-slate-300 transition-colors">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                <span>SQLite</span>
+            </div>
+
+            <!-- Desarrollo ágil -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs font-medium text-slate-700 hover:border-slate-300 transition-colors">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                <span>Desarrollo ágil</span>
+            </div>
+        </div>
+
+        <!-- Comentario sobre la base arquitectónica -->
+        <p class="mt-8 text-xs text-slate-400 max-w-md mx-auto leading-relaxed font-light">
+            Arquitectura fundamentada en el patrón MTV (Modelo, Template, Vista) de Django, con separación modular por dominios de negocio.
+        </p>
+    </div>
+</main>
+{% endblock %}

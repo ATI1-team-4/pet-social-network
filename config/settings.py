@@ -59,15 +59,31 @@ SITE_URL = f"{SITE_PROTOCOL}://{SITE_DOMAIN}"
 
 
 
-# Definición de aplicaciones
-
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
+
+THIRD_PARTY_APPS = [
+    'tailwind',
+    'theme',
+]
+
+LOCAL_APPS = [
+    'apps.core',
+]
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+# Configuración de Tailwind CSS (django-tailwind)
+TAILWIND_APP_NAME = 'theme'
+
+INTERNAL_IPS = [
+    '127.0.0.1',
 ]
 
 MIDDLEWARE = [
