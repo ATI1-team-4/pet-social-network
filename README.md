@@ -236,12 +236,15 @@ Seguimos una metodología ágil donde cada tarea del tablero Kanban corresponde 
 
 ### 🛡️ Ramas principales
 - `main`: rama de producción protegida. Contiene únicamente código estable, probado y listo para entrega oficial.
-- `develop`: rama de integración continua. Es el punto de partida y convergencia del trabajo activo del equipo.
+- `develop`: rama de integración continua protegida. Es el punto de partida y convergencia del trabajo activo del equipo.
 
 > [!WARNING]
 > **Protección estricta de `main`:** está terminantemente prohibido hacer push directo a la rama `main`. Todo paso a producción debe integrarse exclusivamente a través de un Pull Request con revisión, aprobación obligatoria de al menos un compañero y con la suite de CI en verde bloqueante.
 >
-> **Flexibilidad en `develop`:** para dar agilidad al equipo durante el desarrollo, `develop` no cuenta con bloqueos forzosos de fusión. No obstante, **es obligatorio respetar la política de ramas de trabajo**: cada tarea debe desarrollarse en su propia rama aislada (`feat/...`, `fix/...`) según la convención del proyecto. El pipeline de CI se ejecuta en cada Pull Request para que el equipo pueda **verificar visualmente si las pruebas y estilos pasan**, quedando bajo la responsabilidad del desarrollador comprobar que el CI esté en verde antes de fusionar.
+> **Reglas de protección en `develop`:** para mantener un equilibrio entre agilidad y calidad de código, `develop` cuenta con reglas de protección configuradas:
+> - **Fusión exclusiva mediante Pull Request:** no se permite push directo a `develop`; cada tarea debe desarrollarse en su propia rama aislada (`feat/...`, `fix/...`, etc.) siguiendo la convención del proyecto.
+> - **Sin aprobación requerida:** no es obligatorio el visto bueno o aprobación de otro compañero para fusionar, permitiendo que el propio desarrollador integre su PR de manera autónoma.
+> - **CI obligatorio y bloqueante:** el pipeline de CI debe finalizar completamente en **verde (✅)**. Si alguna prueba o verificación falla, GitHub bloqueará la fusión y el desarrollador deberá corregir el código en su rama y subir nuevos commits hasta que todas las comprobaciones pasen exitosamente.
 
 ### 🌿 Ramas de trabajo
 Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` que surgen de `main`). Para mantener total coherencia con los commits, el prefijo de la rama se alinea directamente con el tipo de tarea:
@@ -264,7 +267,7 @@ Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` q
    Closes #<issue-id>
    ```
    *Esto cerrará el issue automáticamente al fusionar el PR y moverá la tarjeta asociada a **Done** en el tablero Kanban del proyecto.*
-3. El pipeline de CI se ejecutará automáticamente para que puedas verificar el estado de tu código. Al no haber bloqueos automáticos en `develop`, asegúrate voluntariamente de que los 5 controles finalicen en verde antes de hacer clic en **Merge pull request**.
+3. El pipeline de CI se ejecutará automáticamente. Al estar configurado como bloqueante en `develop`, GitHub no habilitará el botón de **Merge pull request** hasta que los 5 controles finalicen en **verde (✅)**. Si algún control falla, el desarrollador deberá corregir el código en su rama local y subir los cambios (`push`) hasta que todas las pruebas pasen. Al no requerir aprobación de terceros, una vez el CI esté en verde, el autor podrá realizar el merge directamente.
 4. Al hacer **Merge**:
    - **Ramas de trabajo temporales:** GitHub **elimina la rama remota de la tarea automáticamente** al fusionarse en `develop` gracias a la política (*Automatically delete head branches*).
    - **Inmunidad de `develop` y `main`:** las ramas base cuentan con protección contra borrado accidental; al realizar el pase de `develop` hacia `main`, la rama `develop` permanece intacta y nunca se elimina.
