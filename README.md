@@ -234,12 +234,14 @@ Para evitar subcarpetas innecesariamente anidadas y permitir identificar inmedia
 
 Seguimos una metodología ágil donde cada tarea del tablero Kanban corresponde a un issue de GitHub (`#<issue-id>`).
 
-### 🛡️ Ramas principales (protegidas)
-- `main`: rama de producción. Contiene únicamente código estable, probado y listo para entrega.
+### 🛡️ Ramas principales
+- `main`: rama de producción protegida. Contiene únicamente código estable, probado y listo para entrega oficial.
 - `develop`: rama de integración continua. Es el punto de partida y convergencia del trabajo activo del equipo.
 
 > [!WARNING]
-> Está terminantemente prohibido hacer push directo a las ramas `main` o `develop`. Todo cambio debe integrarse a través de un Pull Request revisado y aprobado.
+> **Protección estricta de `main`:** está terminantemente prohibido hacer push directo a la rama `main`. Todo paso a producción debe integrarse exclusivamente a través de un Pull Request con revisión, aprobación obligatoria de al menos un compañero y con la suite de CI en verde bloqueante.
+>
+> **Flexibilidad en `develop`:** para dar agilidad al equipo durante el desarrollo, `develop` no cuenta con bloqueos forzosos de fusión. No obstante, **es obligatorio respetar la política de ramas de trabajo**: cada tarea debe desarrollarse en su propia rama aislada (`feat/...`, `fix/...`) según la convención del proyecto. El pipeline de CI se ejecuta en cada Pull Request para que el equipo pueda **verificar visualmente si las pruebas y estilos pasan**, quedando bajo la responsabilidad del desarrollador comprobar que el CI esté en verde antes de fusionar.
 
 ### 🌿 Ramas de trabajo
 Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` que surgen de `main`). Para mantener total coherencia con los commits, el prefijo de la rama se alinea directamente con el tipo de tarea:
@@ -262,9 +264,10 @@ Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` q
    Closes #<issue-id>
    ```
    *Esto cerrará el issue automáticamente al fusionar el PR y moverá la tarjeta asociada a **Done** en el tablero Kanban del proyecto.*
-3. Verifica que los 5 controles de Integración Continua (CI) pasen en verde y solicita la aprobación de al menos un compañero del equipo.
+3. El pipeline de CI se ejecutará automáticamente para que puedas verificar el estado de tu código. Al no haber bloqueos automáticos en `develop`, asegúrate voluntariamente de que los 5 controles finalicen en verde antes de hacer clic en **Merge pull request**.
 4. Al hacer **Merge**:
-   - GitHub **elimina la rama remota automáticamente** gracias a la política activa del repositorio (*Automatically delete head branches*).
+   - **Ramas de trabajo temporales:** GitHub **elimina la rama remota de la tarea automáticamente** al fusionarse en `develop` gracias a la política (*Automatically delete head branches*).
+   - **Inmunidad de `develop` y `main`:** las ramas base cuentan con protección contra borrado accidental; al realizar el pase de `develop` hacia `main`, la rama `develop` permanece intacta y nunca se elimina.
    - En tu máquina local, actualiza `develop` y elimina la rama local que ya fue integrada:
      ```bash
      git checkout develop
