@@ -281,7 +281,7 @@ Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` q
 
 ### 🤖 Integración continua (CI) con GitHub Actions
 
-El repositorio cuenta con un pipeline automatizado en [.github/workflows/ci.yml](.github/workflows/ci.yml) que se dispara automáticamente ante cada `push` y `pull_request` hacia las ramas `develop` y `main`.
+El repositorio cuenta con un pipeline automatizado en [.github/workflows/ci.yml](.github/workflows/ci.yml) que se dispara automáticamente ante cada `pull_request` hacia las ramas `develop` y `main`.
 
 El pipeline ejecuta de manera nativa los siguientes 5 controles de calidad:
 
