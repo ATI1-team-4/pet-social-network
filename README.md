@@ -371,24 +371,107 @@ from apps.accounts.models import UserProfile
   ```
 
 ### 🎯 Buenas prácticas en Django
-- **Modelos:**
-  - Identificadores de clases y campos siempre en inglés (`class Pet(models.Model):`, `name = models.CharField(max_length=100)`).
-  - Implementar siempre el método `__str__` para identificar las instancias en el panel de administración.
-  - Definir la clase `Meta` con `verbose_name`, `verbose_name_plural` y ordenamiento predeterminado (`ordering`).
-  - Utilizar campos de fecha automáticos (`auto_now_add=True` para creación, `auto_now=True` para actualización).
-- **Vistas y URLs:**
-  - Nombres de funciones, clases y rutas en inglés (ejemplo: `name='home'`, `name='pet-list'`).
-  - **Espacios de nombres obligatorios (`app_name`):** cada archivo `urls.py` de aplicación debe declarar su identificador `app_name = '<nombre_app>'` para evitar colisiones entre módulos.
-  - **Resolución inversa obligatoria:** queda terminantemente prohibido quemar rutas estáticas a mano en el código o en las plantillas (ejemplo: `href="/inicio/"` o `redirect('/inicio/')`). Todos los enlaces y redirecciones deben resolverse dinámicamente mediante:
-    - En plantillas HTML: `{% url '<nombre_app>:<nombre_ruta>' %}`
-    - En redirecciones Python (FBVs): `redirect('<nombre_app>:<nombre_ruta>')`
-    - En código Python general / pruebas: `reverse('<nombre_app>:<nombre_ruta>')`
-    - En atributos de clase (CBVs): `reverse_lazy('<nombre_app>:<nombre_ruta>')`
-  - Mantener las vistas delgadas delegando la lógica de negocio a modelos o capas de servicio.
-- **Plantillas HTML:**
-  - `base.html` actúa como cascarón raíz mínimo e independiente de componentes de navegación.
-  - **Regla de herencia de layouts:** cualquier plantilla dentro de `templates/layouts/` (como `app.html` o un futuro `auth.html`) debe heredar obligatoriamente de `base.html` mediante `{% extends 'base.html' %}`.
-  - Enlaces de navegación resueltos siempre mediante la etiqueta `{% url %}`.
+
+#### 🗄️ Modelos y Base de Datos
+- Identificadores de clases y campos siempre en inglés (`class Pet(models.Model):`, `name = models.CharField(max_length=100)`).
+- Implementar siempre el método `__str__` para identificar las instancias en el panel de administración.
+- Definir la clase `Meta` con `verbose_name`, `verbose_name_plural` y ordenamiento predeterminado (`ordering`).
+- Utilizar campos de fecha automáticos (`auto_now_add=True` para creación, `auto_now=True` para actualización).
+
+#### 🌐 Vistas, URLs y contrato de enrutamiento (Zero-Collision)
+- **Vistas delgadas (Fat Models/Services, Thin Views):** Mantener las vistas con lógica mínima delegando reglas de negocio a servicios (`services.py`) o modelos.
+- **Espacios de nombres obligatorios (`app_name`):** Cada archivo `urls.py` dentro de `apps/<modulo>/` debe declarar obligatoriamente su variable `app_name = '<modulo>'` para evitar colisiones entre aplicaciones.
+- **Nombres de ruta semánticos en inglés:** Todo identificador de ruta (`name`) debe escribirse en inglés y en formato `snake_case`, siguiendo el patrón semántico `<entidad>_<acción>` (ej. `pet_list`, `pet_create`).
+- **Resolución inversa obligatoria (Cero rutas quemadas):** Queda terminantemente prohibido quemar rutas estáticas a mano en el código o en las plantillas (ejemplo: `href="/inicio/"`, `href="#"` o `redirect('/pets/')`). Todos los enlaces y redirecciones deben resolverse dinámicamente mediante:
+  - En plantillas HTML: `{% url '<nombre_app>:<nombre_ruta>' %}`
+  - En vistas por funciones (FBVs): `redirect('<nombre_app>:<nombre_ruta>')`
+  - En vistas por clases (CBVs): `reverse_lazy('<nombre_app>:<nombre_ruta>')`
+  - En servicios o pruebas: `reverse('<nombre_app>:<nombre_ruta>')`
+
+> [!IMPORTANT]
+> **Contrato de URLs para desarrollo concurrente sin bloqueos:**
+> Para que ningún desarrollador dependa de otro para enlazar pantallas (por ejemplo, maquetar navegación o botones en frontend antes de que el backend implemente las vistas), cada módulo debe definir su catálogo oficial de nombres de ruta de antemano.
+
+##### 📋 Catálogo estándar de nombres de ruta (`name`):
+| Operación | Patrón de `name` | URL Relativa sugerida | Propósito / Pantalla |
+| :--- | :--- | :--- | :--- |
+| **Listado / Principal** | `<entidad>_list` | `/<modulo>/` | Pantalla de índice o listado general |
+| **Creación** | `<entidad>_create` | `/<modulo>/create/` | Formulario de registro o alta de recurso |
+| **Detalle** | `<entidad>_detail` | `/<modulo>/<int:pk>/` | Ficha informativa de un registro específico |
+| **Edición** | `<entidad>_edit` | `/<modulo>/<int:pk>/edit/` | Formulario de actualización o modificación |
+| **Eliminación** | `<entidad>_delete` | `/<modulo>/<int:pk>/delete/` | Confirmación o endpoint de borrado |
+| **Acción específica** | `<entidad>_<accion>` | `/<modulo>/<accion>/` | Flujos específicos (ej. `match_feed`, `login`) |
+
+##### 💡 Ejemplo práctico de uso:
+
+1. **Definición en el enrutador del módulo (`apps/pets/urls.py`):**
+```python
+from django.urls import path
+
+from apps.pets import views
+
+app_name = 'pets'
+
+urlpatterns = [
+    # Colección y creación
+    path('', views.PetListView.as_view(), name='pet_list'),
+    path('create/', views.PetCreateView.as_view(), name='pet_create'),
+
+    # Operaciones sobre una entidad concreta (con identificador)
+    path('<int:pk>/', views.PetDetailView.as_view(), name='pet_detail'),
+    path('<int:pk>/edit/', views.PetUpdateView.as_view(), name='pet_edit'),
+    path('<int:pk>/delete/', views.PetDeleteView.as_view(), name='pet_delete'),
+
+    # Flujos de negocio específicos
+    path('match/feed/', views.MatchFeedView.as_view(), name='match_feed'),
+]
+```
+
+2. **Consumo en plantillas HTML (`templates/`):**
+```html
+{# Enlaces globales sin parámetros (ej. navbar o botones principales) #}
+<a href="{% url 'pets:pet_list' %}" class="...">Mis Mascotas</a>
+<a href="{% url 'pets:pet_create' %}" class="...">Registrar Mascota</a>
+
+{# Enlaces dinámicos con parámetros (dentro de tarjetas, bucles o tablas) #}
+{% for pet in pets %}
+    <a href="{% url 'pets:pet_detail' pet.pk %}" class="...">Ver Detalle</a>
+    <a href="{% url 'pets:pet_edit' pet.pk %}" class="...">Editar</a>
+{% endfor %}
+
+{# Enlaces entre módulos distintos (frontend conecta pantallas sin esperar al backend) #}
+<a href="{% url 'accounts:login' %}" class="...">Iniciar Sesión</a>
+<a href="{% url 'pets:match_feed' %}" class="...">Buscar Pareja</a>
+```
+
+3. **Consumo en Python (Vistas, Redirecciones y Pruebas):**
+```python
+from django.shortcuts import redirect
+from django.urls import reverse, reverse_lazy
+
+# En Vistas Basadas en Funciones (FBVs)
+def pet_create_view(request):
+    # Lógica de guardado...
+    return redirect('pets:pet_list')
+
+# En Vistas Basadas en Clases (CBVs)
+class PetDeleteView(DeleteView):
+    model = Pet
+    success_url = reverse_lazy('pets:pet_list')
+
+# En lógica de servicios, modelos o pruebas unitarias (con argumentos)
+def test_pet_detail_redirect():
+    url = reverse('pets:pet_detail', kwargs={'pk': pet.pk})
+```
+
+> [!TIP]
+> **Beneficio para el trabajo en equipo:**
+> Siguiendo este contrato, si el desarrollador **UX/Frontend** está maquetando la barra de navegación o tarjetas de usuario, puede colocar `href="{% url 'accounts:profile' %}"` o `href="{% url 'pets:pet_create' %}"` antes de que el backend escriba la vista, garantizando cero colisiones y cero errores de `NoReverseMatch` al integrar las ramas.
+
+#### 🎨 Plantillas HTML y estructura visual
+- `base.html` actúa como cascarón raíz mínimo e independiente de componentes de navegación.
+- **Regla de herencia de layouts:** cualquier plantilla dentro de `templates/layouts/` (como `app.html` o un futuro `auth.html`) debe heredar obligatoriamente de `base.html` mediante `{% extends 'base.html' %}`.
+- Enlaces de navegación resueltos siempre mediante la etiqueta `{% url %}` usando los nombres del contrato.
 
 ## 👥 Equipo de desarrollo
 Este proyecto es diseñado y construido por:
