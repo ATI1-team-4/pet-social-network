@@ -416,12 +416,10 @@ urlpatterns = [
     # Colección y creación
     path('', views.PetListView.as_view(), name='pet_list'),
     path('create/', views.PetCreateView.as_view(), name='pet_create'),
-
     # Operaciones sobre una entidad concreta (con identificador)
     path('<int:pk>/', views.PetDetailView.as_view(), name='pet_detail'),
     path('<int:pk>/edit/', views.PetUpdateView.as_view(), name='pet_edit'),
     path('<int:pk>/delete/', views.PetDeleteView.as_view(), name='pet_delete'),
-
     # Flujos de negocio específicos
     path('match/feed/', views.MatchFeedView.as_view(), name='match_feed'),
 ]
@@ -449,15 +447,18 @@ urlpatterns = [
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 
+
 # En Vistas Basadas en Funciones (FBVs)
 def pet_create_view(request):
     # Lógica de guardado...
     return redirect('pets:pet_list')
 
+
 # En Vistas Basadas en Clases (CBVs)
 class PetDeleteView(DeleteView):
     model = Pet
     success_url = reverse_lazy('pets:pet_list')
+
 
 # En lógica de servicios, modelos o pruebas unitarias (con argumentos)
 def test_pet_detail_redirect():
