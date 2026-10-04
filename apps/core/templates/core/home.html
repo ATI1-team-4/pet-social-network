@@ -1,72 +1,68 @@
-{% extends 'base.html' %}
+{% extends 'layouts/public.html' %}
+{% load i18n %}
 
-{% block title %}Inicio - Petly{% endblock %}
+{% block title %}{% translate "Inicio" %} | Petly{% endblock %}
 
 {% block content %}
-<main class="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-16 text-center">
-    <!-- Insignia de estado del entorno -->
-    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 shadow-2xs text-xs text-slate-600 mb-8 font-medium">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span>Entorno de desarrollo activo</span>
-    </div>
-
-    <!-- Ícono distintivo de la marca -->
-    <div class="w-20 h-20 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-3xl mb-6">
-        🐾
-    </div>
-
-    <!-- Título principal con escala tipográfica para escritorio -->
-    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight">
-        Bienvenido a Petly
-    </h1>
-
-    <!-- Párrafo descriptivo amplio y despejado -->
-    <p class="mt-4 text-base sm:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed font-light">
-        Plataforma para la comunidad de mascotas. La arquitectura base del sistema está configurada y lista para comenzar el desarrollo.
-    </p>
-
-    <!-- Sección de tecnologías utilizadas -->
-    <div class="mt-12 w-full max-w-2xl mx-auto">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400 mb-4">
-            Tecnologías del proyecto
+<div class="py-8 max-w-5xl mx-auto flex flex-col items-center">
+    <!-- Encabezado base de bienvenida -->
+    <div class="text-center max-w-2xl mx-auto mb-8">
+        <div class="w-12 h-12 rounded-full bg-petly-coral-light border border-petly-coral/30 text-petly-coral flex items-center justify-center shadow-xs mx-auto mb-3">
+            {% include 'components/icon.html' with name="paw" class="w-6 h-6 text-petly-coral" %}
+        </div>
+        <h1 class="title-h2 text-neutral-900 mb-2">{% translate "Bienvenido a Petly" %}</h1>
+        <p class="text-caption text-neutral-500">
+            {% translate "Estructura base lista para el desarrollo de vistas." %}
         </p>
+    </div>
 
-        <div class="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
-            <!-- Python -->
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs font-medium text-slate-700 hover:border-slate-300 transition-colors">
-                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                <span>Python 3.14</span>
-            </div>
-
-            <!-- Django -->
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs font-medium text-slate-700 hover:border-slate-300 transition-colors">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                <span>Django 6.1</span>
-            </div>
-
-            <!-- Tailwind CSS -->
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs font-medium text-slate-700 hover:border-slate-300 transition-colors">
-                <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
-                <span>Tailwind CSS v4</span>
-            </div>
-
-            <!-- SQLite -->
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs font-medium text-slate-700 hover:border-slate-300 transition-colors">
-                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                <span>SQLite</span>
-            </div>
-
-            <!-- Desarrollo ágil -->
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs font-medium text-slate-700 hover:border-slate-300 transition-colors">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                <span>Desarrollo ágil</span>
-            </div>
+    <!-- Directorio con botones para ver las demás interfaces -->
+    <div class="w-full card-petly p-6 sm:p-8 bg-white border border-neutral-300/80 mb-10">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-6">
+            <h2 class="title-h4 text-neutral-800 flex items-center gap-2">
+                {% include 'components/icon.html' with name="sliders" class="w-4 h-4 text-petly-coral" %}
+                <span>{% translate "Directorio de interfaces" %}</span>
+            </h2>
+            <span class="text-xs text-neutral-400">{% translate "8 interfaces registradas" %}</span>
         </div>
 
-        <!-- Comentario sobre la base arquitectónica -->
-        <p class="mt-8 text-xs text-slate-400 max-w-md mx-auto leading-relaxed font-light">
-            Arquitectura fundamentada en el patrón MTV (Modelo, Template, Vista) de Django, con separación modular por dominios de negocio.
-        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <a href="{% url 'accounts:login' %}" class="btn-petly-primary text-xs px-3 py-2.5 text-center flex items-center justify-center gap-1.5">
+                {% include 'components/icon.html' with name="lock" class="w-3.5 h-3.5 text-white" %}
+                <span>{% translate "Iniciar sesión" %}</span>
+            </a>
+            <a href="{% url 'accounts:register' %}" class="btn-petly-secondary text-xs px-3 py-2.5 text-center flex items-center justify-center gap-1.5">
+                {% include 'components/icon.html' with name="mail" class="w-3.5 h-3.5" %}
+                <span>{% translate "Registro de usuario" %}</span>
+            </a>
+            <a href="{% url 'accounts:password_reset' %}" class="btn-petly-outline text-xs px-3 py-2.5 text-center flex items-center justify-center gap-1.5 bg-white">
+                {% include 'components/icon.html' with name="eye" class="w-3.5 h-3.5" %}
+                <span>{% translate "Recuperar contraseña" %}</span>
+            </a>
+            <a href="{% url 'accounts:profile' %}" class="btn-petly-soft text-xs px-3 py-2.5 text-center flex items-center justify-center gap-1.5">
+                {% include 'components/icon.html' with name="user" class="w-3.5 h-3.5" %}
+                <span>{% translate "Gestión de usuario" %}</span>
+            </a>
+            <a href="{% url 'pets:pet_management' %}" class="btn-petly-primary text-xs px-3 py-2.5 text-center flex items-center justify-center gap-1.5">
+                {% include 'components/icon.html' with name="paw" class="w-3.5 h-3.5 text-white" %}
+                <span>{% translate "Gestión de mascotas" %}</span>
+            </a>
+            <a href="{% url 'pets:pet_select' %}" class="btn-petly-secondary text-xs px-3 py-2.5 text-center flex items-center justify-center gap-1.5">
+                {% include 'components/icon.html' with name="check-circle" class="w-3.5 h-3.5" %}
+                <span>{% translate "Seleccionar mascota" %}</span>
+            </a>
+            <a href="{% url 'pets:match_feed' %}" class="btn-petly-lilac text-xs px-3 py-2.5 text-center flex items-center justify-center gap-1.5">
+                {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5" %}
+                <span>{% translate "Buscar pareja" %}</span>
+            </a>
+            <a href="{% url 'pets:match_interested' %}" class="btn-petly-outline text-xs px-3 py-2.5 text-center flex items-center justify-center gap-1.5 bg-white">
+                {% include 'components/icon.html' with name="users" class="w-3.5 h-3.5" %}
+                <span>{% translate "Mascotas interesadas" %}</span>
+            </a>
+        </div>
     </div>
-</main>
+
+    <!-- Muestra completa de componentes en la interfaz -->
+    {% include 'components/components_palette.html' %}
+</div>
 {% endblock %}

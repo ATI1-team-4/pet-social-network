@@ -4,14 +4,21 @@
 {% block title %}{% translate "Buscar pareja" %} | Petly{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto py-8">
-    <h1 class="text-3xl font-bold text-slate-900 mb-2">{% translate "Buscar pareja" %}</h1>
-    <p class="text-slate-600 mb-6">{% translate "Feed interactivo de cruza/compatibilidad en construcción." %}</p>
-    <div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm text-center">
-        <p class="text-slate-500 mb-4">{% translate "Tarjeta central tipo Tinder" %}</p>
-        <div class="flex justify-center gap-4">
-            <a href="{% url 'pets:match_interested' %}" class="text-brand-600 hover:underline font-medium">{% translate "Ver mascotas interesadas →" %}</a>
+<div class="max-w-4xl mx-auto py-8">
+    <div class="card-petly p-8 bg-white border border-neutral-300/80 mb-10 text-center">
+        <h1 class="title-h3 text-neutral-900 mb-2">{% translate "Buscar pareja" %}</h1>
+        <p class="text-caption text-neutral-500 mb-6">
+            {% translate "Feed interactivo de cruza/compatibilidad en construcción." %}
+        </p>
+        <div class="p-6 rounded-2xl bg-neutral-100/60 border border-neutral-300/60 max-w-sm mx-auto mb-4">
+            <p class="text-xs text-neutral-500 mb-3 font-medium">{% translate "Tarjeta central tipo Tinder" %}</p>
+            <a href="{% url 'pets:match_interested' %}" class="btn-petly-secondary text-xs px-4 py-2 inline-flex items-center gap-1.5">
+                {% translate "Ver mascotas interesadas →" %}
+            </a>
         </div>
     </div>
+
+    <!-- Muestra de componentes para los desarrolladores -->
+    {% include 'components/components_palette.html' %}
 </div>
 {% endblock %}

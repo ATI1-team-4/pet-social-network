@@ -1,17 +1,20 @@
-{% extends 'base.html' %}
+{% extends 'layouts/public.html' %}
 {% load i18n %}
 
 {% block title %}{% translate "Iniciar sesión" %} | Petly{% endblock %}
 
 {% block content %}
-<main class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-        <h1 class="text-2xl font-bold text-slate-900 mb-2">{% translate "Inicio de sesión" %}</h1>
-        <p class="text-slate-600 text-sm mb-6">{% translate "Pantalla en construcción para el reto 13." %}</p>
-        <div class="space-y-4">
-            <a href="{% url 'accounts:register' %}" class="text-brand-600 hover:underline text-sm block">{% translate "¿Aún no tienes cuenta? Regístrate aquí" %}</a>
-            <a href="{% url 'accounts:password_reset' %}" class="text-slate-500 hover:underline text-xs block">{% translate "¿Olvidaste tu contraseña?" %}</a>
+<div class="max-w-4xl mx-auto py-8">
+    <div class="max-w-md mx-auto card-petly p-8 bg-white border border-neutral-300/80 mb-10 text-center">
+        <h1 class="title-h3 text-neutral-900 mb-2">{% translate "Inicio de sesión" %}</h1>
+        <p class="text-caption text-neutral-500 mb-6">{% translate "Pantalla en construcción para el reto 13." %}</p>
+        <div class="space-y-2">
+            <a href="{% url 'accounts:register' %}" class="text-xs text-petly-coral hover:underline block">{% translate "¿Aún no tienes cuenta? Regístrate aquí" %}</a>
+            <a href="{% url 'accounts:password_reset' %}" class="text-xs text-neutral-500 hover:underline block">{% translate "¿Olvidaste tu contraseña?" %}</a>
         </div>
     </div>
-</main>
+
+    <!-- Muestra de componentes para los desarrolladores -->
+    {% include 'components/components_palette.html' %}
+</div>
 {% endblock %}

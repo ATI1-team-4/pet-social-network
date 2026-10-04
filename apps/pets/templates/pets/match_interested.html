@@ -5,10 +5,17 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto py-8">
-    <h1 class="text-3xl font-bold text-slate-900 mb-2">{% translate "Mascotas interesadas" %}</h1>
-    <p class="text-slate-600 mb-6">{% translate "Bandeja de pretendientes y citas confirmadas en construcción." %}</p>
-    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-        <a href="{% url 'pets:match_feed' %}" class="text-brand-600 hover:underline font-medium">{% translate "← Volver a explorar parejas" %}</a>
+    <div class="card-petly p-8 bg-white border border-neutral-300/80 mb-10 text-center">
+        <h1 class="title-h3 text-neutral-900 mb-2">{% translate "Mascotas interesadas" %}</h1>
+        <p class="text-caption text-neutral-500 mb-6">
+            {% translate "Bandeja de pretendientes y citas confirmadas en construcción." %}
+        </p>
+        <a href="{% url 'pets:match_feed' %}" class="btn-petly-outline text-xs px-4 py-2 inline-flex items-center gap-1.5 bg-white">
+            {% translate "← Volver a explorar parejas" %}
+        </a>
     </div>
+
+    <!-- Muestra de componentes para los desarrolladores -->
+    {% include 'components/components_palette.html' %}
 </div>
 {% endblock %}
