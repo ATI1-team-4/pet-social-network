@@ -63,6 +63,14 @@
   --color-brand-700: #a53b42;
 }
 
+/* Utilidades personalizadas de dimensionamiento de marca (26px / 1.625rem) */
+.w-6\.5 { width: 1.625rem; }
+.h-6\.5 { height: 1.625rem; }
+@media (min-width: 640px) {
+  .sm\:w-6\.5 { width: 1.625rem; }
+  .sm\:h-6\.5 { height: 1.625rem; }
+}
+
 /* Variables del sistema y tokens complementarios */
 :root {
   --color-brand: #fa7d82;

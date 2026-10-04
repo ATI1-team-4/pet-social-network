@@ -27,5 +27,5 @@ RUN tailwindcss -i theme/static_src/src/styles.css -o theme/static/css/dist/styl
 # Exponer el puerto de desarrollo de Django
 EXPOSE 8000
 
-# Iniciar el servidor de desarrollo escuchando en todas las interfaces
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Iniciar compilador continuo de Tailwind y servidor de desarrollo Django
+CMD ["sh", "-c", "tailwindcss -i theme/static_src/src/styles.css -o theme/static/css/dist/styles.css --watch=always --poll & python manage.py runserver 0.0.0.0:8000"]
