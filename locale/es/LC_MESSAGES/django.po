@@ -1,0 +1,190 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-03 20:41-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
+"1 : 2;\n"
+
+#: apps/accounts/templates/accounts/login.html:4
+#: templates/components/navbar.html:56
+msgid "Iniciar sesión"
+msgstr ""
+
+#: apps/accounts/templates/accounts/login.html:9
+msgid "Inicio de sesión"
+msgstr ""
+
+#: apps/accounts/templates/accounts/login.html:10
+#: apps/accounts/templates/accounts/password_reset.html:10
+#: apps/accounts/templates/accounts/register.html:10
+msgid "Pantalla en construcción para el reto 13."
+msgstr ""
+
+#: apps/accounts/templates/accounts/login.html:12
+msgid "¿Aún no tienes cuenta? Regístrate aquí"
+msgstr ""
+
+#: apps/accounts/templates/accounts/login.html:13
+msgid "¿Olvidaste tu contraseña?"
+msgstr ""
+
+#: apps/accounts/templates/accounts/password_reset.html:4
+msgid "Recuperar contraseña"
+msgstr ""
+
+#: apps/accounts/templates/accounts/password_reset.html:9
+msgid "Recuperación de contraseña"
+msgstr ""
+
+#: apps/accounts/templates/accounts/password_reset.html:11
+msgid "Volver a iniciar sesión"
+msgstr ""
+
+#: apps/accounts/templates/accounts/register.html:4
+#: apps/accounts/templates/accounts/register.html:9
+msgid "Registro de usuario"
+msgstr ""
+
+#: apps/accounts/templates/accounts/register.html:11
+msgid "¿Ya tienes cuenta? Inicia sesión"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:4
+#: apps/accounts/templates/accounts/user_profile.html:8
+msgid "Gestión de usuario"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:9
+msgid "Pantalla en construcción para el perfil del tutor."
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:11
+msgid "Ir a gestión de perfiles de mascotas →"
+msgstr ""
+
+#: apps/pets/templates/pets/match_feed.html:4
+#: apps/pets/templates/pets/match_feed.html:8
+#: templates/components/navbar.html:20
+msgid "Buscar pareja"
+msgstr ""
+
+#: apps/pets/templates/pets/match_feed.html:9
+msgid "Feed interactivo de cruza/compatibilidad en construcción."
+msgstr ""
+
+#: apps/pets/templates/pets/match_feed.html:11
+msgid "Tarjeta central tipo Tinder"
+msgstr ""
+
+#: apps/pets/templates/pets/match_feed.html:13
+msgid "Ver mascotas interesadas →"
+msgstr ""
+
+#: apps/pets/templates/pets/match_interested.html:4
+#: apps/pets/templates/pets/match_interested.html:8
+msgid "Mascotas interesadas"
+msgstr ""
+
+#: apps/pets/templates/pets/match_interested.html:9
+msgid "Bandeja de pretendientes y citas confirmadas en construcción."
+msgstr ""
+
+#: apps/pets/templates/pets/match_interested.html:11
+msgid "← Volver a explorar parejas"
+msgstr ""
+
+#: apps/pets/templates/pets/pet_management.html:4
+#: apps/pets/templates/pets/pet_management.html:8
+msgid "Gestión de perfiles de mascotas"
+msgstr ""
+
+#: apps/pets/templates/pets/pet_management.html:9
+msgid ""
+"Pantalla unificada en construcción para listar, crear y editar mascotas."
+msgstr ""
+
+#: apps/pets/templates/pets/pet_management.html:11
+msgid "Ir a seleccionar mascota activa →"
+msgstr ""
+
+#: apps/pets/templates/pets/pet_select.html:4
+msgid "Seleccionar mascota"
+msgstr ""
+
+#: apps/pets/templates/pets/pet_select.html:8
+msgid "¿Con qué mascota deseas buscar pareja hoy?"
+msgstr ""
+
+#: apps/pets/templates/pets/pet_select.html:9
+msgid "Pantalla en construcción para seleccionar la mascota activa."
+msgstr ""
+
+#: apps/pets/templates/pets/pet_select.html:11
+msgid "Continuar a buscar pareja"
+msgstr ""
+
+#: apps/pets/templates/pets/pet_select.html:12
+msgid "Gestionar mascotas"
+msgstr ""
+
+#: config/settings.py:168
+msgid "Español"
+msgstr ""
+
+#: config/settings.py:169
+msgid "Inglés"
+msgstr ""
+
+#: templates/components/footer.html:8
+msgid "Conectando vidas peludas de forma responsable"
+msgstr ""
+
+#: templates/components/footer.html:12
+msgid "Enlaces legales y de bienestar"
+msgstr ""
+
+#: templates/components/footer.html:13
+msgid "Términos de servicio"
+msgstr ""
+
+#: templates/components/footer.html:14
+msgid "Política de privacidad"
+msgstr ""
+
+#: templates/components/footer.html:15
+msgid "Normas de bienestar animal"
+msgstr ""
+
+#: templates/components/navbar.html:19
+msgid "Mis mascotas"
+msgstr ""
+
+#: templates/components/navbar.html:21
+msgid "Interesados"
+msgstr ""
+
+#: templates/components/navbar.html:30 templates/components/navbar.html:33
+msgid "Seleccionar idioma"
+msgstr ""
+
+#: templates/components/navbar.html:52
+msgid "Cerrar sesión"
+msgstr ""
+
+#: templates/components/navbar.html:59
+msgid "Registrarse"
+msgstr ""

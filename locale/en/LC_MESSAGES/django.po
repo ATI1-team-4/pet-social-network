@@ -1,0 +1,192 @@
+# English translations for Petly.
+# Copyright (C) 2026 ATI Team 4
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Petly 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-03 20:41-0400\n"
+"PO-Revision-Date: 2026-10-03 20:05-0400\n"
+"Last-Translator: Team 4 <ati-team4@ucv.ve>\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps/accounts/templates/accounts/login.html:4
+#: templates/components/navbar.html:56
+msgid "Iniciar sesión"
+msgstr "Log In"
+
+#: apps/accounts/templates/accounts/login.html:9
+msgid "Inicio de sesión"
+msgstr "Sign In"
+
+#: apps/accounts/templates/accounts/login.html:10
+#: apps/accounts/templates/accounts/password_reset.html:10
+#: apps/accounts/templates/accounts/register.html:10
+msgid "Pantalla en construcción para el reto 13."
+msgstr "Screen under construction for Reto 13."
+
+#: apps/accounts/templates/accounts/login.html:12
+msgid "¿Aún no tienes cuenta? Regístrate aquí"
+msgstr "Don't have an account yet? Sign up here"
+
+#: apps/accounts/templates/accounts/login.html:13
+msgid "¿Olvidaste tu contraseña?"
+msgstr "Forgot your password?"
+
+#: apps/accounts/templates/accounts/password_reset.html:4
+msgid "Recuperar contraseña"
+msgstr "Reset Password"
+
+#: apps/accounts/templates/accounts/password_reset.html:9
+msgid "Recuperación de contraseña"
+msgstr "Password Recovery"
+
+#: apps/accounts/templates/accounts/password_reset.html:11
+msgid "Volver a iniciar sesión"
+msgstr "Back to Log In"
+
+#: apps/accounts/templates/accounts/register.html:4
+#: apps/accounts/templates/accounts/register.html:9
+msgid "Registro de usuario"
+msgstr "User Registration"
+
+#: apps/accounts/templates/accounts/register.html:11
+msgid "¿Ya tienes cuenta? Inicia sesión"
+msgstr "Already have an account? Log in"
+
+#: apps/accounts/templates/accounts/user_profile.html:4
+#: apps/accounts/templates/accounts/user_profile.html:8
+msgid "Gestión de usuario"
+msgstr "User Management"
+
+#: apps/accounts/templates/accounts/user_profile.html:9
+msgid "Pantalla en construcción para el perfil del tutor."
+msgstr "Screen under construction for guardian profile."
+
+#: apps/accounts/templates/accounts/user_profile.html:11
+msgid "Ir a gestión de perfiles de mascotas →"
+msgstr "Go to Pet Profiles Management →"
+
+#: apps/pets/templates/pets/match_feed.html:4
+#: apps/pets/templates/pets/match_feed.html:8
+#: templates/components/navbar.html:20
+msgid "Buscar pareja"
+msgstr "Find a Match"
+
+#: apps/pets/templates/pets/match_feed.html:9
+msgid "Feed interactivo de cruza/compatibilidad en construcción."
+msgstr "Interactive breeding/compatibility feed under construction."
+
+#: apps/pets/templates/pets/match_feed.html:11
+msgid "Tarjeta central tipo Tinder"
+msgstr "Tinder-style central card"
+
+#: apps/pets/templates/pets/match_feed.html:13
+msgid "Ver mascotas interesadas →"
+msgstr "View Interested Pets →"
+
+#: apps/pets/templates/pets/match_interested.html:4
+#: apps/pets/templates/pets/match_interested.html:8
+msgid "Mascotas interesadas"
+msgstr "Interested Pets"
+
+#: apps/pets/templates/pets/match_interested.html:9
+msgid "Bandeja de pretendientes y citas confirmadas en construcción."
+msgstr "Inbox for suitors and confirmed dates under construction."
+
+#: apps/pets/templates/pets/match_interested.html:11
+msgid "← Volver a explorar parejas"
+msgstr "← Back to Explore Matches"
+
+#: apps/pets/templates/pets/pet_management.html:4
+#: apps/pets/templates/pets/pet_management.html:8
+msgid "Gestión de perfiles de mascotas"
+msgstr "Pet Profile Management"
+
+#: apps/pets/templates/pets/pet_management.html:9
+msgid ""
+"Pantalla unificada en construcción para listar, crear y editar mascotas."
+msgstr "Unified screen under construction to list, create, and edit pets."
+
+#: apps/pets/templates/pets/pet_management.html:11
+msgid "Ir a seleccionar mascota activa →"
+msgstr "Go to Select Active Pet →"
+
+#: apps/pets/templates/pets/pet_select.html:4
+msgid "Seleccionar mascota"
+msgstr "Select Pet"
+
+#: apps/pets/templates/pets/pet_select.html:8
+msgid "¿Con qué mascota deseas buscar pareja hoy?"
+msgstr "Which pet do you want to find a match for today?"
+
+#: apps/pets/templates/pets/pet_select.html:9
+msgid "Pantalla en construcción para seleccionar la mascota activa."
+msgstr "Screen under construction to select active pet."
+
+#: apps/pets/templates/pets/pet_select.html:11
+msgid "Continuar a buscar pareja"
+msgstr "Continue to Find a Match"
+
+#: apps/pets/templates/pets/pet_select.html:12
+msgid "Gestionar mascotas"
+msgstr "Manage Pets"
+
+#: config/settings.py:168
+msgid "Español"
+msgstr "Spanish"
+
+#: config/settings.py:169
+msgid "Inglés"
+msgstr "English"
+
+#: templates/components/footer.html:8
+msgid "Conectando vidas peludas de forma responsable"
+msgstr "Connecting furry lives responsibly"
+
+#: templates/components/footer.html:12
+msgid "Enlaces legales y de bienestar"
+msgstr "Legal and animal welfare links"
+
+#: templates/components/footer.html:13
+msgid "Términos de servicio"
+msgstr "Terms of service"
+
+#: templates/components/footer.html:14
+msgid "Política de privacidad"
+msgstr "Privacy policy"
+
+#: templates/components/footer.html:15
+msgid "Normas de bienestar animal"
+msgstr "Animal welfare standards"
+
+#: templates/components/navbar.html:19
+msgid "Mis mascotas"
+msgstr "My pets"
+
+#: templates/components/navbar.html:21
+msgid "Interesados"
+msgstr "Interested"
+
+#: templates/components/navbar.html:30 templates/components/navbar.html:33
+msgid "Seleccionar idioma"
+msgstr "Select Language"
+
+#: templates/components/navbar.html:52
+msgid "Cerrar sesión"
+msgstr "Log Out"
+
+#: templates/components/navbar.html:59
+msgid "Registrarse"
+msgstr "Sign Up"
+
+#~ msgid "Inicio"
+#~ msgstr "Home"
+
+#~ msgid "Citas y pretendientes"
+#~ msgstr "Dates & Suitors"

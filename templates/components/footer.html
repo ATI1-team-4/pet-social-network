@@ -1,6 +1,18 @@
-<footer class="mt-auto bg-white border-t border-slate-200 py-6">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-        <p>© 2026 Petly. Plataforma colaborativa para amantes de los animales - UCV.</p>
-        <p class="font-semibold text-slate-600">ATI equipo 4</p>
+{% load i18n %}
+<footer class="mt-auto bg-transparent border-t border-slate-200/80 py-6 text-xs text-slate-500">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <!-- Marca y descripción oficial del prototipo -->
+        <div class="flex items-center gap-2 text-slate-500 font-medium">
+            <span class="font-bold text-brand-600 tracking-tight text-sm">Petly</span>
+            <span class="text-slate-300">•</span>
+            <span>{% translate "Conectando vidas peludas de forma responsable" %} © 2026</span>
+        </div>
+
+        <!-- Enlaces legales y de bienestar animal del prototipo -->
+        <nav class="flex flex-wrap items-center gap-6 text-xs text-slate-500" aria-label="{% translate 'Enlaces legales y de bienestar' %}">
+            <a href="#" class="hover:text-brand-600 transition-colors">{% translate "Términos de servicio" %}</a>
+            <a href="#" class="hover:text-brand-600 transition-colors">{% translate "Política de privacidad" %}</a>
+            <a href="#" class="hover:text-brand-600 transition-colors">{% translate "Normas de bienestar animal" %}</a>
+        </nav>
     </div>
 </footer>
