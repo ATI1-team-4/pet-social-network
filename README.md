@@ -370,29 +370,32 @@ from apps.accounts.models import UserProfile
       pet.save()
   ```
 
-### 🎯 Buenas prácticas en Django
+## 🎯 Buenas prácticas en Django y arquitectura
 
-#### 🗄️ Modelos y Base de Datos
-- Identificadores de clases y campos siempre en inglés (`class Pet(models.Model):`, `name = models.CharField(max_length=100)`).
-- Implementar siempre el método `__str__` para identificar las instancias en el panel de administración.
-- Definir la clase `Meta` con `verbose_name`, `verbose_name_plural` y ordenamiento predeterminado (`ordering`).
-- Utilizar campos de fecha automáticos (`auto_now_add=True` para creación, `auto_now=True` para actualización).
+### 🗄️ Modelos, persistencia y capa de servicios
+- **Separación de responsabilidades (Fat Models/Services, Thin Views):** Mantener las vistas con lógica mínima delegando reglas de negocio complejas a la capa de servicios (`apps/<modulo>/services.py`) o a métodos propios del modelo.
+- **Nomenclatura en inglés:** Nombres de clases en `PascalCase` y atributos en `snake_case`, siempre en inglés (`class Pet(models.Model):`, `name = models.CharField(max_length=100)`).
+- **Identificación amigable (`__str__`):** Implementar obligatoriamente el método `__str__` en cada modelo para facilitar la administración y depuración.
+- **Metadatos obligatorios (`class Meta`):** Definir siempre `verbose_name`, `verbose_name_plural` y el ordenamiento predeterminado (`ordering`).
+- **Auditoría temporal estándar:** Utilizar campos de fecha automáticos (`created_at` con `auto_now_add=True` para creación y `updated_at` con `auto_now=True` para modificación).
 
-#### 🌐 Vistas, URLs y contrato de enrutamiento (Zero-Collision)
-- **Vistas delgadas (Fat Models/Services, Thin Views):** Mantener las vistas con lógica mínima delegando reglas de negocio a servicios (`services.py`) o modelos.
-- **Espacios de nombres obligatorios (`app_name`):** Cada archivo `urls.py` dentro de `apps/<modulo>/` debe declarar obligatoriamente su variable `app_name = '<modulo>'` para evitar colisiones entre aplicaciones.
+### 🌐 Contrato de enrutamiento y URLs (Zero-Collision)
+Para garantizar el desarrollo concurrente sin bloqueos entre frontend y backend, se establece un contrato estricto de enrutamiento:
+
+- **Espacios de nombres obligatorios (`app_name`):** Cada archivo `urls.py` dentro de `apps/<modulo>/` debe declarar su variable `app_name = '<modulo>'` para evitar colisiones de rutas entre aplicaciones.
 - **Nombres de ruta semánticos en inglés:** Todo identificador de ruta (`name`) debe escribirse en inglés y en formato `snake_case`, siguiendo el patrón semántico `<entidad>_<acción>` (ej. `pet_list`, `pet_create`).
-- **Resolución inversa obligatoria (Cero rutas quemadas):** Queda terminantemente prohibido quemar rutas estáticas a mano en el código o en las plantillas (ejemplo: `href="/inicio/"`, `href="#"` o `redirect('/pets/')`). Todos los enlaces y redirecciones deben resolverse dinámicamente mediante:
+- **Resolución inversa obligatoria (Cero rutas quemadas):** Queda terminantemente prohibido escribir rutas estáticas a mano en plantillas o vistas (ejemplo: `href="/inicio/"`, `href="#"` o `redirect('/pets/')`). Todos los enlaces y redirecciones deben resolverse dinámicamente mediante:
   - En plantillas HTML: `{% url '<nombre_app>:<nombre_ruta>' %}`
   - En vistas por funciones (FBVs): `redirect('<nombre_app>:<nombre_ruta>')`
   - En vistas por clases (CBVs): `reverse_lazy('<nombre_app>:<nombre_ruta>')`
   - En servicios o pruebas: `reverse('<nombre_app>:<nombre_ruta>')`
 
 > [!IMPORTANT]
-> **Contrato de URLs para desarrollo concurrente sin bloqueos:**
-> Para que ningún desarrollador dependa de otro para enlazar pantallas (por ejemplo, maquetar navegación o botones en frontend antes de que el backend implemente las vistas), cada módulo debe definir su catálogo oficial de nombres de ruta de antemano.
+> **Desarrollo concurrente sin bloqueos:**
+> Siguiendo este catálogo, el desarrollador Frontend/UX puede vincular enlaces y botones en las plantillas (ej. `href="{% url 'accounts:profile' %}"` o `href="{% url 'pets:pet_create' %}"`) antes de que el Backend implemente las vistas correspondientes, garantizando cero colisiones y evitando errores de `NoReverseMatch`.
 
-##### 📋 Catálogo estándar de nombres de ruta (`name`):
+#### 📋 Catálogo estándar de operaciones y nombres de ruta
+
 | Operación | Patrón de `name` | URL Relativa sugerida | Propósito / Pantalla |
 | :--- | :--- | :--- | :--- |
 | **Listado / Principal** | `<entidad>_list` | `/<modulo>/` | Pantalla de índice o listado general |
@@ -400,9 +403,9 @@ from apps.accounts.models import UserProfile
 | **Detalle** | `<entidad>_detail` | `/<modulo>/<int:pk>/` | Ficha informativa de un registro específico |
 | **Edición** | `<entidad>_edit` | `/<modulo>/<int:pk>/edit/` | Formulario de actualización o modificación |
 | **Eliminación** | `<entidad>_delete` | `/<modulo>/<int:pk>/delete/` | Confirmación o endpoint de borrado |
-| **Acción específica** | `<entidad>_<accion>` | `/<modulo>/<accion>/` | Flujos específicos (ej. `match_feed`, `login`) |
+| **Acción de flujo** | `<entidad>_<accion>` | `/<modulo>/<accion>/` | Flujos específicos (ej. `match_feed`, `login`) |
 
-##### 💡 Ejemplo práctico de uso:
+#### 💡 Ejemplo práctico de uso
 
 1. **Definición en el enrutador del módulo (`apps/pets/urls.py`):**
 ```python
@@ -427,7 +430,7 @@ urlpatterns = [
 
 2. **Consumo en plantillas HTML (`templates/`):**
 ```html
-{# Enlaces globales sin parámetros (ej. navbar o botones principales) #}
+{# Enlaces globales sin parámetros (navbar o botones principales) #}
 <a href="{% url 'pets:pet_list' %}" class="...">Mis Mascotas</a>
 <a href="{% url 'pets:pet_create' %}" class="...">Registrar Mascota</a>
 
@@ -437,7 +440,7 @@ urlpatterns = [
     <a href="{% url 'pets:pet_edit' pet.pk %}" class="...">Editar</a>
 {% endfor %}
 
-{# Enlaces entre módulos distintos (frontend conecta pantallas sin esperar al backend) #}
+{# Enlaces entre módulos distintos #}
 <a href="{% url 'accounts:login' %}" class="...">Iniciar Sesión</a>
 <a href="{% url 'pets:match_feed' %}" class="...">Buscar Pareja</a>
 ```
@@ -460,116 +463,203 @@ class PetDeleteView(DeleteView):
     success_url = reverse_lazy('pets:pet_list')
 
 
-# En lógica de servicios, modelos o pruebas unitarias (con argumentos)
+# En servicios o pruebas unitarias (con argumentos)
 def test_pet_detail_redirect():
     url = reverse('pets:pet_detail', kwargs={'pk': pet.pk})
 ```
 
-> [!TIP]
-> **Beneficio para el trabajo en equipo:**
-> Siguiendo este contrato, si el desarrollador **UX/Frontend** está maquetando la barra de navegación o tarjetas de usuario, puede colocar `href="{% url 'accounts:profile' %}"` o `href="{% url 'pets:pet_create' %}"` antes de que el backend escriba la vista, garantizando cero colisiones y cero errores de `NoReverseMatch` al integrar las ramas.
 
-#### 🎨 Plantillas HTML, guía de estilos y componentes UI 
-- `base.html` actúa como cascarón raíz mínimo e independiente de componentes de navegación. La tipografía oficial **Plus Jakarta Sans** (e Inter como respaldo) se encuentra autohospedada localmente en formato `.woff2` dentro de `static/fonts/`, garantizando funcionamiento 100% offline y sin peticiones externas a internet.
-- **Regla de herencia de layouts:** cualquier plantilla dentro de `templates/layouts/` (como `app.html`) debe heredar obligatoriamente de `base.html` mediante `{% extends 'base.html' %}`.
-- Enlaces de navegación resueltos siempre mediante la etiqueta `{% url %}` usando los nombres del contrato.
+## 🎨 Sistema de diseño y componentes UI
 
-##### 🖌️ Tokens de diseño y colores corporativos oficiales
-El sistema de diseño implementado en Tailwind CSS v4 (`theme/static_src/src/styles.css`) refleja los tokens definidos en el prototipo oficial (`docs/reto_11_ diseño_prototipo.pdf`):
+### 🏗️ Arquitectura de plantillas y layouts
 
-| Token | Valor hexadecimal | Uso oficial en la interfaz |
+El sistema visual de Petly está diseñado siguiendo el principio de herencia en cascada limpia:
+
+- **Cascarón raíz (`templates/base.html`):** Contiene la estructura HTML5 esencial (`<!DOCTYPE html>`, `<html>`, `<head>`, `<body>`), etiquetas meta para responsividad, enlaces a hojas de estilos compiladas y el bloque `{% block base_content %}`. Es completamente agnóstico de componentes de navegación.
+- **Tipografías autohospedadas (100% offline):** Las fuentes oficiales **Plus Jakarta Sans** (titulares, botones y llamadas a la acción) e **Inter** (cuerpo de texto y respaldo) están alojadas localmente en formato binario optimizado `.woff2` en `static/fonts/`. Esto elimina cualquier dependencia de CDNs externos como Google Fonts, garantizando funcionamiento sin conexión a internet y máxima privacidad.
+- **Layouts base (`templates/layouts/`):**
+  - **`app.html`:** Layout principal autenticado. Incorpora la barra de navegación superior (`navbar.html`), contenedor central delimitado (`max-w-7xl`), sistema de notificaciones flash (`messages.html`) y pie de página (`footer.html`).
+  - **`public.html`:** Layout para flujos públicos (bienvenida, inicio de sesión, registro y recuperación de contraseña). Utiliza una cabecera simplificada (`navbar_public.html`) y un diseño despejado.
+
+#### 🔤 Escala tipográfica oficial
+
+Definida en `theme/static_src/src/styles.css` con clases semánticas reutilizables:
+
+| Clase de utilidad | Tamaño | Peso / Kerning | Uso oficial |
+| :--- | :--- | :--- | :--- |
+| `.title-h1` | 48px / 1.15 | 700 Bold / -0.015em | Título principal de pantallas hero y bienvenida |
+| `.title-h2` | 36px / 1.20 | 700 Bold / -0.015em | Encabezados de páginas de gestión y secciones |
+| `.title-h3` | 28px / 1.25 | 600 SemiBold / -0.015em | Títulos de tarjetas de perfil y modales |
+| `.title-h4` | 22px / 1.30 | 600 SemiBold / -0.015em | Subtítulos de bloques y agrupadores de formulario |
+| `.title-h5` | 18px / 1.35 | 500 Medium / normal | Títulos secundarios y cabeceras de diálogo |
+| `.title-h6` | 14px / 1.40 | 500 Medium / normal | Encabezados de métricas y pestañas |
+| `.text-display` | 24px / 1.40 | Regular a Bold | Textos destacados y lemas promocionales |
+| `.text-large` | 18px / 1.45 | Regular a Bold | Descripciones de cabecera y resúmenes |
+| `.text-body-base` | 14px / 1.50 | Regular (400) | Párrafos generales, etiquetas y textos estándar |
+| `.text-caption` | 12px / 1.50 | Regular a Medium | Notas al pie, marcas de tiempo y textos de ayuda |
+
+### 🖌️ Tokens de diseño y colores corporativos
+
+Configurados en Tailwind CSS v4 (`theme/static_src/src/styles.css`) en concordancia con el prototipo oficial (`docs/reto_11_ diseño_prototipo.pdf`):
+
+| Token | Hexadecimal | Propósito y aplicación en interfaz |
 | :--- | :--- | :--- |
-| `petly-coral` / `brand-500` | `#FA7D82` | Color principal de marca, botones primarios y acentos activos |
-| `petly-coral-dark` / `brand-700` | `#A53B42` | Estado hover/active de botones primarios y enlaces destacados |
+| `petly-coral` / `brand-500` | `#FA7D82` | Color primario de marca, botones principales, anillos de foco y acentos activos |
+| `petly-coral-dark` / `brand-700` | `#A53B42` | Estados `:hover`/`:active` de botones primarios y enlaces destacados |
 | `petly-coral-light` / `brand-100` | `#FFDAD9` | Contenedores suaves, botón terciario y chip de género hembra |
-| `petly-surface` | `#F9F9FF` | Fondo base de la aplicación y canvas de pantallas |
+| `petly-surface` | `#F9F9FF` | Fondo base de la aplicación y lienzo de pantallas |
 | `petly-blue` | `#DEE8FF` | Botones secundarios, contenedor de filtros y chip de género macho |
-| `petly-mint` | `#8FFFB4` | Insignias de compatibilidad (98%), pedigrí certificado y éxito |
-| `petly-lilac` | `#F5D0FF` | Chips de rasgos de temperamento y personalidad |
+| `petly-ice` | `#E7EEFF` | Fondo celeste hielo de entradas de formulario (`.input-petly`) |
+| `petly-mint` | `#8FFFB4` | Insignias de compatibilidad (98%), pedigrí certificado y confirmaciones |
+| `petly-lilac` | `#F5D0FF` | Chips de rasgos de personalidad y personalidad de mascotas |
 | `petly-purple` | `#74567E` | Texto sobre contenedores lila y acentos complementarios |
 | `neutral-800` | `#2B2B2B` | Color de texto principal para títulos y elementos interactivos |
-| `neutral-700` | `#4A4A4A` | Color de texto para subtítulos y etiquetas de formulario |
-| `neutral-500` | `#757575` | Texto atenuado, pie de página, descripciones secundarias |
-| `neutral-300` | `#E0E0E0` | Bordes de tarjetas, separadores y campos de formulario |
+| `neutral-700` | `#4A4A4A` | Subtítulos, etiquetas de campos y textos descriptivos |
+| `neutral-500` | `#757575` | Texto atenuado, pie de página, iconos neutros y leyendas |
+| `neutral-300` | `#E0E0E0` | Bordes de tarjetas, separadores y contornos inactivos |
 
-##### 🧩 Componentes UI reutilizables
-Para construir las pantallas de los retos con total fidelidad visual y sin duplicar código, se crearon los siguientes componentes en `templates/components/`:
+### 🧩 Catálogo de componentes modulares (`templates/components/`)
 
-1. **Barra de navegación (`navbar.html`):**
-   - Logotipo oficial con distintivo circular coral e ícono de huella (`🐾`).
-   - Contenedor flotante con pastillas redondeadas para la navegación central ("Mis mascotas", "Buscar pareja", "Interesados").
-   - Selector de idioma bilingüe con accesibilidad y botones de autenticación según el estado de la sesión.
+Todos los componentes son reutilizables y aceptan parámetros vía la etiqueta `{% include %}` de Django:
 
-2. **Pie de página (`footer.html`):**
-   - Lema oficial: `Petly • Conectando vidas peludas de forma responsable © 2026`.
-   - Enlaces normativos y legales: "Términos de servicio", "Política de privacidad" y "Normas de bienestar animal".
-   - Tipografía atenuada en `#757575` con interacción hover hacia `#FA7D82`.
+#### 1. Navegación y estructura institucional
+* **`navbar.html`:** Barra de navegación autenticada completa con logotipo distintivo (`🐾`), enlaces centrales con pastilla de estado activo, buscador, selector de idioma interactivo y menú de usuario.
+* **`navbar_public.html`:** Cabecera ligera para páginas de bienvenida, login y registro, manteniendo consistencia de marca y selector de idioma.
+* **`footer.html`:** Pie de página institucional bilingüe con lema corporativo, enlaces normativos y derechos reservados.
 
-3. **Botones (`button.html` o clases de utilidad):**
-   - Primario coral: `.btn-petly-primary` (o `variant='primary'`)
-   - Secundario azul: `.btn-petly-secondary` (o `variant='secondary'`)
-   - Rosa suave: `.btn-petly-soft` (o `variant='soft'`)
-   - Lila de interacción: `.btn-petly-lilac` (o `variant='lilac'`)
-   - Borde sutil: `.btn-petly-outline` (o `variant='outline'`)
-   - Botones flotantes (FAB): `.fab-petly-like` (corazón), `.fab-petly-dismiss` (rechazo), `.fab-petly-add` (agregar).
+#### 2. Botones y controles de acción (`button.html`)
+Renderiza elementos `<button>` o enlaces `<a>` (cuando se pasa el parámetro `href`), soportando variantes visuales y botones flotantes (FAB):
+```django
+{# Botón primario coral con ícono #}
+{% include 'components/button.html' with text="Guardar cambios" variant="primary" icon="paw" %}
 
-4. **Insignias y etiquetas (`badge.html` o clases de utilidad):**
-   - Compatibilidad: `.badge-compat` (verde menta para porcentaje de afinidad, ej. 98%)
-   - Temperamento: `.badge-tag` (lila para rasgos de personalidad)
-   - Género: `.badge-gender-male` (azul) y `.badge-gender-female` (coral claro)
+{# Botones de acción flotantes (FAB) para búsqueda de pareja #}
+{% include 'components/button.html' with variant="fab-dismiss" %}
+{% include 'components/button.html' with variant="fab-add" %}
+{% include 'components/button.html' with variant="fab-like" %}
+```
+* **Variantes de botón:** `primary` (coral), `secondary` (azul suave), `soft` (rosa terciario), `lilac` (púrpura suave), `outline` (borde sutil), `danger` (rojo descarte).
+* **Variantes FAB:** `fab-dismiss` (descartar ✕), `fab-add` (añadir +), `fab-like` (me interesa ♥).
 
-5. **Entradas de formulario y campos redondeados (`input.html`):**
-   - Campo de texto redondeado: `.input-petly` con soporte para íconos frontales y posteriores
-   - Área de texto para descripciones y biografías: `.textarea-petly`
-   - Grupo dividido para código de país/teléfono o nacionalidad/cédula
+#### 3. Insignias y etiquetas (`badge.html`)
+Pastillas cromáticas para resaltar afinidad porcentual, temperamentos o género:
+```django
+{% include 'components/badge.html' with text="98% compatibilidad" variant="compat" %}
+{% include 'components/badge.html' with text="Juguetón" variant="tag" %}
+{% include 'components/badge.html' with text="Macho" variant="male" %}
+{% include 'components/badge.html' with text="Hembra" variant="female" %}
+```
 
-6. **Interruptores y selectores segmentados:**
-   - Interruptor de alternancia (`toggle.html`): pista en coral para estado activo y azul suave para inactivo
-   - Control segmentado de pastillas (`segmented.html` y `.segmented-pill`): selector de especie (perro, gato, otro) o género
+#### 4. Entradas de formulario (`input.html`)
+Campos redondeados con fondo celeste hielo (`.input-petly`), anillo de foco coral e integración de íconos frontales y posteriores:
+```django
+{% include 'components/input.html' with name="username" label="Usuario" placeholder="Escribe tu usuario" icon="user" %}
+{% include 'components/input.html' with name="password" label="Contraseña" type="password" icon="lock" icon_end="eye" %}
+```
 
-7. **Tarjetas, avatares y contenedores visuales (`card.html`):**
-   - Tarjeta base redondeada: `.card-petly` (`rounded-3xl` con borde neutral suave)
-   - Avatares de mascotas y tutores: `.avatar-petly` con insignia flotante para foto (`.avatar-badge-camera`)
-   - Bloques métricos y contadores de perfil: `.stat-pill-petly`
-   - Contenedores de carga o marcadores de posición: `.placeholder-petly-rect` y `.placeholder-petly-circle`
+#### 5. Interruptores de alternancia (`toggle.html`)
+Switch booleano accesible con 2px de margen simétrico y transición suave entre coral (activo) y azul hielo (inactivo):
+```django
+{% include 'components/toggle.html' with id="match-toggle" name="is_matching" label="Buscando pareja" checked=True %}
+```
 
-#### 🌍 Internacionalización y localización (i18n / l10n)
-El proyecto cuenta con soporte bilingüe predeterminado (**español `es`** como idioma principal e **inglés `en`** como idioma alternativo), cumpliendo con estándares de accesibilidad y las heurísticas de usabilidad de Nielsen (heurística 10: ayuda y documentación, heurística 2: coincidencia entre el sistema y el mundo real).
+#### 6. Control segmentado (`segmented.html`)
+Selector de pastillas para alternar entre opciones excluyentes (modo de vista, especie o género):
+```django
+{% include 'components/segmented.html' with text_1="Perros" text_2="Gatos" active_index=1 %}
+```
 
-##### ⚙️ Configuración del sistema
-1. **Middleware y orden de procesamiento:**
-   `LocaleMiddleware` se ubica estrictamente entre `SessionMiddleware` y `CommonMiddleware` en `config/settings.py` para resolver las preferencias de idioma del usuario.
-2. **Context processor en plantillas:**
-   `django.template.context_processors.i18n` está habilitado para exponer las variables globales de idioma (`LANGUAGES`, `LANGUAGE_CODE`) a nivel de interfaz.
-3. **Selector accesible en barra de navegación:**
-   La barra de navegación (`templates/components/navbar.html`) incluye un selector de idioma con `<form action="{% url 'set_language' %}" method="post">` que conmuta la cookie `django_language` y recarga la vista actual sin perder el contexto.
-4. **Almacenamiento de catálogos:**
-   Los catálogos de traducción residen en `locale/<idioma>/LC_MESSAGES/`.
+#### 7. Tarjetas y contenedores (`card.html`)
+Contenedor base `.card-petly` con bordes redondeados (`rounded-3xl`), sombra sutil y fondo blanco inmaculado.
 
-##### 📝 Cómo marcar textos para traducción
+#### 8. Modales de confirmación (`confirmation_modal.html`)
+Ventana emergente interactiva autocontenida para confirmar acciones importantes o destructivas:
+```django
+{% include 'components/confirmation_modal.html' with id="modal-delete" variant="danger" icon="trash" title="¿Eliminar mascota?" text="Esta acción no se puede deshacer." confirm_text="Eliminar" cancel_text="Cancelar" %}
+```
+* **Control mediante JavaScript:** Funciones globales `openModal('modal-id')` y `closeModal('modal-id')`, con soporte de cierre por tecla `Escape` o clic en el fondo semitransparente.
 
-###### 1. En plantillas HTML (`.html`)
-Carga siempre la biblioteca `{% load i18n %}` al inicio de la plantilla y utiliza las etiquetas estándar:
+#### 9. Mensajes y alertas del sistema (`messages.html`)
+Banners de notificación integrados con el framework `django.contrib.messages` (éxito, error, advertencia e información) con botón de cierre accesible.
+
+---
+
+### 🐾 Sistema y biblioteca de íconos vectoriales (`icon.html`)
+
+El componente `templates/components/icon.html` gestiona el catálogo de íconos SVG de la aplicación:
+
+```django
+{# Uso estándar (máscara CSS con herencia de color) #}
+{% include 'components/icon.html' with name="paw" class="w-5 h-5 text-petly-coral" %}
+
+{# Renderizado como etiqueta <img> directa #}
+{% include 'components/icon.html' with name="palette" class="w-6 h-6" as_img=True %}
+```
+
+#### ⚙️ Mecanismo de renderizado
+* **Máscara CSS dinámica:** Por defecto, renderiza un `<span>` con `mask-image: url('images/icons/<name>.svg')` y la clase `bg-current`. Esto permite que el ícono adopte **automáticamente cualquier color de texto de Tailwind** (`text-petly-coral`, `text-white`, `text-neutral-500`, etc.) sin necesidad de manipular el archivo SVG.
+* **Geometría estandarizada:** Todos los íconos están normalizados en una cuadrícula `viewBox="0 0 24 24"`, trazo uniforme de `2px` con remates redondeados (`stroke-linecap="round"`).
+* **Transparencia calada:** Los íconos con relleno (como `checkbox-checked`, `smile`, `user-circle`) utilizan calados vectoriales nativos (`alpha=0`) para garantizar su compatibilidad tanto en modo máscara como en modo imagen directa.
+
+#### 📚 Catálogo completo de íconos disponibles (`static/images/icons/`)
+
+| Categoría | Íconos disponibles (`name`) |
+| :--- | :--- |
+| **Navegación e interfaz** | `caret-up`, `caret-down`, `chevron-up`, `chevron-down`, `close`, `eye`, `location`, `lock`, `globe` |
+| **Acciones y controles** | `plus`, `plus-circle`, `minus`, `sliders`, `trash`, `camera`, `camera-plus`, `palette` |
+| **Mascotas y especie** | `paw`, `paw-double`, `dog`, `award` (pedigrí/certificado), `cake` (edad/cumpleaños), `female`, `male` |
+| **Afinidad y adopción** | `heart`, `heart-filled`, `hand-heart` (outline), `hand-heart-filled` (sólido) |
+| **Usuarios y social** | `user`, `user-circle`, `users`, `id-card`, `mail`, `phone`, `message-square`, `message-square-text`, `smile` |
+| **Formularios y estados** | `checkbox`, `checkbox-checked`, `check`, `check-circle`, `dot`, `file-up`, `star`, `sparkle`, `sparkles` |
+
+---
+
+### 🖼️ Catálogo interactivo de componentes en vivo (`components_palette.html`)
+
+Para facilitar la maquetación y validación del equipo, la pantalla de inicio (`templates/components/components_palette.html`) integra una galería interactiva con todos los componentes del sistema:
+
+* Botones en todas sus variantes y estados `:hover`/`:active`.
+* Botones flotantes (FAB) con sus colores y sombras oficiales.
+* Insignias cromáticas y etiquetas semánticas.
+* Entradas de formulario e interruptores de alternancia funcionales.
+* Diálogos modales interactivos en vivo (`demo-modal-danger` y `demo-modal-match`).
+* Soporte bilingüe en tiempo real con conmutación dinámica `ES` / `EN`.
+
+
+## 🌍 Internacionalización y localización (i18n / l10n)
+
+El proyecto cuenta con soporte bilingüe predeterminado (**español `es`** como idioma principal e **inglés `en`** como secundario), cumpliendo con los estándares de accesibilidad y las heurísticas de Nielsen (ayuda y documentación, coincidencia con el mundo real).
+
+### ⚙️ Arquitectura del sistema
+- **Middleware:** `LocaleMiddleware` está ubicado estrictamente entre `SessionMiddleware` y `CommonMiddleware` en `config/settings.py` para resolver las preferencias de idioma en cada petición.
+- **Context Processor:** `django.template.context_processors.i18n` expone las variables globales (`LANGUAGES`, `LANGUAGE_CODE`) a las plantillas.
+- **Selector accesible:** La barra de navegación incluye un conmutador con formulario `POST` hacia la vista `set_language`, que actualiza la cookie `django_language` y recarga la vista conservando el contexto.
+- **Catálogos:** Las traducciones residen en `locale/<idioma>/LC_MESSAGES/`.
+
+### 📝 Marcado de cadenas para traducción
+
+#### 1. En plantillas HTML (`.html`)
+Carga la biblioteca `{% load i18n %}` al inicio del archivo:
+
 ```html
 {% load i18n %}
 
-{# Para textos simples (utilizar solo mayúscula en la primera letra) #}
+{# Textos simples #}
 <h1>{% translate "Gestión de perfiles de mascotas" %}</h1>
 <button>{% translate "Guardar cambios" %}</button>
 
-{# Para textos con variables contextuales #}
+{# Textos dinámicos con variables contextuales #}
 {% blocktranslate with name=pet.name %}
     La mascota {{ name }} ha sido actualizada con éxito.
 {% endblocktranslate %}
 ```
 
-###### 2. En código Python (`models.py`, `forms.py`, `views.py`, etc.)
+#### 2. En código Python (`.py`)
+Utiliza la función correspondiente según el momento en que se evalúa la cadena:
 
-En el código Python se distinguen dos funciones según el momento en que se evalúa la traducción:
-
-- **En modelos (`models.py`) — `gettext_lazy as _`:**
-  - **¿Para qué se usa?** Para los nombres legibles de campos (`verbose_name`), nombres del modelo en singular y plural (`Meta.verbose_name` y `verbose_name_plural`), textos de ayuda (`help_text`) y opciones de selección desplegable (`TextChoices`). Esto permite que el panel de administración de Django (`/admin/`) y los formularios generados automáticamente se muestren en el idioma preferido del usuario.
-  - **¿Por qué `gettext_lazy`?** Porque los modelos se cargan en memoria una sola vez cuando el servidor de Django arranca (cuando aún no existe ninguna petición HTTP de un usuario). `gettext_lazy` retrasa la traducción hasta el momento exacto en que el texto se renderiza en la pantalla del usuario.
+* **En Modelos y Formularios — `gettext_lazy as _`:**
+  - **Uso:** En `verbose_name`, `help_text`, etiquetas de formularios (`label`) y mensajes de validación (`error_messages`).
+  - **Motivo:** Los modelos y formularios se cargan en memoria al iniciar el servidor (cuando aún no existe una petición HTTP activa). `gettext_lazy` retrasa la traducción hasta el momento en que el texto se renderiza ante el usuario.
   ```python
   from django.db import models
   from django.utils.translation import gettext_lazy as _
@@ -587,24 +677,9 @@ En el código Python se distinguen dos funciones según el momento en que se eva
           verbose_name_plural = _('Mascotas')
   ```
 
-- **En formularios (`forms.py`) — `gettext_lazy as _`:**
-  - **¿Para qué se usa?** Para las etiquetas de campos (`label`), textos de ayuda (`help_text`), textos de marcador de posición (`placeholder`) y mensajes de error de validación (`error_messages`).
-  ```python
-  from django import forms
-  from django.utils.translation import gettext_lazy as _
-
-
-  class PetForm(forms.Form):
-      name = forms.CharField(
-          label=_('Nombre'),
-          widget=forms.TextInput(attrs={'placeholder': _('Ejemplo: Luna')}),
-          error_messages={'required': _('El nombre es obligatorio.')},
-      )
-  ```
-
-- **En vistas (`views.py`) — `gettext as _`:**
-  - **¿Para qué se usa?** Para mensajes de notificación y alertas al usuario (`messages.success`, `messages.error`, `messages.warning`), títulos o valores dinámicos enviados en el contexto (`context`), y respuestas en tiempo de ejecución.
-  - **¿Por qué `gettext`?** Porque dentro de una vista ya existe una petición activa (`request`) donde el middleware ya resolvió el idioma del usuario a través de la cookie o sesión, permitiendo traducir la cadena de manera inmediata.
+* **En Vistas y Notificaciones — `gettext as _`:**
+  - **Uso:** En mensajes flash (`messages.success`, `messages.error`), títulos dinámicos en el contexto y respuestas en tiempo de ejecución.
+  - **Motivo:** Dentro de la vista ya existe una petición activa (`request`), por lo que el idioma del usuario ya está resuelto y la traducción se efectúa de inmediato.
   ```python
   from django.contrib import messages
   from django.shortcuts import redirect
@@ -612,66 +687,42 @@ En el código Python se distinguen dos funciones según el momento en que se eva
 
 
   def profile_update_view(request):
-      # Notificación temporal que se mostrará en components/messages.html
       messages.success(request, _('Tu perfil fue actualizado con éxito.'))
       return redirect('accounts:profile')
   ```
 
-##### 📖 Cómo configurar y traducir los archivos `.po`
-
-El archivo `.po` (*Portable Object*) es un archivo de texto plano donde se asocia cada mensaje original con su traducción:
+### 📖 Gestión de archivos de traducción (`.po` y `.mo`)
+El archivo `.po` (*Portable Object*) asocia cada mensaje original con su traducción:
 
 ```po
-#: apps/pets/templates/pets/pet_management.html:8
 msgid "Gestión de perfiles de mascotas"
 msgstr "Pet profile management"
 ```
 
-- **`msgid` (identificador del mensaje):** Es la frase original en español que Django extrajo de tu código. Nunca debes editar esta línea a mano.
-- **`msgstr` (cadena traducida):** Es donde escribes la traducción correspondiente (al inglés en `locale/en/...`). Si la dejas vacía (`""`), Django mostrará el texto en español por defecto.
-- **¿Qué es la marca `#, fuzzy` y qué hacer con ella?**
-  Cuando modificas una frase en el código (por ejemplo, si cambias una letra o una mayúscula), la herramienta intenta adivinar si la traducción anterior todavía sirve. Al hacer esto, le coloca automáticamente encima una etiqueta `#, fuzzy` (que significa *"traducción tentativa o por revisar"*).
-  
-  > [!IMPORTANT]
-  > **Django ignora por completo cualquier traducción que tenga la marca `#, fuzzy`**. Mientras esa línea exista en el bloque, el texto seguirá apareciendo en español en el navegador aunque hayas escrito una traducción.
-  
-  **Ejemplo visual:**
-  ```po
-  # ❌ ANTES: Django no usará esta traducción porque tiene la marca fuzzy
-  #, fuzzy
-  msgid "Buscar pareja"
-  msgstr "Find a match"
+- **`msgid` (identificador):** Frase original extraída del código. No debe editarse manualmente.
+- **`msgstr` (traducción):** Texto traducido en el idioma destino. Si se deja vacío (`""`), Django muestra el texto en español por defecto.
 
-  # ✅ DESPUÉS: Solo debes borrar la línea "#, fuzzy" para que Django la active
-  msgid "Buscar pareja"
-  msgstr "Find a match"
-  ```
-  En resumen: si ves `#, fuzzy` en una traducción que ya está correcta, **simplemente borra esa línea** y vuelve a compilar.
+> [!IMPORTANT]
+> **Eliminar la marca `#, fuzzy`:**
+> Al modificar frases en el código, Django puede marcar traducciones previas con `#, fuzzy` (*traducción tentativa*). **Django ignora cualquier traducción con esta marca**. Una vez revisada y confirmada la traducción, **elimina la línea `#, fuzzy`** para que se active en la interfaz.
 
-##### 🐳 Flujo de trabajo completo con Docker en el entorno
+### 🐳 Flujo de trabajo paso a paso con Docker
 
-Dado que en nuestro entorno los servicios se ejecutan dentro de contenedores de Docker Compose (`petly_web` y `petly_db`), el ciclo de trabajo para agregar y probar traducciones es el siguiente:
+Para gestionar traducciones en el entorno contenerizado de Docker Compose:
 
-###### Paso 1: Marcar los textos en tu código o plantilla
-Agrega tus textos usando `{% translate "Texto en minúsculas" %}` o `_("Texto en minúsculas")`.
+1. **Marcar textos:** Añadir `{% translate "..." %}` en plantillas o `_("...")` en código Python.
+2. **Extraer cadenas:** Escanear el código para actualizar los archivos `.po`:
+   ```bash
+   docker compose exec web python manage.py makemessages -a -i '.venv/*' -i 'node_modules/*'
+   ```
+3. **Traducir:** Abrir `locale/en/LC_MESSAGES/django.po`, completar los `msgstr ""` pendientes y retirar las etiquetas `#, fuzzy`.
+4. **Compilar binarios:** Generar los archivos binarios optimizados `.mo`:
+   ```bash
+   docker compose exec web python manage.py compilemessages
+   ```
+5. **Verificar en el navegador:** Acceder a [http://localhost:8000/](http://localhost:8000/) y utilizar el selector de idioma para comprobar la conmutación entre `ES` y `EN`.
 
-###### Paso 2: Extraer las nuevas cadenas con Docker
-Ejecuta el comando en el contenedor `web` para que Django escanee el proyecto y actualice los archivos `.po`:
-```bash
-docker compose exec web python manage.py makemessages -a -i '.venv/*' -i 'node_modules/*'
-```
 
-###### Paso 3: Traducir en el archivo `.po`
-Abre el archivo `locale/en/LC_MESSAGES/django.po` en tu editor, busca las líneas con `msgstr ""` recién agregadas y escribe su traducción al inglés. Si alguna tiene `#, fuzzy`, bórrala.
-
-###### Paso 4: Compilar los binarios `.mo` con Docker
-Compila los catálogos para generar los binarios optimizados que Django lee:
-```bash
-docker compose exec web python manage.py compilemessages
-```
-
-###### Paso 5: Probar en el navegador
-Visita [http://localhost:8000/](http://localhost:8000/) y utiliza el selector de idioma en la barra de navegación para alternar entre `ES` y `EN`. La interfaz cambiará inmediatamente sin necesidad de reiniciar el contenedor.
 
 ## 👥 Equipo de desarrollo
 Este proyecto es diseñado y construido por:
