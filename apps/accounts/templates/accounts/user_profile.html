@@ -8,9 +8,14 @@
     <div class="card-petly p-8 bg-white border border-neutral-300/80 mb-10 text-center">
         <h1 class="title-h3 text-neutral-900 mb-2">{% translate "Gestión de usuario" %}</h1>
         <p class="text-caption text-neutral-500 mb-6">{% translate "Pantalla en construcción para el perfil del tutor." %}</p>
-        <a href="{% url 'pets:pet_management' %}" class="btn-petly-primary text-xs px-4 py-2 inline-flex items-center gap-1.5">
-            {% translate "Ir a gestión de perfiles de mascotas →" %}
-        </a>
+        <div class="flex items-center justify-center gap-3 flex-wrap">
+            <a href="{% url 'pets:pet_management' %}" class="btn-petly-primary text-xs px-4 py-2 inline-flex items-center gap-1.5">
+                {% translate "Ir a gestión de perfiles de mascotas →" %}
+            </a>
+            <a href="{% url 'accounts:logout' %}" class="btn-petly-outline text-xs px-4 py-2 inline-flex items-center gap-1.5">
+                {% translate "Cerrar sesión" %}
+            </a>
+        </div>
     </div>
 
     <!-- Muestra de componentes para los desarrolladores -->
