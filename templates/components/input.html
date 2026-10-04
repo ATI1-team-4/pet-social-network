@@ -42,11 +42,11 @@ Parámetros:
             value="{{ value|default:'' }}"
             placeholder="{{ placeholder|default:'Escribir' }}"
             {% if required %}required{% endif %}
-            class="input-petly {% if icon %}pl-11{% endif %} {% if icon_end %}pr-11{% endif %} {% if error %}border-petly-coral ring-1 ring-petly-coral/30{% endif %}"
+            class="input-petly {% if icon %}has-icon pl-11{% endif %} {% if icon_end %}has-icon-end pr-11{% endif %} {% if error %}border-petly-coral ring-1 ring-petly-coral/30{% endif %}"
         >
 
         {% if icon_end %}
-            <span class="absolute right-4 text-neutral-400 cursor-pointer flex items-center justify-center">
+            <span class="absolute right-4 pr-1 text-neutral-400 cursor-pointer flex items-center justify-center">
                 {% include 'components/icon.html' with name=icon_end class="w-4 h-4" %}
             </span>
         {% endif %}

@@ -477,6 +477,14 @@ body {
   color: var(--color-neutral-800);
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
+.input-petly.has-icon,
+.input-petly.pl-11 {
+  padding-left: 2.75rem;
+}
+.input-petly.has-icon-end,
+.input-petly.pr-11 {
+  padding-right: 2.75rem;
+}
 .input-petly::placeholder {
   color: var(--color-neutral-500);
 }
