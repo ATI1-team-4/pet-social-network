@@ -1,0 +1,15 @@
+{% extends 'layouts/app.html' %}
+{% load i18n %}
+
+{% block title %}{% translate "Seleccionar mascota" %} | Petly{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <h1 class="text-3xl font-bold text-slate-900 mb-2">{% translate "¿Con qué mascota deseas buscar pareja hoy?" %}</h1>
+    <p class="text-slate-600 mb-6">{% translate "Pantalla en construcción para seleccionar la mascota activa." %}</p>
+    <div class="flex gap-4">
+        <a href="{% url 'pets:match_feed' %}" class="inline-flex items-center px-4 py-2 bg-brand-500 text-white rounded-xl font-medium hover:bg-brand-600 transition-colors">{% translate "Continuar a buscar pareja" %}</a>
+        <a href="{% url 'pets:pet_management' %}" class="inline-flex items-center px-4 py-2 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors">{% translate "Gestionar mascotas" %}</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'layouts/app.html' %}
+{% load i18n %}
+
+{% block title %}{% translate "Gestión de usuario" %} | Petly{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <h1 class="text-3xl font-bold text-slate-900 mb-2">{% translate "Gestión de usuario" %}</h1>
+    <p class="text-slate-600 mb-6">{% translate "Pantalla en construcción para el perfil del tutor." %}</p>
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <a href="{% url 'pets:pet_management' %}" class="text-brand-600 hover:underline font-medium">{% translate "Ir a gestión de perfiles de mascotas →" %}</a>
+    </div>
+</div>
+{% endblock %}

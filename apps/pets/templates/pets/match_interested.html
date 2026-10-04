@@ -1,0 +1,14 @@
+{% extends 'layouts/app.html' %}
+{% load i18n %}
+
+{% block title %}{% translate "Mascotas interesadas" %} | Petly{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <h1 class="text-3xl font-bold text-slate-900 mb-2">{% translate "Mascotas interesadas" %}</h1>
+    <p class="text-slate-600 mb-6">{% translate "Bandeja de pretendientes y citas confirmadas en construcción." %}</p>
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <a href="{% url 'pets:match_feed' %}" class="text-brand-600 hover:underline font-medium">{% translate "← Volver a explorar parejas" %}</a>
+    </div>
+</div>
+{% endblock %}
