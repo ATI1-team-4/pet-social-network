@@ -8,6 +8,10 @@ ENV PYTHONUNBUFFERED=1
 # Directorio de trabajo dentro del contenedor
 WORKDIR /app
 
+# Instalar dependencias del sistema operativo (gettext para soporte de internacionalización i18n)
+RUN apt-get update && apt-get install -y --no-install-recommends gettext \
+    && rm -rf /var/lib/apt/lists/*
+
 # Instalar dependencias de Python y precargar binario de Tailwind
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt \
