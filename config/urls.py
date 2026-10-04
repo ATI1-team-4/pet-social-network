@@ -26,6 +26,9 @@ from django.urls import include, path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.core.urls')),
+    path('accounts/', include('apps.accounts.urls')),
+    path('pets/', include('apps.pets.urls')),
+    path('i18n/', include('django.conf.urls.i18n')),
 ]
 
 # Rutas y servicios auxiliares exclusivos para desarrollo local

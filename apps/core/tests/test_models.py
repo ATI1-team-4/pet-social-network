@@ -31,3 +31,22 @@ class TimeStampedModelTests(TestCase):
 
         self.assertTrue(created_at_field.auto_now_add)
         self.assertTrue(updated_at_field.auto_now)
+
+
+class AuditLogModelTests(TestCase):
+    """Pruebas unitarias para el modelo AuditLog."""
+
+    def test_create_audit_log_anonymous(self):
+        """Verifica la creación de un registro de auditoría sin usuario autenticado."""
+        from apps.core.models import AuditLog
+
+        log = AuditLog.objects.create(
+            action='Acción anónima',
+            ip_address='192.168.1.1',
+            details='Detalles de prueba',
+        )
+        self.assertIsNotNone(log.pk)
+        self.assertIn('Anónimo', str(log))
+        self.assertIn('Acción anónima', str(log))
+        self.assertIsNotNone(log.created_at)
+        self.assertIsNotNone(log.updated_at)

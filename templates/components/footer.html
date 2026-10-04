@@ -1,6 +1,24 @@
-<footer class="mt-auto bg-white border-t border-slate-200 py-6">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-        <p>© 2026 Petly. Plataforma colaborativa para amantes de los animales - UCV.</p>
-        <p class="font-semibold text-slate-600">ATI equipo 4</p>
+{% load i18n %}
+<footer class="mt-auto w-full bg-petly-surface border-t border-neutral-300/60 py-6 text-xs text-neutral-500 transition-colors pb-20 md:pb-6">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+        <!-- Marca y descripción oficial del prototipo -->
+        <div class="flex flex-col md:flex-row items-center gap-1.5 md:gap-2 text-xs font-normal">
+            <span class="font-bold text-petly-coral text-sm tracking-tight">Petly</span>
+            <span class="hidden md:inline text-neutral-400">•</span>
+            <span class="text-neutral-500 text-center md:text-left">
+                {% translate "Conectando vidas peludas de forma responsable" %} © 2026
+            </span>
+        </div>
+
+        <!-- Enlaces legales y de bienestar animal del prototipo -->
+        <nav class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs font-medium text-neutral-500" aria-label="{% translate 'Enlaces legales y de bienestar' %}">
+            <div class="flex items-center gap-3 sm:gap-4">
+                <a href="#" class="hover:text-petly-coral hover:underline transition-colors whitespace-nowrap">{% translate "Términos de servicio" %}</a>
+                <span class="text-neutral-300">•</span>
+                <a href="#" class="hover:text-petly-coral hover:underline transition-colors whitespace-nowrap">{% translate "Política de privacidad" %}</a>
+            </div>
+            <span class="hidden sm:inline text-neutral-300">•</span>
+            <a href="#" class="hover:text-petly-coral hover:underline transition-colors whitespace-nowrap">{% translate "Normas de bienestar animal" %}</a>
+        </nav>
     </div>
 </footer>

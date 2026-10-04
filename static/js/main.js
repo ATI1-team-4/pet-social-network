@@ -1,8 +1,8 @@
 /**
  * Script base de cliente para Petly.
- * Manejo de eventos globales, alertas e inicializaciones del frontend.
+ * Manejo de eventos globales e inicializaciones del frontend.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Petly frontend inicializado.');
+    // Inicializaciones globales del cliente
 });

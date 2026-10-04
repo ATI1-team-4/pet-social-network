@@ -1,0 +1,21 @@
+{% extends 'layouts/app.html' %}
+{% load i18n %}
+
+{% block title %}{% translate "Gestión de perfiles de mascotas" %} | Petly{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-8">
+    <div class="card-petly p-8 bg-white border border-neutral-300/80 mb-10 text-center">
+        <h1 class="title-h3 text-neutral-900 mb-2">{% translate "Gestión de perfiles de mascotas" %}</h1>
+        <p class="text-caption text-neutral-500 mb-6">
+            {% translate "Pantalla unificada en construcción para listar, crear y editar mascotas." %}
+        </p>
+        <a href="{% url 'pets:pet_select' %}" class="btn-petly-primary text-xs px-4 py-2 inline-flex items-center gap-1.5">
+            {% translate "Ir a seleccionar mascota activa →" %}
+        </a>
+    </div>
+
+    <!-- Muestra de componentes para los desarrolladores -->
+    {% include 'components/components_palette.html' %}
+</div>
+{% endblock %}

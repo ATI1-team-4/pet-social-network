@@ -29,7 +29,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "tailwindcss -i theme/static_src/src/styles.css -o theme/static/css/dist/styles.css --watch --poll & python manage.py runserver 0.0.0.0:8000"
 
 # Volumen persistente para la base de datos
 volumes:
