@@ -29,10 +29,24 @@ Parámetros:
     {% if slot %}
         {{ slot|safe }}
     {% else %}
-        {% include 'components/button.html' with text=text_1|default:'Opción 1' variant="segmented-active" onclick=onclick_1 role="tab" aria_selected="true" data_value=value_1|default:text_1|default:'1' icon=icon_1 icon_class="w-3.5 h-3.5" %}
-        {% include 'components/button.html' with text=text_2|default:'Opción 2' variant="segmented-inactive" onclick=onclick_2 role="tab" aria_selected="false" data_value=value_2|default:text_2|default:'2' icon=icon_2 icon_class="w-3.5 h-3.5" %}
+        {% if onclick_1 %}
+            {% include 'components/button.html' with text=text_1|default:'Opción 1' variant="segmented-active" onclick="if (this.getAttribute('aria-selected') === 'true') return false; "|add:onclick_1 role="tab" aria_selected="true" data_value=value_1|default:text_1|default:'1' icon=icon_1 icon_class="w-3.5 h-3.5" %}
+        {% else %}
+            {% include 'components/button.html' with text=text_1|default:'Opción 1' variant="segmented-active" role="tab" aria_selected="true" data_value=value_1|default:text_1|default:'1' icon=icon_1 icon_class="w-3.5 h-3.5" %}
+        {% endif %}
+
+        {% if onclick_2 %}
+            {% include 'components/button.html' with text=text_2|default:'Opción 2' variant="segmented-inactive" onclick="if (this.getAttribute('aria-selected') === 'true') return false; "|add:onclick_2 role="tab" aria_selected="false" data_value=value_2|default:text_2|default:'2' icon=icon_2 icon_class="w-3.5 h-3.5" %}
+        {% else %}
+            {% include 'components/button.html' with text=text_2|default:'Opción 2' variant="segmented-inactive" role="tab" aria_selected="false" data_value=value_2|default:text_2|default:'2' icon=icon_2 icon_class="w-3.5 h-3.5" %}
+        {% endif %}
+
         {% if text_3 %}
-            {% include 'components/button.html' with text=text_3 variant="segmented-inactive" onclick=onclick_3 role="tab" aria_selected="false" data_value=value_3|default:text_3|default:'3' icon=icon_3 icon_class="w-3.5 h-3.5" %}
+            {% if onclick_3 %}
+                {% include 'components/button.html' with text=text_3 variant="segmented-inactive" onclick="if (this.getAttribute('aria-selected') === 'true') return false; "|add:onclick_3 role="tab" aria_selected="false" data_value=value_3|default:text_3|default:'3' icon=icon_3 icon_class="w-3.5 h-3.5" %}
+            {% else %}
+                {% include 'components/button.html' with text=text_3 variant="segmented-inactive" role="tab" aria_selected="false" data_value=value_3|default:text_3|default:'3' icon=icon_3 icon_class="w-3.5 h-3.5" %}
+            {% endif %}
         {% endif %}
     {% endif %}
 </div>
@@ -54,6 +68,11 @@ Parámetros:
             // Buscar el contenedor segmentado
             const container = clickedPill.closest('[data-segmented]');
             if (!container) return;
+
+            // Evitar re-ejecución si la pastilla ya está seleccionada actualmente
+            if (clickedPill.getAttribute('aria-selected') === 'true' || clickedPill.classList.contains('segmented-pill-active')) {
+                return;
+            }
 
             const pills = container.querySelectorAll('.segmented-pill');
             if (pills.length <= 1) return;
