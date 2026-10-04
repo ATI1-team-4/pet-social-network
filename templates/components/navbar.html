@@ -1,16 +1,13 @@
-{% load i18n %}
+{% load i18n static %}
 <header class="sticky top-0 z-50 bg-petly-blue border-b border-petly-blue/80 transition-all">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-14 sm:h-16 gap-3 flex-nowrap">
             <!-- Columna izquierda: Logotipo y marca oficial del prototipo -->
             <div class="flex items-center justify-start shrink-0">
-                <a href="{% url 'core:home' %}" class="flex items-center gap-2 sm:gap-2.5 group select-none no-underline">
-                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-petly-coral-light border border-petly-coral/30 text-petly-coral flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200 shrink-0">
-                        {% include 'components/icon.html' with name="paw" class="w-4 h-4 text-petly-coral" %}
-                    </div>
-                    <span class="font-bold text-lg sm:text-xl tracking-tight text-neutral-800 group-hover:text-petly-coral transition-colors flex items-center gap-1">
+                <a href="{% url 'core:home' %}" class="flex items-center gap-2 group select-none no-underline py-1">
+                    <img src="{% static 'images/logo.png' %}" alt="Petly" class="w-5 h-5 sm:w-8 sm:h-8 object-contain shrink-0 group-hover:scale-105 transition-transform duration-200">
+                    <span class="font-bold text-xl sm:text-2xl tracking-tight text-neutral-800 group-hover:text-petly-coral transition-colors leading-none">
                         Petly
-                        {% include 'components/icon.html' with name="paw" class="w-3.5 h-3.5 text-petly-coral" %}
                     </span>
                 </a>
             </div>
