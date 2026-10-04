@@ -3,11 +3,11 @@
 {% block body_class %}min-h-screen flex flex-col bg-petly-surface text-neutral-800 antialiased{% endblock %}
 
 {% block layout %}
-    <!-- Barra de navegación global -->
-    {% include 'components/navbar.html' %}
+    <!-- Barra de navegación pública -->
+    {% include 'components/navbar_public.html' %}
 
-    <!-- Contenido principal de la aplicación -->
-    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <!-- Contenido principal de la vista pública -->
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {% block content %}{% endblock %}
     </main>
 
