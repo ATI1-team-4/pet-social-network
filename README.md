@@ -474,6 +474,146 @@ def test_pet_detail_redirect():
 - **Regla de herencia de layouts:** cualquier plantilla dentro de `templates/layouts/` (como `app.html` o un futuro `auth.html`) debe heredar obligatoriamente de `base.html` mediante `{% extends 'base.html' %}`.
 - Enlaces de navegación resueltos siempre mediante la etiqueta `{% url %}` usando los nombres del contrato.
 
+#### 🌍 Internacionalización y localización (i18n / l10n)
+El proyecto cuenta con soporte bilingüe predeterminado (**español `es`** como idioma principal e **inglés `en`** como idioma alternativo), cumpliendo con estándares de accesibilidad y las heurísticas de usabilidad de Nielsen (heurística 10: ayuda y documentación, heurística 2: coincidencia entre el sistema y el mundo real).
+
+##### ⚙️ Configuración del sistema
+1. **Middleware y orden de procesamiento:**
+   `LocaleMiddleware` se ubica estrictamente entre `SessionMiddleware` y `CommonMiddleware` en `config/settings.py` para resolver las preferencias de idioma del usuario.
+2. **Context processor en plantillas:**
+   `django.template.context_processors.i18n` está habilitado para exponer las variables globales de idioma (`LANGUAGES`, `LANGUAGE_CODE`) a nivel de interfaz.
+3. **Selector accesible en barra de navegación:**
+   La barra de navegación (`templates/components/navbar.html`) incluye un selector de idioma con `<form action="{% url 'set_language' %}" method="post">` que conmuta la cookie `django_language` y recarga la vista actual sin perder el contexto.
+4. **Almacenamiento de catálogos:**
+   Los catálogos de traducción residen en `locale/<idioma>/LC_MESSAGES/`.
+
+##### 📝 Cómo marcar textos para traducción
+
+###### 1. En plantillas HTML (`.html`)
+Carga siempre la biblioteca `{% load i18n %}` al inicio de la plantilla y utiliza las etiquetas estándar:
+```html
+{% load i18n %}
+
+{# Para textos simples (utilizar solo mayúscula en la primera letra) #}
+<h1>{% translate "Gestión de perfiles de mascotas" %}</h1>
+<button>{% translate "Guardar cambios" %}</button>
+
+{# Para textos con variables contextuales #}
+{% blocktranslate with name=pet.name %}
+    La mascota {{ name }} ha sido actualizada con éxito.
+{% endblocktranslate %}
+```
+
+###### 2. En código Python (`models.py`, `forms.py`, `views.py`, etc.)
+
+En el código Python se distinguen dos funciones según el momento en que se evalúa la traducción:
+
+- **En modelos (`models.py`) — `gettext_lazy as _`:**
+  - **¿Para qué se usa?** Para los nombres legibles de campos (`verbose_name`), nombres del modelo en singular y plural (`Meta.verbose_name` y `verbose_name_plural`), textos de ayuda (`help_text`) y opciones de selección desplegable (`TextChoices`). Esto permite que el panel de administración de Django (`/admin/`) y los formularios generados automáticamente se muestren en el idioma preferido del usuario.
+  - **¿Por qué `gettext_lazy`?** Porque los modelos se cargan en memoria una sola vez cuando el servidor de Django arranca (cuando aún no existe ninguna petición HTTP de un usuario). `gettext_lazy` retrasa la traducción hasta el momento exacto en que el texto se renderiza en la pantalla del usuario.
+  ```python
+  from django.db import models
+  from django.utils.translation import gettext_lazy as _
+
+
+  class Pet(models.Model):
+      name = models.CharField(
+          max_length=100,
+          verbose_name=_('Nombre de la mascota'),
+          help_text=_('Indica el nombre oficial o apodo de la mascota.'),
+      )
+
+      class Meta:
+          verbose_name = _('Mascota')
+          verbose_name_plural = _('Mascotas')
+  ```
+
+- **En formularios (`forms.py`) — `gettext_lazy as _`:**
+  - **¿Para qué se usa?** Para las etiquetas de campos (`label`), textos de ayuda (`help_text`), textos de marcador de posición (`placeholder`) y mensajes de error de validación (`error_messages`).
+  ```python
+  from django import forms
+  from django.utils.translation import gettext_lazy as _
+
+
+  class PetForm(forms.Form):
+      name = forms.CharField(
+          label=_('Nombre'),
+          widget=forms.TextInput(attrs={'placeholder': _('Ejemplo: Luna')}),
+          error_messages={'required': _('El nombre es obligatorio.')},
+      )
+  ```
+
+- **En vistas (`views.py`) — `gettext as _`:**
+  - **¿Para qué se usa?** Para mensajes de notificación y alertas al usuario (`messages.success`, `messages.error`, `messages.warning`), títulos o valores dinámicos enviados en el contexto (`context`), y respuestas en tiempo de ejecución.
+  - **¿Por qué `gettext`?** Porque dentro de una vista ya existe una petición activa (`request`) donde el middleware ya resolvió el idioma del usuario a través de la cookie o sesión, permitiendo traducir la cadena de manera inmediata.
+  ```python
+  from django.contrib import messages
+  from django.shortcuts import redirect
+  from django.utils.translation import gettext as _
+
+
+  def profile_update_view(request):
+      # Notificación temporal que se mostrará en components/messages.html
+      messages.success(request, _('Tu perfil fue actualizado con éxito.'))
+      return redirect('accounts:profile')
+  ```
+
+##### 📖 Cómo configurar y traducir los archivos `.po`
+
+El archivo `.po` (*Portable Object*) es un archivo de texto plano donde se asocia cada mensaje original con su traducción:
+
+```po
+#: apps/pets/templates/pets/pet_management.html:8
+msgid "Gestión de perfiles de mascotas"
+msgstr "Pet profile management"
+```
+
+- **`msgid` (identificador del mensaje):** Es la frase original en español que Django extrajo de tu código. Nunca debes editar esta línea a mano.
+- **`msgstr` (cadena traducida):** Es donde escribes la traducción correspondiente (al inglés en `locale/en/...`). Si la dejas vacía (`""`), Django mostrará el texto en español por defecto.
+- **¿Qué es la marca `#, fuzzy` y qué hacer con ella?**
+  Cuando modificas una frase en el código (por ejemplo, si cambias una letra o una mayúscula), la herramienta intenta adivinar si la traducción anterior todavía sirve. Al hacer esto, le coloca automáticamente encima una etiqueta `#, fuzzy` (que significa *"traducción tentativa o por revisar"*).
+  
+  > [!IMPORTANT]
+  > **Django ignora por completo cualquier traducción que tenga la marca `#, fuzzy`**. Mientras esa línea exista en el bloque, el texto seguirá apareciendo en español en el navegador aunque hayas escrito una traducción.
+  
+  **Ejemplo visual:**
+  ```po
+  # ❌ ANTES: Django no usará esta traducción porque tiene la marca fuzzy
+  #, fuzzy
+  msgid "Buscar pareja"
+  msgstr "Find a match"
+
+  # ✅ DESPUÉS: Solo debes borrar la línea "#, fuzzy" para que Django la active
+  msgid "Buscar pareja"
+  msgstr "Find a match"
+  ```
+  En resumen: si ves `#, fuzzy` en una traducción que ya está correcta, **simplemente borra esa línea** y vuelve a compilar.
+
+##### 🐳 Flujo de trabajo completo con Docker en el entorno
+
+Dado que en nuestro entorno los servicios se ejecutan dentro de contenedores de Docker Compose (`petly_web` y `petly_db`), el ciclo de trabajo para agregar y probar traducciones es el siguiente:
+
+###### Paso 1: Marcar los textos en tu código o plantilla
+Agrega tus textos usando `{% translate "Texto en minúsculas" %}` o `_("Texto en minúsculas")`.
+
+###### Paso 2: Extraer las nuevas cadenas con Docker
+Ejecuta el comando en el contenedor `web` para que Django escanee el proyecto y actualice los archivos `.po`:
+```bash
+docker compose exec web python manage.py makemessages -a -i '.venv/*' -i 'node_modules/*'
+```
+
+###### Paso 3: Traducir en el archivo `.po`
+Abre el archivo `locale/en/LC_MESSAGES/django.po` en tu editor, busca las líneas con `msgstr ""` recién agregadas y escribe su traducción al inglés. Si alguna tiene `#, fuzzy`, bórrala.
+
+###### Paso 4: Compilar los binarios `.mo` con Docker
+Compila los catálogos para generar los binarios optimizados que Django lee:
+```bash
+docker compose exec web python manage.py compilemessages
+```
+
+###### Paso 5: Probar en el navegador
+Visita [http://localhost:8000/](http://localhost:8000/) y utiliza el selector de idioma en la barra de navegación para alternar entre `ES` y `EN`. La interfaz cambiará inmediatamente sin necesidad de reiniciar el contenedor.
+
 ## 👥 Equipo de desarrollo
 Este proyecto es diseñado y construido por:
 * **Product Owners**: María Paula Herrero & Sofía Marcano.
