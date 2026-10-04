@@ -1,0 +1,21 @@
+{% comment %}
+Componente de insignia / etiqueta reutilizable según guía de estilos del prototipo.
+Parámetros:
+- text: Texto de la etiqueta
+- variant: 'compat' (verde menta) | 'tag' (lila) | 'male' (azul) | 'female' (coral)
+- icon: Nombre del ícono o contenido opcional
+- class: Clases adicionales
+{% endcomment %}
+
+<span class="inline-flex items-center justify-center gap-1.5 shrink-0 select-none whitespace-nowrap {% if variant == 'compat' %}badge-compat{% elif variant == 'male' %}badge-gender-male{% elif variant == 'female' %}badge-gender-female{% elif variant == 'tag' %}badge-tag{% else %}badge-compat{% endif %} {{ class|default:'' }}">
+    {% if icon %}
+        {% include 'components/icon.html' with name=icon class="w-3.5 h-3.5" %}
+    {% elif variant == 'compat' %}
+        {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5" %}
+    {% elif variant == 'male' %}
+        {% include 'components/icon.html' with name="male" class="w-3.5 h-3.5" %}
+    {% elif variant == 'female' %}
+        {% include 'components/icon.html' with name="female" class="w-3.5 h-3.5" %}
+    {% endif %}
+    <span>{{ text }}</span>
+</span>

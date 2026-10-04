@@ -1,0 +1,60 @@
+{% load i18n %}
+{% comment %}
+Componente de campo de entrada redondeado (pill input) según guía de estilos del prototipo.
+Parámetros:
+- name: Nombre del campo
+- id: Identificador único
+- type: 'text' | 'email' | 'password' | 'number' | 'date' (predeterminado: 'text')
+- label: Texto de etiqueta
+- required: true | false
+- placeholder: Texto de ayuda
+- value: Valor actual
+- icon: Nombre del ícono frontal SVG opcional (ej. 'paw', 'mail', 'lock')
+- icon_end: Nombre del ícono final SVG opcional (ej. 'eye' para contraseñas)
+- helper_text: Texto aclaratorio inferior
+- error: Mensaje de error de validación
+- class: Clases complementarias para el contenedor
+{% endcomment %}
+
+<div class="w-full flex flex-col gap-1.5 {{ class|default:'' }}">
+    {% if label %}
+        <div class="flex items-center justify-between">
+            <label for="{% if id %}{{ id }}{% elif name %}{{ name }}{% endif %}" class="text-xs font-semibold text-neutral-700">
+                {{ label }}
+            </label>
+            {% if required %}
+                <span class="text-[11px] font-medium text-petly-coral">{% translate "Requerido" %}</span>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div class="relative flex items-center">
+        {% if icon %}
+            <span class="absolute left-4 text-neutral-400 pointer-events-none flex items-center justify-center">
+                {% include 'components/icon.html' with name=icon class="w-4 h-4" %}
+            </span>
+        {% endif %}
+
+        <input
+            type="{{ type|default:'text' }}"
+            id="{% if id %}{{ id }}{% elif name %}{{ name }}{% endif %}"
+            name="{{ name|default:'' }}"
+            value="{{ value|default:'' }}"
+            placeholder="{{ placeholder|default:'Escribir' }}"
+            {% if required %}required{% endif %}
+            class="input-petly {% if icon %}pl-11{% endif %} {% if icon_end %}pr-11{% endif %} {% if error %}border-petly-coral ring-1 ring-petly-coral/30{% endif %}"
+        >
+
+        {% if icon_end %}
+            <span class="absolute right-4 text-neutral-400 cursor-pointer flex items-center justify-center">
+                {% include 'components/icon.html' with name=icon_end class="w-4 h-4" %}
+            </span>
+        {% endif %}
+    </div>
+
+    {% if error %}
+        <p class="text-caption text-petly-coral-dark font-medium">{{ error }}</p>
+    {% elif helper_text %}
+        <p class="text-caption text-neutral-500">{{ helper_text }}</p>
+    {% endif %}
+</div>

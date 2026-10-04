@@ -1,0 +1,19 @@
+{% comment %}
+Componente de interruptor de alternancia (toggle switch) según guía de estilos del prototipo.
+Parámetros:
+- name: Nombre del campo
+- id: Identificador único
+- checked: true | false
+- label: Etiqueta descriptiva opcional
+- class: Clases CSS complementarias
+{% endcomment %}
+
+<label for="{% if id %}{{ id }}{% elif name %}{{ name }}{% endif %}" class="inline-flex items-center justify-between gap-3 cursor-pointer select-none {{ class|default:'' }}">
+    {% if label %}
+        <span class="text-sm font-medium text-neutral-800">{{ label }}</span>
+    {% endif %}
+    <div class="relative inline-flex items-center shrink-0">
+        <input type="checkbox" id="{% if id %}{{ id }}{% elif name %}{{ name }}{% endif %}" name="{{ name|default:'' }}" class="sr-only peer" {% if checked %}checked{% endif %}>
+        <div class="w-11 h-6 bg-petly-blue peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:shadow-xs after:transition-all peer-checked:bg-petly-coral transition-colors"></div>
+    </div>
+</label>
