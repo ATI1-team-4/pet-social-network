@@ -1,19 +1,37 @@
 {% comment %}
 Componente de interruptor de alternancia (toggle switch) según guía de estilos del prototipo.
-Parámetros:
-- name: Nombre del campo
-- id: Identificador único
-- checked: true | false
-- label: Etiqueta descriptiva opcional
-- class: Clases CSS complementarias
+Permite alternar estados booleanos tanto en formularios Django como ejecutando funciones JavaScript.
+
+Parámetros disponibles:
+- id: Identificador único del input (recomendado para asociar con funciones JS o label)
+- name: Nombre del campo enviado en formularios
+- value: Valor cuando está marcado (predeterminado: 'true')
+- checked: Booleano para inicializar activado (true | false)
+- label: Texto descriptivo de la opción en sentence case
+- onchange: Código o función JS a ejecutar al cambiar de estado (ej. "miFuncion(this.checked)")
+- onclick: Código o función JS adicional al hacer clic (opcional)
+- disabled: Booleano para deshabilitar el interruptor (opcional)
+- class: Clases CSS complementarias para el contenedor <label>
+- input_class: Clases CSS complementarias para el input <input type="checkbox">
+- attrs: Atributos HTML personalizados adicionales en el <input> (opcional)
+
 {% endcomment %}
 
-<label for="{% if id %}{{ id }}{% elif name %}{{ name }}{% endif %}" class="inline-flex items-center justify-between gap-3 cursor-pointer select-none {{ class|default:'' }}">
+<label for="{% if id %}{{ id }}{% elif name %}{{ name }}{% else %}toggle{% endif %}" class="inline-flex items-center justify-between gap-3 cursor-pointer select-none {% if disabled %}opacity-60 cursor-not-allowed{% endif %} {{ class|default:'' }}">
     {% if label %}
         <span class="text-sm font-medium text-neutral-800">{{ label }}</span>
     {% endif %}
     <div class="relative inline-flex items-center shrink-0">
-        <input type="checkbox" id="{% if id %}{{ id }}{% elif name %}{{ name }}{% endif %}" name="{{ name|default:'' }}" class="sr-only peer" {% if checked %}checked{% endif %}>
+        <input type="checkbox"
+               id="{% if id %}{{ id }}{% elif name %}{{ name }}{% else %}toggle{% endif %}"
+               name="{{ name|default:'' }}"
+               value="{{ value|default:'true' }}"
+               class="sr-only peer {{ input_class|default:'' }}"
+               {% if checked %}checked{% endif %}
+               {% if disabled %}disabled{% endif %}
+               {% if onchange %}onchange="{{ onchange }}"{% endif %}
+               {% if onclick %}onclick="{{ onclick }}"{% endif %}
+               {{ attrs|default:'' }}>
         <div class="w-11 h-6 bg-petly-blue peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:shadow-xs after:transition-all peer-checked:bg-petly-coral transition-colors"></div>
     </div>
 </label>
