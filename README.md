@@ -469,10 +469,69 @@ def test_pet_detail_redirect():
 > **Beneficio para el trabajo en equipo:**
 > Siguiendo este contrato, si el desarrollador **UX/Frontend** está maquetando la barra de navegación o tarjetas de usuario, puede colocar `href="{% url 'accounts:profile' %}"` o `href="{% url 'pets:pet_create' %}"` antes de que el backend escriba la vista, garantizando cero colisiones y cero errores de `NoReverseMatch` al integrar las ramas.
 
-#### 🎨 Plantillas HTML y estructura visual
-- `base.html` actúa como cascarón raíz mínimo e independiente de componentes de navegación.
-- **Regla de herencia de layouts:** cualquier plantilla dentro de `templates/layouts/` (como `app.html` o un futuro `auth.html`) debe heredar obligatoriamente de `base.html` mediante `{% extends 'base.html' %}`.
+#### 🎨 Plantillas HTML, guía de estilos y componentes UI 
+- `base.html` actúa como cascarón raíz mínimo e independiente de componentes de navegación. La tipografía oficial **Plus Jakarta Sans** (e Inter como respaldo) se encuentra autohospedada localmente en formato `.woff2` dentro de `static/fonts/`, garantizando funcionamiento 100% offline y sin peticiones externas a internet.
+- **Regla de herencia de layouts:** cualquier plantilla dentro de `templates/layouts/` (como `app.html`) debe heredar obligatoriamente de `base.html` mediante `{% extends 'base.html' %}`.
 - Enlaces de navegación resueltos siempre mediante la etiqueta `{% url %}` usando los nombres del contrato.
+
+##### 🖌️ Tokens de diseño y colores corporativos oficiales
+El sistema de diseño implementado en Tailwind CSS v4 (`theme/static_src/src/styles.css`) refleja los tokens definidos en el prototipo oficial (`docs/reto_11_ diseño_prototipo.pdf`):
+
+| Token | Valor hexadecimal | Uso oficial en la interfaz |
+| :--- | :--- | :--- |
+| `petly-coral` / `brand-500` | `#FA7D82` | Color principal de marca, botones primarios y acentos activos |
+| `petly-coral-dark` / `brand-700` | `#A53B42` | Estado hover/active de botones primarios y enlaces destacados |
+| `petly-coral-light` / `brand-100` | `#FFDAD9` | Contenedores suaves, botón terciario y chip de género hembra |
+| `petly-surface` | `#F9F9FF` | Fondo base de la aplicación y canvas de pantallas |
+| `petly-blue` | `#DEE8FF` | Botones secundarios, contenedor de filtros y chip de género macho |
+| `petly-mint` | `#8FFFB4` | Insignias de compatibilidad (98%), pedigrí certificado y éxito |
+| `petly-lilac` | `#F5D0FF` | Chips de rasgos de temperamento y personalidad |
+| `petly-purple` | `#74567E` | Texto sobre contenedores lila y acentos complementarios |
+| `neutral-800` | `#2B2B2B` | Color de texto principal para títulos y elementos interactivos |
+| `neutral-700` | `#4A4A4A` | Color de texto para subtítulos y etiquetas de formulario |
+| `neutral-500` | `#757575` | Texto atenuado, pie de página, descripciones secundarias |
+| `neutral-300` | `#E0E0E0` | Bordes de tarjetas, separadores y campos de formulario |
+
+##### 🧩 Componentes UI reutilizables
+Para construir las pantallas de los retos con total fidelidad visual y sin duplicar código, se crearon los siguientes componentes en `templates/components/`:
+
+1. **Barra de navegación (`navbar.html`):**
+   - Logotipo oficial con distintivo circular coral e ícono de huella (`🐾`).
+   - Contenedor flotante con pastillas redondeadas para la navegación central ("Mis mascotas", "Buscar pareja", "Interesados").
+   - Selector de idioma bilingüe con accesibilidad y botones de autenticación según el estado de la sesión.
+
+2. **Pie de página (`footer.html`):**
+   - Lema oficial: `Petly • Conectando vidas peludas de forma responsable © 2026`.
+   - Enlaces normativos y legales: "Términos de servicio", "Política de privacidad" y "Normas de bienestar animal".
+   - Tipografía atenuada en `#757575` con interacción hover hacia `#FA7D82`.
+
+3. **Botones (`button.html` o clases de utilidad):**
+   - Primario coral: `.btn-petly-primary` (o `variant='primary'`)
+   - Secundario azul: `.btn-petly-secondary` (o `variant='secondary'`)
+   - Rosa suave: `.btn-petly-soft` (o `variant='soft'`)
+   - Lila de interacción: `.btn-petly-lilac` (o `variant='lilac'`)
+   - Borde sutil: `.btn-petly-outline` (o `variant='outline'`)
+   - Botones flotantes (FAB): `.fab-petly-like` (corazón), `.fab-petly-dismiss` (rechazo), `.fab-petly-add` (agregar).
+
+4. **Insignias y etiquetas (`badge.html` o clases de utilidad):**
+   - Compatibilidad: `.badge-compat` (verde menta para porcentaje de afinidad, ej. 98%)
+   - Temperamento: `.badge-tag` (lila para rasgos de personalidad)
+   - Género: `.badge-gender-male` (azul) y `.badge-gender-female` (coral claro)
+
+5. **Entradas de formulario y campos redondeados (`input.html`):**
+   - Campo de texto redondeado: `.input-petly` con soporte para íconos frontales y posteriores
+   - Área de texto para descripciones y biografías: `.textarea-petly`
+   - Grupo dividido para código de país/teléfono o nacionalidad/cédula
+
+6. **Interruptores y selectores segmentados:**
+   - Interruptor de alternancia (`toggle.html`): pista en coral para estado activo y azul suave para inactivo
+   - Control segmentado de pastillas (`segmented.html` y `.segmented-pill`): selector de especie (perro, gato, otro) o género
+
+7. **Tarjetas, avatares y contenedores visuales (`card.html`):**
+   - Tarjeta base redondeada: `.card-petly` (`rounded-3xl` con borde neutral suave)
+   - Avatares de mascotas y tutores: `.avatar-petly` con insignia flotante para foto (`.avatar-badge-camera`)
+   - Bloques métricos y contadores de perfil: `.stat-pill-petly`
+   - Contenedores de carga o marcadores de posición: `.placeholder-petly-rect` y `.placeholder-petly-circle`
 
 #### 🌍 Internacionalización y localización (i18n / l10n)
 El proyecto cuenta con soporte bilingüe predeterminado (**español `es`** como idioma principal e **inglés `en`** como idioma alternativo), cumpliendo con estándares de accesibilidad y las heurísticas de usabilidad de Nielsen (heurística 10: ayuda y documentación, heurística 2: coincidencia entre el sistema y el mundo real).
