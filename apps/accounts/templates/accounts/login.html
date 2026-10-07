@@ -1,20 +1,159 @@
 {% extends 'layouts/public.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% translate "Iniciar sesión" %} | Petly{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-8">
-    <div class="max-w-md mx-auto card-petly p-8 bg-white border border-neutral-300/80 mb-10 text-center">
-        <h1 class="title-h3 text-neutral-900 mb-2">{% translate "Inicio de sesión" %}</h1>
-        <p class="text-caption text-neutral-500 mb-6">{% translate "Pantalla en construcción para el reto 13." %}</p>
-        <div class="space-y-2">
-            <a href="{% url 'accounts:register' %}" class="text-xs text-petly-coral hover:underline block">{% translate "¿Aún no tienes cuenta? Regístrate aquí" %}</a>
-            <a href="{% url 'accounts:password_reset' %}" class="text-xs text-neutral-500 hover:underline block">{% translate "¿Olvidaste tu contraseña?" %}</a>
-        </div>
+<div class="max-w-5xl xl:max-w-6xl mx-auto py-2 sm:py-6">
+    <!-- Enlace de retorno visible en móviles -->
+    <div class="mb-4 sm:hidden">
+        <a href="{% url 'core:home' %}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-600 hover:text-petly-coral transition-colors">
+            {% include 'components/icon.html' with name="chevron-down" class="w-3.5 h-3.5 rotate-90 text-neutral-500" %}
+            <span>{% translate "Volver al inicio" %}</span>
+        </a>
     </div>
 
-    <!-- Muestra de componentes para los desarrolladores -->
-    {% include 'components/components_palette.html' %}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+        <!-- Columna izquierda: Formulario de inicio de sesión con degradado sutil oficial -->
+        <div class="lg:col-span-5 w-full max-w-lg mx-auto lg:max-w-none">
+            <div class="p-6 sm:p-10 bg-gradient-to-br from-white via-white to-petly-coral-light/25 border border-neutral-200/80 shadow-md rounded-[2rem] h-full flex flex-col justify-between">
+                <div>
+                    <!-- Encabezado de la tarjeta -->
+                    <div class="mb-6">
+                        <h1 class="title-h3 text-neutral-900 font-bold mb-2">
+                            {% translate "¡Hola de nuevo!" %}
+                        </h1>
+                        <p class="text-caption sm:text-body-base text-neutral-500">
+                            {% translate "Ingresa a tu cuenta para ver los pretendientes y citas de juego de tus mascotas." %}
+                        </p>
+                    </div>
+
+                    <!-- Mensajes flash del sistema si existen -->
+                    {% include 'components/messages.html' %}
+
+                    <!-- Formulario de autenticación con labels externos -->
+                    <form method="post" action="{% url 'accounts:login' %}" class="space-y-4">
+                        {% csrf_token %}
+
+                        <!-- Campo: Correo electrónico (label externo y placeholder con miembro del equipo) -->
+                        <div class="flex flex-col gap-1.5">
+                            <label for="login-email" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Correo electrónico" %}
+                            </label>
+                            {% include 'components/input.html' with name="email" id="login-email" type="email" placeholder="edwyn@petly.com" icon="mail" required=True %}
+                        </div>
+
+                        <!-- Campo: Contraseña con callback desacoplado para alternar visibilidad -->
+                        <div class="flex flex-col gap-1.5">
+                            <label for="login-password" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Contraseña" %}
+                            </label>
+                            {% include 'components/input.html' with name="password" id="login-password" type="password" placeholder="••••••••••••" icon="lock" icon_end="eye" icon_end_onclick="togglePasswordVisibility('login-password')" icon_end_aria_label=_("Mostrar u ocultar contraseña") required=True %}
+                        </div>
+
+                        <!-- Fila de opciones: Recordar sesión y recuperar clave -->
+                        <div class="flex items-center justify-between text-xs pt-1">
+                            <label class="inline-flex items-center gap-2 cursor-pointer select-none text-neutral-700">
+                                <input type="checkbox" name="remember_me" class="w-4 h-4 rounded border-neutral-300 text-petly-coral focus:ring-petly-coral/40 cursor-pointer">
+                                <span>{% translate "Recordar mi sesión" %}</span>
+                            </label>
+                            <a href="{% url 'accounts:password_reset' %}" class="text-xs font-semibold text-petly-coral hover:text-petly-coral-dark hover:underline transition-colors">
+                                {% translate "¿Olvidaste tu contraseña?" %}
+                            </a>
+                        </div>
+
+                        <!-- Botón de acción principal -->
+                        <div class="pt-3">
+                            {% include 'components/button.html' with text=_("Iniciar sesión") type="submit" variant="primary" icon="paw" class="w-full py-3 text-sm font-semibold rounded-full justify-center shadow-xs" %}
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Pie de tarjeta: Enlace hacia registro -->
+                <div class="text-center mt-6 pt-5 border-t border-neutral-200/80">
+                    <p class="text-xs text-neutral-600">
+                        {% translate "¿Aún no tienes cuenta?" %}
+                        <a href="{% url 'accounts:register' %}" class="font-semibold text-petly-coral hover:text-petly-coral-dark hover:underline inline-flex items-center gap-1 transition-colors">
+                            <span>{% translate "Regístrate aquí" %}</span>
+                            <span aria-hidden="true">&rarr;</span>
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Tarjeta visual simétrica -->
+        <div class="lg:col-span-7 hidden lg:block">
+            <div class="relative rounded-[2rem] overflow-hidden shadow-md border border-neutral-200/80 h-full min-h-[560px] bg-neutral-900 group">
+                <!-- Imagen de fondo optimizada -->
+                <img src="{% static 'images/auth/login_showcase.jpg' %}"
+                     alt="{% translate 'Mascotas felices conectadas en Petly' %}"
+                     class="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-700">
+
+                <!-- Gradiente de protección para legibilidad -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/35 pointer-events-none"></div>
+
+                <!-- Contenedor superior con flexbox para evitar solapamiento -->
+                <div class="absolute top-4 inset-x-4 sm:top-5 sm:inset-x-5 flex items-start justify-between gap-3 z-10 pointer-events-none">
+                    <!-- Insignia izquierda: Métrica semanal -->
+                    <div class="inline-flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md text-xs font-semibold text-neutral-800 shrink-0">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>1,420+ {% translate "matches esta semana" %}</span>
+                    </div>
+
+                    <!-- Insignia derecha: Ficha de amistad destacada -->
+                    <div class="inline-flex items-center gap-2 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-md shrink-0">
+                        <div class="w-7 h-7 rounded-full bg-petly-lilac flex items-center justify-center text-petly-purple shrink-0">
+                            {% include 'components/icon.html' with name="paw" class="w-3.5 h-3.5 text-petly-purple" %}
+                        </div>
+                        <div class="text-left">
+                            <div class="flex items-center gap-1">
+                                <span class="font-bold text-xs text-neutral-900 leading-tight">Milo & Oliver</span>
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            </div>
+                            <span class="text-[10px] text-neutral-500 block leading-tight">{% translate "Mejores amigos desde 2026" %}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de testimonio inferior con datos de miembros del equipo -->
+                <div class="absolute bottom-4 inset-x-4 sm:bottom-5 sm:inset-x-5 bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-xl border border-white/80">
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-neutral-800 mb-1.5">
+                        <span class="text-amber-500 tracking-wider">★★★★★</span>
+                        <span>5.0 / {% translate "experiencia real" %}</span>
+                    </div>
+                    <p class="text-xs sm:text-[13px] text-neutral-700 italic font-medium leading-relaxed mb-3">
+                        &ldquo;{% translate "Encontrar compañeros de paseo para Milo transformó su energía. En PetMatch conocimos a tutores súper comprometidos y seguros." %}&rdquo;
+                    </p>
+                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-neutral-200/80">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <div class="w-6 h-6 rounded-full bg-petly-blue text-neutral-800 font-bold text-[10px] flex items-center justify-center shrink-0">
+                                OA
+                            </div>
+                            <div class="text-xs truncate">
+                                <span class="font-semibold text-neutral-900">Oriana Arellano</span>
+                                <span class="text-neutral-400">•</span>
+                                <span class="text-neutral-500">{% translate "Tutora de Golden & Siamés" %}</span>
+                            </div>
+                        </div>
+                        <div class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full shrink-0">
+                            {% include 'components/icon.html' with name="check-circle" class="w-3.5 h-3.5 text-emerald-600" %}
+                            <span>{% translate "Identidad confirmada" %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Función callback para alternar visibilidad de contraseña -->
+<script>
+    function togglePasswordVisibility(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.type = field.type === 'password' ? 'text' : 'password';
+        }
+    }
+</script>
 {% endblock %}
