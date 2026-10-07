@@ -1,31 +1,32 @@
 {% load i18n %}
 {% comment %}
 Componente de campo de entrada redondeado (pill input) según guía de estilos del prototipo.
+Responsabilidad única: Renderizado del campo de entrada y sus controles asociados (íconos, callbacks).
+
 Parámetros:
 - name: Nombre del campo
-- id: Identificador único
-- type: 'text' | 'email' | 'password' | 'number' | 'date' (predeterminado: 'text')
-- label: Texto de etiqueta
-- required: true | false
-- placeholder: Texto de ayuda
+- id: Identificador único (opcional, usa name si no se provee)
+- type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'date' (predeterminado: 'text')
+- placeholder: Texto de ayuda o ejemplo
 - value: Valor actual
-- icon: Nombre del ícono frontal SVG opcional (ej. 'paw', 'mail', 'lock')
-- icon_end: Nombre del ícono final SVG opcional (ej. 'eye' para contraseñas)
-- helper_text: Texto aclaratorio inferior
+- required: true | false
+- icon: Nombre del ícono inicial SVG opcional (ej. 'mail', 'lock', 'user')
+- icon_end: Nombre del ícono final SVG opcional (ej. 'eye')
+- icon_end_onclick: Callback JavaScript a ejecutar al hacer clic en icon_end (ej. "togglePassword('id')")
+- icon_end_aria_label: Etiqueta descriptiva para accesibilidad del botón del ícono final
 - error: Mensaje de error de validación
+- helper_text: Texto aclaratorio inferior
 - class: Clases complementarias para el contenedor
+- input_class: Clases complementarias para la etiqueta <input>
+- attrs: Atributos HTML adicionales para <input>
+- label: Etiqueta opcional para compatibilidad con paleta de componentes
 {% endcomment %}
 
 <div class="w-full flex flex-col gap-1.5 {{ class|default:'' }}">
     {% if label %}
-        <div class="flex items-center justify-between">
-            <label for="{% if id %}{{ id }}{% elif name %}{{ name }}{% endif %}" class="text-xs font-semibold text-neutral-700">
-                {{ label }}
-            </label>
-            {% if required %}
-                <span class="text-[11px] font-medium text-petly-coral">{% translate "Requerido" %}</span>
-            {% endif %}
-        </div>
+        <label for="{% if id %}{{ id }}{% elif name %}{{ name }}{% endif %}" class="text-xs font-semibold text-neutral-700">
+            {{ label }}
+        </label>
     {% endif %}
 
     <div class="relative flex items-center">
@@ -42,13 +43,26 @@ Parámetros:
             value="{{ value|default:'' }}"
             placeholder="{{ placeholder|default:'Escribir' }}"
             {% if required %}required{% endif %}
-            class="input-petly {% if icon %}has-icon pl-11{% endif %} {% if icon_end %}has-icon-end pr-11{% endif %} {% if error %}border-petly-coral ring-1 ring-petly-coral/30{% endif %}"
+            class="input-petly {% if icon %}has-icon pl-11{% endif %} {% if icon_end %}has-icon-end pr-11{% endif %} {% if error %}border-petly-coral ring-1 ring-petly-coral/30{% endif %} {{ input_class|default:'' }}"
+            {{ attrs|default:'' }}
         >
 
         {% if icon_end %}
-            <span class="absolute right-4 pr-1 text-neutral-400 cursor-pointer flex items-center justify-center">
-                {% include 'components/icon.html' with name=icon_end class="w-4 h-4" %}
-            </span>
+            {% if icon_end_onclick %}
+                <button
+                    type="button"
+                    tabindex="-1"
+                    aria-label="{{ icon_end_aria_label|default:'Acción' }}"
+                    onclick="{{ icon_end_onclick }}"
+                    class="absolute right-4 pr-1 text-neutral-400 hover:text-neutral-600 cursor-pointer flex items-center justify-center focus:outline-none transition-colors"
+                >
+                    {% include 'components/icon.html' with name=icon_end class="w-4 h-4" %}
+                </button>
+            {% else %}
+                <span class="absolute right-4 pr-1 text-neutral-400 flex items-center justify-center pointer-events-none">
+                    {% include 'components/icon.html' with name=icon_end class="w-4 h-4" %}
+                </span>
+            {% endif %}
         {% endif %}
     </div>
 
