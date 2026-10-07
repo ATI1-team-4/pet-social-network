@@ -173,7 +173,7 @@ pet-social-network/
 │   └── posts/
 ├── static/                       # Recursos estáticos del sistema
 │   ├── images/                   # Logotipos, íconos y gráficos estáticos del sistema
-│   └── js/                       # Scripts JavaScript del cliente (main.js)
+│   └── js/                       # Scripts JavaScript globales del cliente (main.js)
 ├── templates/                    # Plantillas globales y componentes compartidos
 │   ├── base.html                 # Plantilla maestra con estructura HTML5 compartida
 │   ├── components/               # Componentes reutilizables (navbar, footer, mensajes)
@@ -204,7 +204,7 @@ pet-social-network/
 | `apps/` | Aloja los dominios del sistema separados en submódulos independientes | Cada app configura su clase en `apps.py` con `name = 'apps.<nombre_app>'` y su enrutador `urls.py` con `app_name = '<nombre_app>'` para la resolución inversa con `{% url %}`. |
 | `theme/` | Gestión y compilación del sistema de diseño Tailwind CSS | Contiene la configuración de estilos fuente y genera el paquete CSS unificado en `theme/static/css/dist/styles.css`. |
 | `templates/` | Plantilla base global, layouts intermedios y componentes reutilizables | `base.html` es el cascarón raíz. Todo layout dentro de `templates/layouts/` (ej. `app.html`) debe heredar obligatoriamente de `base.html` con `{% extends 'base.html' %}`. Las plantillas de cada módulo van en `apps/<nombre_app>/templates/<nombre_app>/`. |
-| `static/` | Archivos JavaScript e imágenes estáticas del sistema | Carpeta fuente conectada a Django mediante `STATICFILES_DIRS = [BASE_DIR / 'static']`. En producción, `collectstatic` compila en `staticfiles/`. |
+| `static/` | Archivos JavaScript globales e imágenes estáticas del sistema | Carpeta fuente conectada a Django mediante `STATICFILES_DIRS = [BASE_DIR / 'static']`. En `js/main.js` **solo reside JavaScript global transversal**; la lógica particular de componentes/plantillas va encapsulada en sus respectivos archivos HTML. |
 | `media/` | Archivos multimedia subidos por los usuarios en tiempo de ejecución | Configurada con `MEDIA_ROOT = BASE_DIR / 'media'` y `MEDIA_URL = 'media/'`. Su contenido está completamente excluido de Git. |
 
 ## 🖼️ Nomenclatura y almacenamiento de archivos multimedia (`media/`)
@@ -517,6 +517,14 @@ Configurados en Tailwind CSS v4 (`theme/static_src/src/styles.css`) en concordan
 | `neutral-700` | `#4A4A4A` | Subtítulos, etiquetas de campos y textos descriptivos |
 | `neutral-500` | `#757575` | Texto atenuado, pie de página, iconos neutros y leyendas |
 | `neutral-300` | `#E0E0E0` | Bordes de tarjetas, separadores y contornos inactivos |
+
+### ⚡ Arquitectura de JavaScript y separación de responsabilidades
+
+> [!WARNING]
+> **Regla estricta para JavaScript del cliente (`static/js/main.js` vs Plantillas):**
+> - **En `static/js/main.js` solo debe ir JavaScript estrictamente GLOBAL:** Este archivo está reservado exclusivamente para lógica transversal a toda la aplicación (ejemplo: inicializaciones globales del ciclo de vida de la página, configuraciones de red o utilidades globales).
+> - **Prohibido colocar lógica específica de componentes o plantillas en `main.js`:** Toda interactividad o comportamiento de JavaScript que sea propio de un **componente específico** (ej. desplegables, selectores, modales particulares, toggles) o de una **plantilla/pantalla concreta** (ej. alternar visibilidad de contraseña en login, interacciones o validaciones propias de un formulario) **debe residir obligatoriamente dentro de su respectivo archivo HTML** (utilizando etiquetas `<script>` autocontenidas en el componente o a través del bloque `{% block extra_js %}` de la plantilla).
+> - **Principio de Responsabilidad Única (SRP) y bajo acoplamiento:** Los componentes y las vistas deben ser autónomos y desacoplados. Mantén `main.js` completamente limpio y libre de selectores del DOM, oyentes de eventos o funciones vinculadas a pantallas o componentes individuales.
 
 ### 🧩 Catálogo de componentes modulares (`templates/components/`)
 
