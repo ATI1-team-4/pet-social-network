@@ -57,9 +57,18 @@ La aplicación estará lista y accesible en [http://localhost:8000/](http://loca
 > [!NOTE]
 > **Migraciones iniciales y persistencia en el volumen de Docker:**
 > - La ejecución del comando de migraciones (`python manage.py migrate`) es **estrictamente obligatoria la primera vez** que levantas el proyecto para inicializar el archivo `db.sqlite3` con todas las tablas del sistema dentro del volumen.
+> - **Carga automática de roles y usuarios:** Al aplicar las migraciones, el sistema crea automáticamente los roles de seguridad (`Tutor` y `Administrador`) y las cuentas de prueba de todos los desarrolladores con la contraseña `123456789`, por lo que **no es necesario crear usuarios ni superusuarios manualmente**.
 > - La base de datos SQLite vive y se resguarda dentro del **volumen administrado por Docker (`petly_db_data`)**, el cual opera de forma totalmente aislada de tu sistema de archivos local.
 > - Aunque elimines archivos en tu máquina anfitriona o no exista una carpeta local `data/`, **la base de datos dentro del volumen NO se borra ni se ve afectada**.
 > - La base de datos únicamente se reiniciará o borrará si ejecutas explícitamente `docker compose down -v` (con la bandera `-v` de volúmenes). Con el comando habitual `docker compose down`, todos tus datos se conservan íntegros para el siguiente inicio.
+
+> [!TIP]
+> **¿Cómo inspeccionar la base de datos desde tu editor o visor de SQLite (VS Code, DBeaver, SQLite Viewer)?**
+> Debido a que la base de datos viva se resguarda dentro del volumen aislado de Docker (`petly_db_data`), las tablas y registros no se escriben directamente en el archivo local `./data/db.sqlite3` de tu disco.
+> Para extraer una copia actualizada de la base de datos activa hacia tu máquina anfitriona e inspeccionarla cómodamente con cualquier visor gráfico o extensión de tu editor, ejecuta:
+> ```bash
+> docker compose cp web:/app/data/db.sqlite3 ./data/db.sqlite3
+> ```
 
 
 ---
@@ -104,6 +113,7 @@ docker compose exec web pip install <nombre-del-paquete>
 | Ver logs en vivo de la base de datos | `docker compose logs -f db` |
 | Ejecutar las pruebas unitarias | `docker compose exec web python manage.py test` |
 | Crear un superusuario administrador | `docker compose exec web python manage.py createsuperuser` |
+| Copiar base de datos viva al host (para SQLite Viewer / DBeaver) | `docker compose cp web:/app/data/db.sqlite3 ./data/db.sqlite3` |
 | Detener los contenedores | `docker compose down` |
 
 ---
@@ -141,6 +151,24 @@ El proyecto incluye el archivo [.env.dev](.env.dev) preconfigurado para desarrol
 | `SITE_PROTOCOL` | Protocolo de conexión (`http` o `https`) | `http` |
 | `DATABASE_DIR` | Carpeta local donde se guarda la base de datos SQLite | `data` |
 | `DATABASE_NAME` | Nombre del archivo de base de datos | `db.sqlite3` |
+
+### 👤 Cuentas y credenciales predeterminadas de desarrollo
+
+Para facilitar las pruebas de autenticación, diseño y flujos de usuario a todo el equipo sin fricción, la base de datos se inicializa automáticamente con las siguientes cuentas de prueba:
+
+| Rol del sistema | Nombre y rol en el equipo | Correo electrónico | Nombre de usuario | Contraseña | Propósito y permisos |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Administrador** | Administrador del sistema | `admin@petly.com` | `admin` | `123456789` | Acceso completo al panel de administración de Django (`/admin/`), superusuario y auditorías en `AuditLog`. |
+| **Tutor** | Edwyn Guzmán (Backend) | `edwyn@petly.com` | `edwyn` | `123456789` | Cuenta con rol `Tutor` y perfil configurado para pruebas de desarrollo backend y gestión de mascotas. |
+| **Tutor** | Stefany Martínez (Frontend) | `stefany@petly.com` | `stefany` | `123456789` | Cuenta con rol `Tutor` para validación de interfaces y componentes visuales. |
+| **Tutor** | Bryan Silva (DBA) | `bryan@petly.com` | `bryan` | `123456789` | Cuenta con rol `Tutor` para consultas relacionales y pruebas de persistencia. |
+| **Tutor** | Oriana Arellano (UX/UI) | `oriana@petly.com` | `oriana` | `123456789` | Cuenta con rol `Tutor` para validación de flujos y experiencia de usuario. |
+| **Tutor** | María Paula Herrero (PO) | `maria@petly.com` | `maria` | `123456789` | Cuenta con rol `Tutor` para pruebas de aceptación y requerimientos. |
+| **Tutor** | Sofía Marcano (PO) | `sofia@petly.com` | `sofia` | `123456789` | Cuenta con rol `Tutor` para pruebas de aceptación y requerimientos. |
+| **Tutor** | Tutor de prueba genérico | `tutor@petly.com` | `tutor` | `123456789` | Cuenta de pruebas estándar. |
+
+> [!TIP]
+> Puedes iniciar sesión ingresando indistintamente el **correo electrónico** o el **nombre de usuario** junto con la contraseña en la pantalla de [Inicio de sesión](http://localhost:8000/accounts/login/).
 
 ## 📁 Estructura del proyecto
 
@@ -378,6 +406,18 @@ from apps.accounts.models import UserProfile
 - **Identificación amigable (`__str__`):** Implementar obligatoriamente el método `__str__` en cada modelo para facilitar la administración y depuración.
 - **Metadatos obligatorios (`class Meta`):** Definir siempre `verbose_name`, `verbose_name_plural` y el ordenamiento predeterminado (`ordering`).
 - **Auditoría temporal estándar:** Utilizar campos de fecha automáticos (`created_at` con `auto_now_add=True` para creación y `updated_at` con `auto_now=True` para modificación).
+
+### 📐 Criterios de diseño arquitectónico: ¿Cuándo usar Clases y cuándo Funciones?
+
+Para mantener coherencia estilística e idiomática en todo el repositorio y evitar sobreingeniería, el equipo sigue estas pautas para cada capa:
+
+| Capa del módulo | Archivo | Enfoque recomendado | Justificación técnica y buenas prácticas |
+| :--- | :--- | :--- | :--- |
+| **Formularios y Validación** | `forms.py` | **Obligatorio: Clases** (`forms.Form`, `forms.ModelForm`) | **Django se apoya en POO para formularios:** Permite declarar campos tipados con widgets HTML, autolimpiar datos en `cleaned_data`, implementar validaciones unitarias en métodos `clean_<campo>()` (ej: verificar unicidad de correo) y validaciones cruzadas en `clean()` (ej: comprobar coincidencia de contraseñas). **Nunca procesar entradas POST crudas con funciones artesanales.** |
+| **Lógica de Negocio y Dominio** | `services.py` | **Preferente: Funciones puras** (Stateless Functions) | En Python los archivos son *namespaces* naturales. **No crear clases artificiales con `@staticmethod`** (anti-patrón de lenguajes como Java/C#). Las funciones puras son sin estado (*stateless*), previenen condiciones de carrera entre hilos y son sumamente fáciles de aislar en pruebas unitarias. <br>*(Usar clases en servicios únicamente cuando se deba encapsular estado persistente de conexión, clientes de APIs externas o patrones Strategy con polimorfismo).* |
+| **Controladores de Vista** | `views.py` | **Vistas Delgadas (Thin Views):** Funciones (FBVs) o Clases (CBVs) | La vista **solo orquesta el ciclo HTTP**: recibe la petición, delega la validación de entrada a `forms.py`, delega la mutación/negocio a `services.py` y retorna una redirección o renderizado. No debe contener lógica de negocio ni consultas complejas inline. |
+| **Persistencia y Entidades** | `models.py` | **Obligatorio: Clases** (`models.Model`) | Representan las tablas del ORM. Se recomienda enriquecer el modelo con métodos de dominio propios que muten el estado de la propia instancia (ej. `pet.mark_as_adopted()`). |
+| **Pruebas y Verificación** | `tests/` (`test_*.py`) | **Obligatorio: Clases** (`TestCase`, `SimpleTestCase`) | **El test runner nativo de Django (`unittest`) se fundamenta en clases:** Heredar de `django.test.TestCase` provee aislamiento transaccional automático (rollback por prueba), acceso a `self.client` (sesiones, cookies y CSRF), hooks de ciclo de vida (`setUpTestData`, `setUp`, `tearDown`) y aserciones especializadas del framework (`assertRedirects`, `assertTemplateUsed`, `assertContains`). |
 
 ### 🌐 Contrato de enrutamiento y URLs (Zero-Collision)
 Para garantizar el desarrollo concurrente sin bloqueos entre frontend y backend, se establece un contrato estricto de enrutamiento:
