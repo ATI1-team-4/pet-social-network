@@ -35,13 +35,6 @@ def login_view(request):
                 else:
                     request.session.set_expiry(0)  # Expira al cerrar el navegador
 
-                display_name = user.first_name if user.first_name else user.username
-                messages.success(
-                    request,
-                    _('¡Hola de nuevo, %(name)s! Has iniciado sesión con éxito.')
-                    % {'name': display_name},
-                )
-
                 next_url = request.POST.get('next') or request.GET.get('next')
                 if next_url and url_has_allowed_host_and_scheme(
                     next_url, allowed_hosts={request.get_host()}
@@ -66,6 +59,12 @@ def register_view(request):
     if request.user.is_authenticated:
         return redirect('pets:pet_management')
 
+    # Garantizar que al ingresar a la pantalla de registro no se arrastren mensajes previos
+    if request.method == 'GET':
+        storage = messages.get_messages(request)
+        for msg in storage:
+            pass
+
     form = RegisterForm()
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -84,12 +83,6 @@ def register_view(request):
 
             # Iniciar sesión automáticamente tras el registro y redirigir al menú principal
             login(request, user)
-            display_name = user.first_name if user.first_name else user.username
-            messages.success(
-                request,
-                _('¡Bienvenido a Petly, %(name)s! Tu cuenta de tutor ha sido creada exitosamente.')
-                % {'name': display_name},
-            )
             return redirect('pets:pet_management')
 
         # Mostrar errores específicos del formulario en el banner de mensajes
@@ -127,7 +120,10 @@ def logout_view(request):
     """Cierra la sesión activa del usuario y redirige al inicio."""
     if request.user.is_authenticated:
         logout(request)
-        messages.info(request, _('Has cerrado sesión correctamente. ¡Hasta pronto!'))
+    # Limpiar cualquier mensaje residual para que no persista en cookies ni viaje a otras rutas
+    storage = messages.get_messages(request)
+    for msg in storage:
+        pass
     return redirect('core:home')
 
 
