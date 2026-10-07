@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petly 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 20:41-0400\n"
+"POT-Creation-Date: 2026-10-07 00:19-0400\n"
 "PO-Revision-Date: 2026-10-03 23:20-0400\n"
 "Last-Translator: Team 4 <ati-team4@ucv.ve>\n"
 "Language-Team: English\n"
@@ -16,124 +16,323 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: apps/accounts/templates/accounts/login.html:4
-#: templates/components/navbar.html:56
+#: apps/accounts/templates/accounts/login.html:57
+#: apps/core/templates/core/home.html:32
+#: templates/components/navbar_public.html:45
 msgid "Iniciar sesión"
 msgstr "Log in"
 
-#: apps/accounts/templates/accounts/login.html:9
-msgid "Inicio de sesión"
-msgstr "Sign in"
-
-#: apps/accounts/templates/accounts/login.html:10
-#: apps/accounts/templates/accounts/password_reset.html:10
-#: apps/accounts/templates/accounts/register.html:10
-msgid "Pantalla en construcción para el reto 13."
-msgstr "Screen under construction for reto 13."
-
 #: apps/accounts/templates/accounts/login.html:12
-msgid "¿Aún no tienes cuenta? Regístrate aquí"
-msgstr "Don't have an account yet? Sign up here"
+msgid "Volver al inicio"
+msgstr "Back to home"
 
-#: apps/accounts/templates/accounts/login.html:13
+#: apps/accounts/templates/accounts/login.html:24
+msgid "¡Hola de nuevo!"
+msgstr "Welcome back!"
+
+#: apps/accounts/templates/accounts/login.html:27
+msgid ""
+"Ingresa a tu cuenta para ver los pretendientes y citas de juego de tus "
+"mascotas."
+msgstr "Log in to see suitors and playdates for your pets."
+
+#: apps/accounts/templates/accounts/login.html:39
+#: apps/accounts/templates/accounts/register.html:82
+msgid "Correo electrónico"
+msgstr "Email address"
+
+#: apps/accounts/templates/accounts/login.html:42
+#: apps/accounts/templates/accounts/register.html:142
+msgid "Contraseña"
+msgstr "Password"
+
+#: apps/accounts/templates/accounts/login.html:48
+msgid "Recordar mi sesión"
+msgstr "Remember my session"
+
+#: apps/accounts/templates/accounts/login.html:51
 msgid "¿Olvidaste tu contraseña?"
 msgstr "Forgot your password?"
 
+#: apps/accounts/templates/accounts/login.html:65
+msgid "¿Aún no tienes cuenta?"
+msgstr "Don't have an account yet?"
+
+#: apps/accounts/templates/accounts/login.html:67
+msgid "Regístrate aquí"
+msgstr "Sign up here"
+
+#: apps/accounts/templates/accounts/login.html:80
+msgid "Mascotas felices conectadas en Petly"
+msgstr "Happy pets connected on Petly"
+
+#: apps/accounts/templates/accounts/login.html:91
+msgid "matches esta semana"
+msgstr "matches this week"
+
+#: apps/accounts/templates/accounts/login.html:104
+msgid "Mejores amigos desde 2026"
+msgstr "Best friends since 2026"
+
+#: apps/accounts/templates/accounts/login.html:113
+#, fuzzy
+#| msgid "Experiencia real"
+msgid "experiencia real"
+msgstr "Real experience"
+
+#: apps/accounts/templates/accounts/login.html:116
+msgid ""
+"Encontrar compañeros de paseo para Milo transformó su energía. En PetMatch "
+"conocimos a tutores súper comprometidos y seguros."
+msgstr ""
+"Finding walking buddies for Milo transformed his energy. On PetMatch we met "
+"super committed and safe guardians."
+
+#: apps/accounts/templates/accounts/login.html:126
+msgid "Tutora de Golden & Siamés"
+msgstr "Golden & Siamese guardian"
+
+#: apps/accounts/templates/accounts/login.html:131
+msgid "Identidad confirmada"
+msgstr "Verified identity"
+
 #: apps/accounts/templates/accounts/password_reset.html:4
+#: apps/accounts/templates/accounts/password_reset.html:51
+#: apps/core/templates/core/home.html:40
 msgid "Recuperar contraseña"
 msgstr "Reset password"
 
-#: apps/accounts/templates/accounts/password_reset.html:9
-msgid "Recuperación de contraseña"
-msgstr "Password recovery"
+#: apps/accounts/templates/accounts/password_reset.html:15
+msgid "Cuidamos cada detalle de tu cuenta."
+msgstr "We take care of every detail of your account."
 
-#: apps/accounts/templates/accounts/password_reset.html:11
+#: apps/accounts/templates/accounts/password_reset.html:18
+msgid ""
+"Más de 15,000 guardianes confían en nosotros para encontrar los mejores "
+"compañeros y momentos de juego para sus mascotas."
+msgstr ""
+"Over 15,000 guardians trust us to find the best companions and playtimes for "
+"their pets."
+
+#: apps/accounts/templates/accounts/password_reset.html:25
+msgid "Cuidado y seguridad para tus mascotas"
+msgstr "Care and safety for your pets"
+
+#: apps/accounts/templates/accounts/password_reset.html:40
+#: apps/accounts/templates/accounts/register.html:12
 msgid "Volver a iniciar sesión"
 msgstr "Back to log in"
 
+#: apps/accounts/templates/accounts/password_reset.html:54
+msgid ""
+"No te preocupes. Escribe el correo registrado y te enviaremos un código "
+"seguro para restablecer tu acceso."
+msgstr ""
+"Don't worry. Enter your registered email and we will send you a secure code "
+"to reset your access."
+
+#: apps/accounts/templates/accounts/password_reset.html:67
+msgid "Correo electrónico registrado"
+msgstr "Registered email address"
+
+#: apps/accounts/templates/accounts/password_reset.html:72
+msgid "Te enviaremos un enlace de un solo uso con 15 minutos de validez."
+msgstr "We will send you a single-use link valid for 15 minutes."
+
+#: apps/accounts/templates/accounts/password_reset.html:79
+msgid "Enviar enlace de recuperación"
+msgstr "Send recovery link"
+
+#: apps/accounts/templates/accounts/password_reset.html:89
+msgid "¿No recuerdas tu correo?"
+msgstr "Don't remember your email?"
+
+#: apps/accounts/templates/accounts/password_reset.html:91
+msgid "Contactar soporte"
+msgstr "Contact support"
+
 #: apps/accounts/templates/accounts/register.html:4
-#: apps/accounts/templates/accounts/register.html:9
+#: apps/core/templates/core/home.html:36
 msgid "Registro de usuario"
 msgstr "User registration"
 
-#: apps/accounts/templates/accounts/register.html:11
-msgid "¿Ya tienes cuenta? Inicia sesión"
-msgstr "Already have an account? Log in"
+#: apps/accounts/templates/accounts/register.html:29
+msgid "Donde cada patita encuentra su historia."
+msgstr "Where every paw finds its story."
+
+#: apps/accounts/templates/accounts/register.html:32
+msgid ""
+"Conecta a tus compañeros caninos y felinos en una comunidad cálida, segura y "
+"verificada."
+msgstr ""
+"Connect your canine and feline companions in a warm, safe, and verified "
+"community."
+
+#: apps/accounts/templates/accounts/register.html:39
+msgid "Comunidad de tutores Petly"
+msgstr "Petly guardians community"
+
+#: apps/accounts/templates/accounts/register.html:47
+msgid "amigos"
+msgstr "friends"
+
+#: apps/accounts/templates/accounts/register.html:60
+msgid "Únete a la manada"
+msgstr "Join the pack"
+
+#: apps/accounts/templates/accounts/register.html:63
+msgid "Crea tu cuenta de tutor y empieza a explorar matches en tu localidad."
+msgstr "Create your guardian account and start exploring local matches."
+
+#: apps/accounts/templates/accounts/register.html:77
+msgid "Nombre completo del tutor"
+msgstr "Guardian's full name"
+
+#: apps/accounts/templates/accounts/register.html:88
+msgid "Teléfono / contacto"
+msgstr "Phone / contact"
+
+#: apps/accounts/templates/accounts/register.html:92
+msgid "Código de país"
+msgstr "Country code"
+
+#: apps/accounts/templates/accounts/register.html:117
+msgid "Cédula"
+msgstr "ID Document"
+
+#: apps/accounts/templates/accounts/register.html:121
+msgid "Tipo de documento"
+msgstr "Document type"
+
+#: apps/accounts/templates/accounts/register.html:147
+msgid "Confirmar contraseña"
+msgstr "Confirm password"
+
+#: apps/accounts/templates/accounts/register.html:153
+msgid "Al menos 8 caracteres y un número."
+msgstr "At least 8 characters and one number."
+
+#: apps/accounts/templates/accounts/register.html:160
+msgid "Registrarme y empezar"
+msgstr "Sign up and get started"
+
+#: apps/accounts/templates/accounts/register.html:170
+msgid "¿Ya tienes cuenta?"
+msgstr "Already have an account?"
+
+#: apps/accounts/templates/accounts/register.html:172
+msgid "Inicia sesión"
+msgstr "Log in"
 
 #: apps/accounts/templates/accounts/user_profile.html:4
-#: apps/accounts/templates/accounts/user_profile.html:8
+#: apps/accounts/templates/accounts/user_profile.html:9
+#: apps/core/templates/core/home.html:44
 msgid "Gestión de usuario"
 msgstr "User management"
 
-#: apps/accounts/templates/accounts/user_profile.html:9
+#: apps/accounts/templates/accounts/user_profile.html:10
 msgid "Pantalla en construcción para el perfil del tutor."
 msgstr "Screen under construction for guardian profile."
 
-#: apps/accounts/templates/accounts/user_profile.html:11
+#: apps/accounts/templates/accounts/user_profile.html:13
 msgid "Ir a gestión de perfiles de mascotas →"
 msgstr "Go to pet profiles management →"
 
-#: apps/pets/templates/pets/match_feed.html:4
-#: apps/pets/templates/pets/match_feed.html:8
-#: templates/components/navbar.html:20
-msgid "Buscar pareja"
-msgstr "Find a match"
+#: apps/accounts/templates/accounts/user_profile.html:16
+msgid "Cerrar sesión"
+msgstr "Log out"
 
-#: apps/pets/templates/pets/match_feed.html:9
-msgid "Feed interactivo de cruza/compatibilidad en construcción."
-msgstr "Interactive breeding/compatibility feed under construction."
+#: apps/core/templates/core/home.html:4
+msgid "Inicio"
+msgstr "Home"
 
-#: apps/pets/templates/pets/match_feed.html:11
-msgid "Tarjeta central tipo Tinder"
-msgstr "Tinder-style central card"
+#: apps/core/templates/core/home.html:13
+msgid "Bienvenido a Petly"
+msgstr "Welcome to Petly"
 
-#: apps/pets/templates/pets/match_feed.html:13
-msgid "Ver mascotas interesadas →"
-msgstr "View interested pets →"
+#: apps/core/templates/core/home.html:15
+msgid "Estructura base lista para el desarrollo de vistas."
+msgstr "Base structure ready for view development."
 
-#: apps/pets/templates/pets/match_interested.html:4
-#: apps/pets/templates/pets/match_interested.html:8
-msgid "Mascotas interesadas"
-msgstr "Interested pets"
+#: apps/core/templates/core/home.html:24
+msgid "Directorio de interfaces"
+msgstr "Interface directory"
 
-#: apps/pets/templates/pets/match_interested.html:9
-msgid "Bandeja de pretendientes y citas confirmadas en construcción."
-msgstr "Inbox for suitors and confirmed dates under construction."
+#: apps/core/templates/core/home.html:26
+msgid "8 interfaces registradas"
+msgstr "8 registered interfaces"
 
-#: apps/pets/templates/pets/match_interested.html:11
-msgid "← Volver a explorar parejas"
-msgstr "← Back to explore matches"
+#: apps/core/templates/core/home.html:48
+#, fuzzy
+#| msgid "Gestionar mascotas"
+msgid "Gestión de mascotas"
+msgstr "Manage pets"
 
-#: apps/pets/templates/pets/pet_management.html:4
-#: apps/pets/templates/pets/pet_management.html:8
-msgid "Gestión de perfiles de mascotas"
-msgstr "Pet profile management"
-
-#: apps/pets/templates/pets/pet_management.html:9
-msgid ""
-"Pantalla unificada en construcción para listar, crear y editar mascotas."
-msgstr "Unified screen under construction to list, create, and edit pets."
-
-#: apps/pets/templates/pets/pet_management.html:11
-msgid "Ir a seleccionar mascota activa →"
-msgstr "Go to select active pet →"
-
+#: apps/core/templates/core/home.html:52
 #: apps/pets/templates/pets/pet_select.html:4
 msgid "Seleccionar mascota"
 msgstr "Select pet"
 
-#: apps/pets/templates/pets/pet_select.html:8
+#: apps/core/templates/core/home.html:56
+#: apps/pets/templates/pets/match_feed.html:4
+#: apps/pets/templates/pets/match_feed.html:9
+#: templates/components/navbar.html:47 templates/components/navbar.html:74
+msgid "Buscar pareja"
+msgstr "Find a match"
+
+#: apps/core/templates/core/home.html:60
+#: apps/pets/templates/pets/match_interested.html:4
+#: apps/pets/templates/pets/match_interested.html:9
+msgid "Mascotas interesadas"
+msgstr "Interested pets"
+
+#: apps/pets/templates/pets/match_feed.html:11
+msgid "Feed interactivo de cruza/compatibilidad en construcción."
+msgstr "Interactive breeding/compatibility feed under construction."
+
+#: apps/pets/templates/pets/match_feed.html:14
+msgid "Tarjeta central tipo Tinder"
+msgstr "Tinder-style central card"
+
+#: apps/pets/templates/pets/match_feed.html:16
+msgid "Ver mascotas interesadas →"
+msgstr "View interested pets →"
+
+#: apps/pets/templates/pets/match_interested.html:11
+msgid "Bandeja de pretendientes y citas confirmadas en construcción."
+msgstr "Inbox for suitors and confirmed dates under construction."
+
+#: apps/pets/templates/pets/match_interested.html:14
+msgid "← Volver a explorar parejas"
+msgstr "← Back to explore matches"
+
+#: apps/pets/templates/pets/pet_management.html:4
+#: apps/pets/templates/pets/pet_management.html:9
+msgid "Gestión de perfiles de mascotas"
+msgstr "Pet profile management"
+
+#: apps/pets/templates/pets/pet_management.html:11
+msgid ""
+"Pantalla unificada en construcción para listar, crear y editar mascotas."
+msgstr "Unified screen under construction to list, create, and edit pets."
+
+#: apps/pets/templates/pets/pet_management.html:14
+msgid "Ir a seleccionar mascota activa →"
+msgstr "Go to select active pet →"
+
+#: apps/pets/templates/pets/pet_select.html:9
 msgid "¿Con qué mascota deseas buscar pareja hoy?"
 msgstr "Which pet do you want to find a match for today?"
 
-#: apps/pets/templates/pets/pet_select.html:9
+#: apps/pets/templates/pets/pet_select.html:11
 msgid "Pantalla en construcción para seleccionar la mascota activa."
 msgstr "Screen under construction to select active pet."
 
-#: apps/pets/templates/pets/pet_select.html:11
+#: apps/pets/templates/pets/pet_select.html:15
 msgid "Continuar a buscar pareja"
 msgstr "Continue to find a match"
 
-#: apps/pets/templates/pets/pet_select.html:12
+#: apps/pets/templates/pets/pet_select.html:18
 msgid "Gestionar mascotas"
 msgstr "Manage pets"
 
@@ -145,199 +344,286 @@ msgstr "Spanish"
 msgid "Inglés"
 msgstr "English"
 
-#: templates/components/footer.html:8
-msgid "Conectando vidas peludas de forma responsable"
-msgstr "Connecting furry lives responsibly"
-
-#: templates/components/footer.html:12
-msgid "Enlaces legales y de bienestar"
-msgstr "Legal and animal welfare links"
-
-#: templates/components/footer.html:13
-msgid "Términos de servicio"
-msgstr "Terms of service"
-
-#: templates/components/footer.html:14
-msgid "Política de privacidad"
-msgstr "Privacy policy"
-
-#: templates/components/footer.html:15
-msgid "Normas de bienestar animal"
-msgstr "Animal welfare standards"
-
-#: templates/components/navbar.html:19
-msgid "Mis mascotas"
-msgstr "My pets"
-
-#: templates/components/navbar.html:21
-msgid "Interesados"
-msgstr "Interested"
-
-#: templates/components/navbar.html:30 templates/components/navbar.html:33
-msgid "Seleccionar idioma"
-msgstr "Select language"
-
-#: templates/components/navbar.html:52
-msgid "Cerrar sesión"
-msgstr "Log out"
-
-#: templates/components/navbar.html:59
-msgid "Registrarse"
-msgstr "Sign up"
-
-#: templates/components/input.html
-msgid "Requerido"
-msgstr "Required"
-
-#: templates/components/components_palette.html
+#: templates/components/components_palette.html:8
 msgid "Primario"
 msgstr "Primary"
 
+#: templates/components/components_palette.html:9
 msgid "Secundario"
 msgstr "Secondary"
 
+#: templates/components/components_palette.html:10
 msgid "Suave"
 msgstr "Soft"
 
+#: templates/components/components_palette.html:11
 msgid "Lila"
 msgstr "Lilac"
 
+#: templates/components/components_palette.html:12
 msgid "Borde"
 msgstr "Outline"
 
-msgid "98% compatibilidad"
+#: templates/components/components_palette.html:14
+#, fuzzy, python-format
+#| msgid "98% compatibilidad"
+msgid "98%% compatibilidad"
 msgstr "98% compatibility"
 
+#: templates/components/components_palette.html:15
 msgid "Juguetón"
 msgstr "Playful"
 
+#: templates/components/components_palette.html:16
 msgid "Macho"
 msgstr "Male"
 
+#: templates/components/components_palette.html:17
 msgid "Hembra"
 msgstr "Female"
 
+#: templates/components/components_palette.html:19
 msgid "Nombre de la mascota"
 msgstr "Pet name"
 
+#: templates/components/components_palette.html:20
 msgid "Escribir"
 msgstr "Type here"
 
+#: templates/components/components_palette.html:22
 msgid "Buscando pareja"
 msgstr "Looking for a match"
 
+#: templates/components/components_palette.html:23
 msgid "En adopción"
 msgstr "For adoption"
 
+#: templates/components/components_palette.html:25
 msgid "Selecciona"
 msgstr "Select"
 
-msgid "Catálogo de componentes del sistema"
-msgstr "System component catalog"
-
-msgid "Componentes del sistema de diseño"
-msgstr "Design system components"
-
-msgid "Guía interactiva de componentes reutilizables según el prototipo oficial."
-msgstr "Interactive guide of reusable components according to the official prototype."
-
-msgid "100% offline & responsivo"
-msgstr "100% offline & responsive"
-
-msgid "Botones principales"
-msgstr "Main buttons"
-
-msgid "Píldoras con interacción :hover y :active suaves."
-msgstr "Pills with smooth :hover and :active interactions."
-
-msgid "Botones de acción (FAB)"
-msgstr "Action buttons (FAB)"
-
-msgid "Descartar (✕), añadir (+) y me interesa (♥)."
-msgstr "Dismiss (✕), add (+) and interested (♥)."
-
-msgid "Insignias y etiquetas"
-msgstr "Badges and tags"
-
-msgid "Etiquetas cromáticas por afinidad, rasgo y género."
-msgstr "Chromatic tags by affinity, trait, and gender."
-
-msgid "Entrada de texto redondeada"
-msgstr "Rounded text input"
-
-msgid "Fondo celeste hielo, foco con anillo coral."
-msgstr "Ice blue background, focus with coral ring."
-
-msgid "Interruptor de alternancia"
-msgstr "Toggle switch"
-
-msgid "Simetría matemática de 2px de margen en ambos estados."
-msgstr "Mathematical symmetry of 2px margin in both states."
-
-msgid "Control segmentado"
-msgstr "Segmented control"
-
-msgid "Píldoras para alternar filtros o modos."
-msgstr "Pills to toggle filters or modes."
-
-msgid "Directorio de interfaces"
-msgstr "Interface directory"
-
-msgid "8 interfaces registradas"
-msgstr "8 registered interfaces"
-
-msgid "Estructura base lista para el desarrollo de vistas."
-msgstr "Base structure ready for view development."
-
+#: templates/components/components_palette.html:27
 msgid "Diálogo de confirmación"
 msgstr "Confirmation dialog"
 
-msgid "Ventana emergente interactiva para confirmar acciones importantes o destructivas."
+#: templates/components/components_palette.html:28
+msgid ""
+"Ventana emergente interactiva para confirmar acciones importantes o "
+"destructivas."
 msgstr "Interactive popup window to confirm important or destructive actions."
 
-msgid "Confirmar match"
-msgstr "Confirm match"
-
-msgid "¿Deseas descartar los cambios?"
-msgstr "Do you want to discard changes?"
-
-msgid "Se perderán todos los datos no guardados del formulario de la mascota."
-msgstr "All unsaved pet form data will be lost."
-
-msgid "Descartar cambios"
-msgstr "Discard changes"
-
-msgid "Seguir editando"
-msgstr "Keep editing"
-
-msgid "¡Nuevo match encontrado!"
-msgstr "New match found!"
-
-msgid "Tu mascota y Luna tienen un 98% de compatibilidad. ¿Deseas iniciar una conversación ahora?"
-msgstr "Your pet and Luna have 98% compatibility. Do you want to start a conversation now?"
-
-msgid "Iniciar conversación"
-msgstr "Start conversation"
-
-msgid "Más tarde"
-msgstr "Later"
-
-msgid "Cerrar diálogo"
-msgstr "Close dialog"
-
-msgid "Confirmar acción"
-msgstr "Confirm action"
-
-msgid "Cancelar"
-msgstr "Cancel"
-
-msgid "Confirmar"
-msgstr "Confirm"
-
+#: templates/components/components_palette.html:29
 msgid "Modal de descarte"
 msgstr "Discard modal"
 
+#: templates/components/components_palette.html:30
 msgid "Modal de confirmación"
 msgstr "Confirmation modal"
 
+#: templates/components/components_palette.html:31
+msgid "¿Deseas descartar los cambios?"
+msgstr "Do you want to discard changes?"
 
+#: templates/components/components_palette.html:32
+msgid "Se perderán todos los datos no guardados del formulario de la mascota."
+msgstr "All unsaved pet form data will be lost."
+
+#: templates/components/components_palette.html:33
+msgid "Descartar cambios"
+msgstr "Discard changes"
+
+#: templates/components/components_palette.html:34
+msgid "Seguir editando"
+msgstr "Keep editing"
+
+#: templates/components/components_palette.html:35
+msgid "¡Nuevo match encontrado!"
+msgstr "New match found!"
+
+#: templates/components/components_palette.html:36
+#, fuzzy, python-format
+#| msgid ""
+#| "Tu mascota y Luna tienen un 98%% de compatibilidad. ¿Deseas iniciar una "
+#| "conversación ahora?"
+msgid ""
+"Tu mascota y Luna tienen un 98%% de compatibilidad. ¿Deseas iniciar una "
+"conversación ahora?"
+msgstr ""
+"Your pet and Luna have 98% compatibility. Do you want to start a "
+"conversation now?"
+
+#: templates/components/components_palette.html:37
+msgid "Iniciar conversación"
+msgstr "Start conversation"
+
+#: templates/components/components_palette.html:38
+msgid "Más tarde"
+msgstr "Later"
+
+#: templates/components/components_palette.html:40
+msgid "Catálogo de componentes del sistema"
+msgstr "System component catalog"
+
+#: templates/components/components_palette.html:45
+msgid "Componentes del sistema de diseño"
+msgstr "Design system components"
+
+#: templates/components/components_palette.html:48
+msgid ""
+"Guía interactiva de componentes reutilizables según el prototipo oficial."
+msgstr ""
+"Interactive guide of reusable components according to the official prototype."
+
+#: templates/components/components_palette.html:53
+#, fuzzy, python-format
+#| msgid "100%% offline & responsivo"
+msgid "100%% offline & responsivo"
+msgstr "100% offline & responsive"
+
+#: templates/components/components_palette.html:62
+msgid "Botones principales"
+msgstr "Main buttons"
+
+#: templates/components/components_palette.html:71
+msgid "Píldoras con interacción :hover y :active suaves."
+msgstr "Pills with smooth :hover and :active interactions."
+
+#: templates/components/components_palette.html:77
+msgid "Botones de acción (FAB)"
+msgstr "Action buttons (FAB)"
+
+#: templates/components/components_palette.html:84
+msgid "Descartar (✕), añadir (+) y me interesa (♥)."
+msgstr "Dismiss (✕), add (+) and interested (♥)."
+
+#: templates/components/components_palette.html:90
+msgid "Insignias y etiquetas"
+msgstr "Badges and tags"
+
+#: templates/components/components_palette.html:98
+msgid "Etiquetas cromáticas por afinidad, rasgo y género."
+msgstr "Chromatic tags by affinity, trait, and gender."
+
+#: templates/components/components_palette.html:104
+msgid "Entrada de texto redondeada"
+msgstr "Rounded text input"
+
+#: templates/components/components_palette.html:109
+msgid "Fondo celeste hielo, foco con anillo coral."
+msgstr "Ice blue background, focus with coral ring."
+
+#: templates/components/components_palette.html:115
+msgid "Interruptor de alternancia"
+msgstr "Toggle switch"
+
+#: templates/components/components_palette.html:121
+msgid "Simetría matemática de 2px de margen en ambos estados."
+msgstr "Mathematical symmetry of 2px margin in both states."
+
+#: templates/components/components_palette.html:127
+msgid "Control segmentado"
+msgstr "Segmented control"
+
+#: templates/components/components_palette.html:132
+msgid "Píldoras para alternar filtros o modos."
+msgstr "Pills to toggle filters or modes."
+
+#: templates/components/confirmation_modal.html:30
+msgid "Cerrar diálogo"
+msgstr "Close dialog"
+
+#: templates/components/confirmation_modal.html:51
+msgid "Confirmar acción"
+msgstr "Confirm action"
+
+#: templates/components/confirmation_modal.html:64
+msgid "Cancelar"
+msgstr "Cancel"
+
+#: templates/components/confirmation_modal.html:68
+#: templates/components/confirmation_modal.html:71
+#: templates/components/confirmation_modal.html:74
+msgid "Confirmar"
+msgstr "Confirm"
+
+#: templates/components/footer.html:9
+msgid "Conectando vidas peludas de forma responsable"
+msgstr "Connecting furry lives responsibly"
+
+#: templates/components/footer.html:14
+msgid "Enlaces legales y de bienestar"
+msgstr "Legal and animal welfare links"
+
+#: templates/components/footer.html:16
+msgid "Términos de servicio"
+msgstr "Terms of service"
+
+#: templates/components/footer.html:18
+msgid "Política de privacidad"
+msgstr "Privacy policy"
+
+#: templates/components/footer.html:21
+msgid "Normas de bienestar animal"
+msgstr "Animal welfare standards"
+
+#: templates/components/input.html:26
+msgid "Requerido"
+msgstr "Required"
+
+#: templates/components/input.html:53
+msgid "Mostrar u ocultar contraseña"
+msgstr "Show or hide password"
+
+#: templates/components/navbar.html:21 templates/components/navbar.html:26
+#: templates/components/navbar_public.html:21
+#: templates/components/navbar_public.html:26
+msgid "Seleccionar idioma"
+msgstr "Select language"
+
+#: templates/components/navbar.html:42
+msgid "Navegación principal"
+msgstr "Main navigation"
+
+#: templates/components/navbar.html:44 templates/components/navbar.html:70
+msgid "Mis mascotas"
+msgstr "My pets"
+
+#: templates/components/navbar.html:50 templates/components/navbar.html:78
+msgid "Interesados"
+msgstr "Interested"
+
+#: templates/components/navbar.html:56 templates/components/navbar.html:82
+msgid "Mi perfil"
+msgstr "My profile"
+
+#: templates/components/navbar.html:66
+msgid "Navegación móvil"
+msgstr "Mobile navigation"
+
+#: templates/components/navbar_public.html:48
+msgid "Registrarse"
+msgstr "Sign up"
+
+#~ msgid "Iniciar Sesión"
+#~ msgstr "Sign In"
+
+#~ msgid "Volver a Iniciar Sesión"
+#~ msgstr "Back to Log In"
+
+#~ msgid "Recuperar Contraseña"
+#~ msgstr "Reset Password"
+
+#~ msgid "Inicia Sesión"
+#~ msgstr "Log In"
+
+#~ msgid "Inicio de sesión"
+#~ msgstr "Sign in"
+
+#~ msgid "Pantalla en construcción para el reto 13."
+#~ msgstr "Screen under construction for reto 13."
+
+#~ msgid "Recuperación de contraseña"
+#~ msgstr "Password recovery"
+
+#~ msgid "Confirmar match"
+#~ msgstr "Confirm match"

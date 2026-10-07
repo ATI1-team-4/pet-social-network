@@ -11,7 +11,7 @@ Parámetros:
 - id: Identificador único del elemento (opcional)
 - name: Nombre del campo si se envía en formularios (opcional)
 - value: Valor asociado si se envía en formularios (opcional)
-- form: Identificador de formulario vinculado si está fuera de la etiqueta <form> (opcional)
+- form_id: Identificador de formulario vinculado si está fuera de la etiqueta <form> (opcional)
 - disabled: Booleano para deshabilitar el botón (opcional)
 - role: Rol de accesibilidad (ej. 'tab') (opcional)
 - aria_selected: Estado de selección (ej. 'true' | 'false') (opcional)
@@ -48,7 +48,7 @@ Parámetros:
     <button type="{{ type|default:'button' }}"
             {% if id %}id="{{ id }}"{% endif %}
             {% if onclick %}onclick="{{ onclick }}"{% endif %}
-            {% if form %}form="{{ form }}"{% endif %}
+            {% if form_id %}form="{{ form_id }}"{% endif %}
             {% if name %}name="{{ name }}"{% endif %}
             {% if value %}value="{{ value }}"{% endif %}
             {% if disabled %}disabled{% endif %}
