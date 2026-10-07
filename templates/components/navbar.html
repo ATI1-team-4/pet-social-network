@@ -36,6 +36,16 @@
                         {% include 'components/icon.html' with name="user" class="w-4 h-4" %}
                     </a>
                 </div>
+
+                <!-- Botón de cerrar sesión persistente (visible en escritorio y móvil a la derecha del nav) -->
+                <div class="flex items-center shrink-0">
+                    <a href="{% url 'accounts:logout' %}"
+                       title="{% translate 'Cerrar sesión' %}"
+                       aria-label="{% translate 'Cerrar sesión' %}"
+                       class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-red-500 hover:border-red-300 hover:bg-red-50/40 flex items-center justify-center transition-all duration-150 shadow-xs shrink-0 no-underline cursor-pointer">
+                        {% include 'components/icon.html' with name="log-out" class="w-4 h-4" %}
+                    </a>
+                </div>
             </div>
         </div>
     </div>

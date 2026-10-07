@@ -43,6 +43,7 @@ Parámetros:
             value="{{ value|default:'' }}"
             placeholder="{{ placeholder|default:'Escribir' }}"
             {% if required %}required{% endif %}
+            {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
             class="input-petly {% if icon %}has-icon pl-11{% endif %} {% if icon_end %}has-icon-end pr-11{% endif %} {% if error %}border-petly-coral ring-1 ring-petly-coral/30{% endif %} {{ input_class|default:'' }}"
             {{ attrs|default:'' }}
         >
