@@ -107,7 +107,9 @@ class RegisterForm(forms.Form):
             elif UserProfile.objects.filter(id_type=id_type, id_number=id_number).exists():
                 self.add_error(
                     'id_number',
-                    _('Ya existe una cuenta registrada con este documento de identidad (%(type)s-%(number)s).')
+                    _(
+                        'Ya existe una cuenta registrada con este documento de identidad (%(type)s-%(number)s).'
+                    )
                     % {'type': id_type, 'number': id_number},
                 )
 

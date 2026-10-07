@@ -290,11 +290,12 @@ Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` q
 
 ### 🔀 Pull Requests y cierre automático de tareas
 1. Al concluir tu tarea, abre un Pull Request con destino a la rama `develop`.
-2. En la descripción del Pull Request, utiliza la palabra clave de cierre vinculada al issue:
+2. En la descripción del Pull Request, utiliza las palabras clave oficiales de cierre vinculadas al issue (puedes usar indistintamente o en conjunto `Fixes` y `Closes`):
    ```markdown
+   Fixes #<issue-id>
    Closes #<issue-id>
    ```
-   *Esto cerrará el issue automáticamente al fusionar el PR y moverá la tarjeta asociada a **Done** en el tablero Kanban del proyecto.*
+   *El uso de `Fixes #<issue-id>` o `Closes #<issue-id>` cerrará el issue automáticamente al fusionar el PR en `develop` y disparará la automatización de GitHub Projects para mover la tarjeta asociada a la columna **Done** en el tablero Kanban del proyecto.*
 3. El pipeline de CI se ejecutará automáticamente. Al estar configurado como bloqueante en `develop`, GitHub no habilitará el botón de **Merge pull request** hasta que los 5 controles finalicen en **verde (✅)**. Si algún control falla, el desarrollador deberá corregir el código en su rama local y subir los cambios (`push`) hasta que todas las pruebas pasen. Al no requerir aprobación de terceros, una vez el CI esté en verde, el autor podrá realizar el merge directamente.
 4. Al hacer **Merge**:
    - **Ramas de trabajo temporales:** GitHub **elimina la rama remota de la tarea automáticamente** al fusionarse en `develop` gracias a la política (*Automatically delete head branches*).
