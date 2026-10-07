@@ -40,7 +40,7 @@
                             <label for="login-email" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Correo electrónico" %}
                             </label>
-                            {% include 'components/input.html' with name="email" id="login-email" type="email" placeholder="edwyn@petly.com" icon="mail" required=True %}
+                            {% include 'components/input.html' with name="email" id="login-email" type="email" placeholder="edwyn@petly.com" icon="mail" value=form.email.value error=form.email.errors.0 autocomplete="username email" required=True %}
                         </div>
 
                         <!-- Campo: Contraseña con callback desacoplado para alternar visibilidad -->
@@ -48,7 +48,7 @@
                             <label for="login-password" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Contraseña" %}
                             </label>
-                            {% include 'components/input.html' with name="password" id="login-password" type="password" placeholder="••••••••••••" icon="lock" icon_end="eye" icon_end_onclick="togglePasswordVisibility('login-password')" icon_end_aria_label=_("Mostrar u ocultar contraseña") required=True %}
+                            {% include 'components/input.html' with name="password" id="login-password" type="password" placeholder="••••••••••••" icon="lock" icon_end="eye" icon_end_onclick="togglePasswordVisibility('login-password')" icon_end_aria_label=_("Mostrar u ocultar contraseña") autocomplete="current-password" error=form.password.errors.0 required=True %}
                         </div>
 
                         <!-- Fila de opciones: Recordar sesión y recuperar clave -->

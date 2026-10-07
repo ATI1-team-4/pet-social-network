@@ -77,7 +77,7 @@
                                 <label for="register-full-name" class="text-xs font-semibold text-neutral-700">
                                     {% translate "Nombre completo del tutor" %}
                                 </label>
-                                {% include 'components/input.html' with name="full_name" id="register-full-name" type="text" placeholder="Stefany Martínez" icon="user" required=True %}
+                                {% include 'components/input.html' with name="full_name" id="register-full-name" type="text" placeholder="Stefany Martínez" icon="user" autocomplete="name" value=form.full_name.value error=form.full_name.errors.0 required=True %}
                             </div>
 
                             <!-- Campo: Correo electrónico (ejemplo con miembro del equipo) -->
@@ -85,7 +85,7 @@
                                 <label for="register-email" class="text-xs font-semibold text-neutral-700">
                                     {% translate "Correo electrónico" %}
                                 </label>
-                                {% include 'components/input.html' with name="email" id="register-email" type="email" placeholder="stefany@petly.com" icon="mail" required=True %}
+                                {% include 'components/input.html' with name="email" id="register-email" type="email" placeholder="stefany@petly.com" icon="mail" autocomplete="username email" value=form.email.value error=form.email.errors.0 required=True %}
                             </div>
 
                             <!-- Campo: Teléfono / contacto (píldora continua acoplada sin desfases) -->
@@ -93,16 +93,16 @@
                                 <label for="register-phone" class="text-xs font-semibold text-neutral-700">
                                     {% translate "Teléfono / contacto" %}
                                 </label>
-                                <div class="relative flex items-center w-full rounded-full bg-petly-ice border border-petly-blue/80 focus-within:border-petly-coral focus-within:bg-white focus-within:ring-2 focus-within:ring-petly-coral/30 transition-all overflow-hidden">
+                                <div class="relative flex items-center w-full rounded-full bg-petly-ice border {% if form.phone.errors %}border-petly-coral ring-1 ring-petly-coral/30{% else %}border-petly-blue/80{% endif %} focus-within:border-petly-coral focus-within:bg-white focus-within:ring-2 focus-within:ring-petly-coral/30 transition-all overflow-hidden">
                                     <div class="relative flex items-center shrink-0 border-r border-petly-blue/80">
                                         <select name="phone_prefix" aria-label="{% translate 'Código de país' %}" class="h-10 pl-3.5 pr-7 text-xs font-semibold text-neutral-800 bg-transparent focus:outline-none cursor-pointer appearance-none">
-                                            <option value="+58">+58</option>
-                                            <option value="+54">+54</option>
-                                            <option value="+57">+57</option>
-                                            <option value="+56">+56</option>
-                                            <option value="+52">+52</option>
-                                            <option value="+34">+34</option>
-                                            <option value="+1">+1</option>
+                                            <option value="+58" {% if form.phone_prefix.value == '+58' or not form.phone_prefix.value %}selected{% endif %}>+58</option>
+                                            <option value="+54" {% if form.phone_prefix.value == '+54' %}selected{% endif %}>+54</option>
+                                            <option value="+57" {% if form.phone_prefix.value == '+57' %}selected{% endif %}>+57</option>
+                                            <option value="+56" {% if form.phone_prefix.value == '+56' %}selected{% endif %}>+56</option>
+                                            <option value="+52" {% if form.phone_prefix.value == '+52' %}selected{% endif %}>+52</option>
+                                            <option value="+34" {% if form.phone_prefix.value == '+34' %}selected{% endif %}>+34</option>
+                                            <option value="+1" {% if form.phone_prefix.value == '+1' %}selected{% endif %}>+1</option>
                                         </select>
                                         <span class="absolute right-2.5 pointer-events-none text-neutral-400">
                                             {% include 'components/icon.html' with name="chevron-down" class="w-2.5 h-2.5" %}
@@ -111,10 +111,15 @@
                                     <input type="tel"
                                            id="register-phone"
                                            name="phone"
+                                           autocomplete="tel"
+                                           value="{{ form.phone.value|default:'' }}"
                                            placeholder="424 123 4567"
                                            required
                                            class="flex-1 w-full bg-transparent border-0 px-4 py-2 text-xs sm:text-sm text-neutral-800 placeholder-neutral-500 focus:outline-none focus:ring-0">
                                 </div>
+                                {% if form.phone.errors %}
+                                    <p class="text-caption text-petly-coral-dark font-medium">{{ form.phone.errors.0 }}</p>
+                                {% endif %}
                             </div>
 
                             <!-- Campo: Cédula (píldora continua acoplada sin desfases) -->
@@ -122,13 +127,13 @@
                                 <label for="register-id" class="text-xs font-semibold text-neutral-700">
                                     {% translate "Cédula" %}
                                 </label>
-                                <div class="relative flex items-center w-full rounded-full bg-petly-ice border border-petly-blue/80 focus-within:border-petly-coral focus-within:bg-white focus-within:ring-2 focus-within:ring-petly-coral/30 transition-all overflow-hidden">
+                                <div class="relative flex items-center w-full rounded-full bg-petly-ice border {% if form.id_number.errors %}border-petly-coral ring-1 ring-petly-coral/30{% else %}border-petly-blue/80{% endif %} focus-within:border-petly-coral focus-within:bg-white focus-within:ring-2 focus-within:ring-petly-coral/30 transition-all overflow-hidden">
                                     <div class="relative flex items-center shrink-0 border-r border-petly-blue/80">
                                         <select name="id_type" aria-label="{% translate 'Tipo de documento' %}" class="h-10 pl-4 pr-7 text-xs font-semibold text-neutral-800 bg-transparent focus:outline-none cursor-pointer appearance-none">
-                                            <option value="V">V</option>
-                                            <option value="E">E</option>
-                                            <option value="J">J</option>
-                                            <option value="P">P</option>
+                                            <option value="V" {% if form.id_type.value == 'V' or not form.id_type.value %}selected{% endif %}>V</option>
+                                            <option value="E" {% if form.id_type.value == 'E' %}selected{% endif %}>E</option>
+                                            <option value="J" {% if form.id_type.value == 'J' %}selected{% endif %}>J</option>
+                                            <option value="P" {% if form.id_type.value == 'P' %}selected{% endif %}>P</option>
                                         </select>
                                         <span class="absolute right-2.5 pointer-events-none text-neutral-400">
                                             {% include 'components/icon.html' with name="chevron-down" class="w-2.5 h-2.5" %}
@@ -137,10 +142,15 @@
                                     <input type="text"
                                            id="register-id"
                                            name="id_number"
+                                           autocomplete="off"
+                                           value="{{ form.id_number.value|default:'' }}"
                                            placeholder="27456789"
                                            required
                                            class="flex-1 w-full bg-transparent border-0 px-4 py-2 text-xs sm:text-sm text-neutral-800 placeholder-neutral-500 focus:outline-none focus:ring-0">
                                 </div>
+                                {% if form.id_number.errors %}
+                                    <p class="text-caption text-petly-coral-dark font-medium">{{ form.id_number.errors.0 }}</p>
+                                {% endif %}
                             </div>
 
                             <!-- Campo: Contraseña con callback desacoplado -->
@@ -148,7 +158,7 @@
                                 <label for="register-password" class="text-xs font-semibold text-neutral-700">
                                     {% translate "Contraseña" %}
                                 </label>
-                                {% include 'components/input.html' with name="password" id="register-password" type="password" placeholder="••••••••••••" icon="lock" icon_end="eye" icon_end_onclick="togglePasswordVisibility('register-password')" icon_end_aria_label=_("Mostrar u ocultar contraseña") required=True %}
+                                {% include 'components/input.html' with name="password" id="register-password" type="password" placeholder="••••••••••••" icon="lock" icon_end="eye" icon_end_onclick="togglePasswordVisibility('register-password')" icon_end_aria_label=_("Mostrar u ocultar contraseña") autocomplete="new-password" error=form.password.errors.0 required=True %}
                             </div>
 
                             <!-- Campo: Confirmar contraseña con callback desacoplado -->
@@ -156,7 +166,7 @@
                                 <label for="register-password-confirm" class="text-xs font-semibold text-neutral-700">
                                     {% translate "Confirmar contraseña" %}
                                 </label>
-                                {% include 'components/input.html' with name="password_confirm" id="register-password-confirm" type="password" placeholder="••••••••••••" icon="check-circle" icon_end="eye" icon_end_onclick="togglePasswordVisibility('register-password-confirm')" icon_end_aria_label=_("Mostrar u ocultar contraseña") required=True %}
+                                {% include 'components/input.html' with name="password_confirm" id="register-password-confirm" type="password" placeholder="••••••••••••" icon="check-circle" icon_end="eye" icon_end_onclick="togglePasswordVisibility('register-password-confirm')" icon_end_aria_label=_("Mostrar u ocultar contraseña") autocomplete="new-password" error=form.password_confirm.errors.0 required=True %}
                             </div>
                         </div>
 

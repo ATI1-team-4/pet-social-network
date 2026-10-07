@@ -1,28 +1,139 @@
-from django.contrib.auth import logout
+"""Controladores de vista para el módulo accounts (autenticación y accesos)."""
+
+from django.contrib import messages
+from django.contrib.auth import login, logout
 from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import gettext as _
+
+from apps.accounts.forms import LoginForm, PasswordResetRequestForm, RegisterForm
+from apps.accounts.services import (
+    authenticate_by_email_or_username,
+    create_tutor_user,
+)
+from apps.accounts.signals import get_client_ip
 
 
 def login_view(request):
-    """Renderiza la pantalla oficial de Inicio de Sesión."""
-    return render(request, 'accounts/login.html')
+    """Procesa el inicio de sesión y renderiza la pantalla correspondiente."""
+    if request.user.is_authenticated:
+        return redirect('pets:pet_management')
+
+    form = LoginForm()
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            identifier = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            remember_me = form.cleaned_data.get('remember_me', False)
+
+            user = authenticate_by_email_or_username(request, identifier, password)
+            if user is not None:
+                login(request, user)
+                if remember_me:
+                    request.session.set_expiry(1209600)  # 2 semanas de sesión
+                else:
+                    request.session.set_expiry(0)  # Expira al cerrar el navegador
+
+                display_name = user.first_name if user.first_name else user.username
+                messages.success(
+                    request,
+                    _('¡Hola de nuevo, %(name)s! Has iniciado sesión con éxito.')
+                    % {'name': display_name},
+                )
+
+                next_url = request.POST.get('next') or request.GET.get('next')
+                if next_url and url_has_allowed_host_and_scheme(
+                    next_url, allowed_hosts={request.get_host()}
+                ):
+                    return redirect(next_url)
+                return redirect('pets:pet_management')
+
+            messages.error(
+                request,
+                _(
+                    'Correo electrónico o contraseña incorrectos. Por favor, verifica tus credenciales.'
+                ),
+            )
+        else:
+            messages.error(request, _('Por favor, completa todos los campos requeridos.'))
+
+    return render(request, 'accounts/login.html', {'form': form})
 
 
 def register_view(request):
-    """Renderiza la pantalla oficial de Registro de Usuario."""
-    return render(request, 'accounts/register.html')
+    """Procesa el registro de nuevos tutores y renderiza la pantalla correspondiente."""
+    if request.user.is_authenticated:
+        return redirect('pets:pet_management')
+
+    form = RegisterForm()
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            client_ip = get_client_ip(request)
+            user = create_tutor_user(
+                full_name=form.cleaned_data['full_name'],
+                email=form.cleaned_data['email'],
+                password=form.cleaned_data['password'],
+                phone_prefix=form.cleaned_data.get('phone_prefix', '+58'),
+                phone=form.cleaned_data['phone'],
+                id_type=form.cleaned_data.get('id_type', 'V'),
+                id_number=form.cleaned_data['id_number'],
+                ip_address=client_ip,
+            )
+
+            # Iniciar sesión automáticamente tras el registro y redirigir al menú principal
+            login(request, user)
+            display_name = user.first_name if user.first_name else user.username
+            messages.success(
+                request,
+                _('¡Bienvenido a Petly, %(name)s! Tu cuenta de tutor ha sido creada exitosamente.')
+                % {'name': display_name},
+            )
+            return redirect('pets:pet_management')
+
+        # Mostrar errores específicos del formulario en el banner de mensajes
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f'{error}')
+
+    return render(request, 'accounts/register.html', {'form': form})
 
 
 def password_reset_view(request):
-    """Renderiza la pantalla oficial de Recuperación de Contraseña."""
+    """Procesa la solicitud de recuperación de contraseña."""
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            messages.success(
+                request,
+                _(
+                    'Si el correo %(email)s está registrado, te hemos enviado un enlace seguro para restablecer tu acceso.'
+                )
+                % {'email': email},
+            )
+            return redirect('accounts:login')
+
+        messages.error(
+            request,
+            _('Por favor, ingresa un correo electrónico válido para continuar.'),
+        )
+
     return render(request, 'accounts/password_reset.html')
 
 
 def logout_view(request):
     """Cierra la sesión activa del usuario y redirige al inicio."""
-    logout(request)
+    if request.user.is_authenticated:
+        logout(request)
+        messages.info(request, _('Has cerrado sesión correctamente. ¡Hasta pronto!'))
     return redirect('core:home')
 
 
 def profile_view(request):
-    """Renderiza la pantalla oficial de Gestión de Usuario (perfil del tutor)."""
+    """
+    Renderiza la pantalla oficial de Gestión de usuario.
+    Permanece abierta para maquetación y pruebas del equipo sin bloqueos de login.
+    """
     return render(request, 'accounts/user_profile.html')
