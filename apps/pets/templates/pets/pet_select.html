@@ -1,26 +1,384 @@
 {% extends 'layouts/app.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% translate "Seleccionar mascota" %} | Petly{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-8">
-    <div class="card-petly p-8 bg-white border border-neutral-300/80 mb-10 text-center">
-        <h1 class="title-h3 text-neutral-900 mb-2">{% translate "¿Con qué mascota deseas buscar pareja hoy?" %}</h1>
-        <p class="text-caption text-neutral-500 mb-6">
-            {% translate "Pantalla en construcción para seleccionar la mascota activa." %}
-        </p>
-        <div class="flex flex-wrap justify-center gap-3">
-            <a href="{% url 'pets:match_feed' %}" class="btn-petly-primary text-xs px-4 py-2">
-                {% translate "Continuar a buscar pareja" %}
+<div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-6">
+
+    <!-- Mensajes flash del sistema si existen -->
+    {% include 'components/messages.html' %}
+
+    <!-- Miga de pan oficial para escritorio (reto 11, página 11) -->
+    <nav class="hidden sm:flex items-center gap-1.5 text-xs text-neutral-500" aria-label="{% translate 'Ruta de navegación' %}">
+        <a href="{% url 'core:home' %}" class="hover:text-petly-coral transition-colors no-underline text-neutral-500">
+            {% translate "Inicio" %}
+        </a>
+        <span class="text-neutral-400">&rsaquo;</span>
+        <a href="{% url 'accounts:profile' %}" class="hover:text-petly-coral transition-colors no-underline text-neutral-500">
+            {% translate "Mi Cuenta" %}
+        </a>
+        <span class="text-neutral-400">&rsaquo;</span>
+        <span class="text-petly-coral font-semibold">
+            {% translate "Seleccionar Mascota Activa" %}
+        </span>
+    </nav>
+
+    <!-- Subcabecera superior para dispositivos móviles (reto 11, página 11 móvil) -->
+    <div class="lg:hidden flex items-center justify-between pb-2 border-b border-neutral-200/80">
+        <div class="flex items-center gap-2.5">
+            <a href="{% url 'pets:pet_management' %}" class="w-8 h-8 rounded-full bg-white border border-neutral-300 flex items-center justify-center text-neutral-700 hover:text-petly-coral transition-colors shadow-xs" aria-label="{% translate 'Ir a gestión de mascotas' %}">
+                {% include 'components/icon.html' with name="paw" class="w-4 h-4 text-petly-coral" %}
             </a>
-            <a href="{% url 'pets:pet_management' %}" class="btn-petly-outline text-xs px-4 py-2 bg-white">
-                {% translate "Gestionar mascotas" %}
-            </a>
+            <h2 class="title-h5 text-neutral-900 font-bold leading-tight">
+                {% translate "Mascotas" %}
+            </h2>
         </div>
+        <a href="{% url 'accounts:profile' %}" class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-petly-coral flex items-center justify-center shadow-xs" title="{% translate 'Mi perfil' %}">
+            {% include 'components/icon.html' with name="user" class="w-4 h-4" %}
+        </a>
     </div>
 
-    <!-- Muestra de componentes para los desarrolladores -->
-    {% include 'components/components_palette.html' %}
+    <!-- Título principal oficial de la pantalla -->
+    <div>
+        <h1 class="title-h3 sm:title-h2 text-neutral-900 font-bold tracking-tight">
+            {% translate "¿Con qué mascota deseas buscar pareja hoy?" %}
+        </h1>
+    </div>
+
+    <!-- Formulario interactivo de selección de mascota activa -->
+    <form method="post" action="{% url 'pets:pet_select' %}" id="pet-select-form">
+        {% csrf_token %}
+        <input type="hidden" name="selected_pet_id" id="selected-pet-id-input" value="{{ active_pet.id|default:'1234' }}">
+
+        <!-- ============================================== -->
+        <!-- VISTA DE ESCRITORIO (reto 11, página 11 der.) -->
+        <!-- ============================================== -->
+        <div class="hidden lg:grid grid-cols-12 gap-8 items-start">
+
+            <!-- Columna izquierda: Lista de tarjetas de mascotas (8 columnas) -->
+            <div class="col-span-8 space-y-4">
+                {% for pet in pets %}
+                    <div id="desktop-pet-card-{{ pet.id }}"
+                         data-pet-id="{{ pet.id }}"
+                         data-pet-name="{{ pet.name }}"
+                         onclick="selectActivePet('{{ pet.id }}', '{{ pet.name }}')"
+                         class="desktop-pet-card card-petly p-5 bg-white rounded-3xl transition-all cursor-pointer relative flex items-center justify-between gap-5 shadow-xs {% if pet.is_selected %}border-2 border-petly-coral ring-2 ring-petly-coral/20{% else %}border border-neutral-300/80 hover:border-neutral-400{% endif %}">
+
+                        <div class="flex items-center gap-5 flex-1 min-w-0">
+                            <!-- Fotografía cuadrada redondeada con badge superior -->
+                            <div class="relative w-32 h-32 sm:w-36 sm:h-36 rounded-2xl overflow-hidden bg-petly-ice shrink-0 shadow-xs border border-neutral-200">
+                                <img src="{{ pet.photo_url }}"
+                                     alt="{{ pet.name }}"
+                                     class="w-full h-full object-cover select-none">
+                                <!-- Insignia de verificación o círculo de selección en la esquina de la foto -->
+                                <div class="desktop-photo-badge absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-xs transition-all {% if pet.is_selected %}bg-petly-coral text-white{% else %}bg-white/80 border border-neutral-300 text-transparent{% endif %}">
+                                    <span class="desktop-photo-check {% if not pet.is_selected %}hidden{% endif %}">
+                                        {% include 'components/icon.html' with name="check" class="w-4 h-4 text-white" %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Información detallada de la mascota -->
+                            <div class="flex-1 min-w-0 space-y-1.5 py-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h2 class="title-h3 text-neutral-900 font-bold leading-tight">
+                                        {{ pet.name }}
+                                    </h2>
+                                    {% if not pet.is_active %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-neutral-200 text-neutral-600">
+                                            {% translate "Inactiva" %}
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <p class="text-body-base text-neutral-600">
+                                    {{ pet.breed }} • {{ pet.gender_label }} • {{ pet.age_text }}
+                                </p>
+
+                                <div class="flex items-center gap-2 flex-wrap pt-1">
+                                    {% if pet.is_matching %}
+                                        <span class="badge-tag text-xs font-medium py-1 px-3">
+                                            {% include 'components/icon.html' with name="heart" class="w-3.5 h-3.5" %}
+                                            <span>{% translate "Buscando Pareja Activo" %}</span>
+                                        </span>
+                                    {% endif %}
+
+                                    {% if pet.certificate == 'fci' %}
+                                        <span class="badge-compat text-xs font-bold py-1 px-3">
+                                            {% include 'components/icon.html' with name="award" class="w-3.5 h-3.5 text-emerald-800" %}
+                                            <span>{% translate "Pedigrí Certificado" %}</span>
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Estado actual o botón de selección rápida -->
+                                <div class="pt-2">
+                                    <div class="desktop-selected-indicator {% if not pet.is_selected %}hidden{% endif %} inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-800">
+                                        {% include 'components/icon.html' with name="check" class="w-4 h-4 text-petly-coral" %}
+                                        <span>{% translate "Seleccionado actualmente" %}</span>
+                                    </div>
+                                    <div class="desktop-unselected-button {% if pet.is_selected %}hidden{% endif %}">
+                                        <button type="button"
+                                                onclick="selectActivePet('{{ pet.id }}', '{{ pet.name }}')"
+                                                class="btn-petly-outline text-xs px-4 py-1.5 bg-white hover:bg-petly-ice rounded-full font-semibold">
+                                            {% blocktranslate with name=pet.name %}Seleccionar a {{ name }}{% endblocktranslate %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lado derecho: Indicador de radio y enlace a editar perfil -->
+                        <div class="flex flex-col justify-between items-end self-stretch py-1 shrink-0">
+                            <!-- Indicador de radio circular -->
+                            <div class="desktop-radio-target w-6 h-6 rounded-full flex items-center justify-center transition-all {% if pet.is_selected %}border-2 border-petly-coral text-petly-coral{% else %}border-2 border-neutral-300 text-transparent{% endif %}">
+                                <span class="desktop-radio-dot w-3 h-3 rounded-full bg-petly-coral {% if not pet.is_selected %}hidden{% endif %}"></span>
+                            </div>
+
+                            <a href="{% url 'pets:pet_management' %}?pet={{ pet.name|lower }}"
+                               onclick="event.stopPropagation();"
+                               class="text-xs font-semibold text-neutral-500 hover:text-petly-coral transition-colors no-underline inline-flex items-center gap-1">
+                                <span>{% translate "Editar perfil" %}</span>
+                                <span>&rsaquo;</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <!-- Tarjeta interactiva: Registrar Nueva Mascota (escritorio) -->
+                <div class="card-petly p-6 bg-petly-surface/70 border-2 border-dashed border-neutral-300 rounded-3xl flex items-center justify-between gap-4 hover:border-petly-coral/60 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0 shadow-xs">
+                            {% include 'components/icon.html' with name="plus" class="w-5 h-5" %}
+                        </div>
+                        <div>
+                            <h2 class="title-h4 text-neutral-900 font-bold mb-1">
+                                {% translate "Registrar Nueva Mascota" %}
+                            </h2>
+                            <p class="text-caption text-neutral-500 leading-relaxed max-w-lg">
+                                {% translate "Añade otro perro o gato a tu cuenta familiar para gestionar sus pretendientes, pedigrí y compatibilidad genética." %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'pets:pet_management' %}?new=true"
+                       class="btn-petly-outline bg-white text-xs px-5 py-2.5 font-bold hover:border-petly-coral hover:text-petly-coral transition-all shrink-0 no-underline shadow-xs">
+                        {% translate "Registrar Mascota" %}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Columna derecha: Acciones Inmediatas (4 columnas fijas) -->
+            <div class="col-span-4 sticky top-24">
+                <div class="card-petly p-6 bg-white border border-neutral-300/80 shadow-md space-y-4">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-petly-coral animate-pulse"></span>
+                        <span class="text-[11px] font-bold tracking-wider text-neutral-500 uppercase">
+                            {% translate "ACCIONES INMEDIATAS" %}
+                        </span>
+                    </div>
+
+                    <h2 class="title-h4 text-neutral-900 font-bold">
+                        {% blocktranslate with name=active_pet.name|default:"Toby" %}Continuar Flujo con <span id="desktop-action-pet-name">{{ name }}</span>{% endblocktranslate %}
+                    </h2>
+
+                    <div class="space-y-3 pt-2">
+                        <button type="submit"
+                                class="btn-petly-primary w-full py-3.5 text-sm font-bold shadow-md inline-flex items-center justify-center gap-2">
+                            <span>{% translate "Continuar a Buscar Pareja" %}</span>
+                            <span class="text-base leading-none">❤️</span>
+                        </button>
+
+                        <a href="{% url 'pets:match_interested' %}"
+                           class="btn-petly-secondary w-full py-3 text-sm font-semibold inline-flex items-center justify-center gap-2 bg-petly-blue hover:bg-petly-ice text-neutral-800 no-underline shadow-xs">
+                            {% include 'components/icon.html' with name="users" class="w-4 h-4 text-neutral-800" %}
+                            <span>{% translate "Ver Mascotas Interesadas" %} ({{ interested_count|default:4 }})</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VISTA MÓVIL (reto 11, página 11 izq. teléfono) -->
+        <!-- ============================================== -->
+        <div class="lg:hidden space-y-4">
+
+            <!-- Lista de tarjetas de mascotas en diseño móvil -->
+            <div class="space-y-3">
+                {% for pet in pets %}
+                    <div id="mobile-pet-card-{{ pet.id }}"
+                         data-pet-id="{{ pet.id }}"
+                         data-pet-name="{{ pet.name }}"
+                         onclick="selectActivePet('{{ pet.id }}', '{{ pet.name }}')"
+                         class="mobile-pet-card card-petly p-3.5 bg-white rounded-2xl transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs {% if pet.is_selected %}border-2 border-petly-coral{% else %}border border-neutral-300/80 hover:border-neutral-400{% endif %}">
+
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <!-- Foto circular oficial de móvil -->
+                            <div class="w-14 h-14 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200 shadow-xs">
+                                <img src="{{ pet.photo_url }}"
+                                     alt="{{ pet.name }}"
+                                     class="w-full h-full object-cover select-none">
+                            </div>
+
+                            <!-- Datos principales con símbolo de género -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    <h2 class="title-h5 text-neutral-900 font-bold leading-tight">
+                                        {{ pet.name }}
+                                    </h2>
+                                    <span class="text-xs font-bold {% if pet.gender == 'macho' %}text-sky-600{% else %}text-petly-coral{% endif %}">
+                                        {{ pet.gender_symbol }}
+                                    </span>
+                                </div>
+                                <p class="text-caption text-neutral-500 mb-1">
+                                    {{ pet.breed }} • {{ pet.age_text }}
+                                </p>
+                                {% if pet.is_matching %}
+                                    <span class="badge-tag text-[10px] py-0.5 px-2">
+                                        {% include 'components/icon.html' with name="heart" class="w-3 h-3" %}
+                                        <span>{% translate "Buscando Pareja Activo" %}</span>
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Indicador circular de selección móvil -->
+                        <div class="mobile-radio-target w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all {% if pet.is_selected %}bg-petly-coral text-white{% else %}bg-petly-ice border border-neutral-300 text-transparent{% endif %}">
+                            <span class="mobile-radio-check {% if not pet.is_selected %}hidden{% endif %}">
+                                {% include 'components/icon.html' with name="check" class="w-3.5 h-3.5 text-white" %}
+                            </span>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <!-- Pastilla móvil: Registrar Nueva Mascota -->
+                <a href="{% url 'pets:pet_management' %}?new=true"
+                   class="w-full p-3.5 rounded-2xl bg-petly-blue/40 border border-petly-blue text-neutral-800 flex items-center justify-center gap-2 font-semibold text-xs hover:bg-petly-blue/60 transition-colors no-underline shadow-xs">
+                    {% include 'components/icon.html' with name="plus" class="w-4 h-4 text-petly-coral font-bold" %}
+                    <span>{% translate "Registrar Nueva Mascota" %}</span>
+                </a>
+            </div>
+
+            <!-- Botones de acción inferiores para móvil -->
+            <div class="space-y-2.5 pt-4">
+                <button type="submit"
+                        class="btn-petly-primary w-full py-3.5 text-sm font-bold shadow-md inline-flex items-center justify-center gap-2">
+                    <span>{% translate "Continuar a Buscar Pareja" %}</span>
+                    <span class="text-base leading-none">❤️</span>
+                </button>
+
+                <a href="{% url 'pets:match_interested' %}"
+                   class="btn-petly-secondary w-full py-3 text-sm font-semibold inline-flex items-center justify-center gap-2 bg-petly-blue hover:bg-petly-ice text-neutral-800 no-underline shadow-xs">
+                    {% include 'components/icon.html' with name="users" class="w-4 h-4 text-neutral-800" %}
+                    <span>{% translate "Ver Mascotas Interesadas" %} ({{ interested_count|default:4 }})</span>
+                </a>
+            </div>
+
+        </div>
+    </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Gestión reactiva de la selección de mascota activa (reto 11, página 11)
+    function selectActivePet(petId, petName) {
+        // Actualizar el valor en el campo oculto del formulario
+        const input = document.getElementById('selected-pet-id-input');
+        if (input) input.value = petId;
+
+        // Actualizar el nombre en la tarjeta de acciones inmediatas de escritorio
+        const desktopActionName = document.getElementById('desktop-action-pet-name');
+        if (desktopActionName) desktopActionName.textContent = petName;
+
+        // 1. Actualizar todas las tarjetas de ESCRITORIO
+        document.querySelectorAll('.desktop-pet-card').forEach(card => {
+            const isSelected = card.getAttribute('data-pet-id') === petId;
+
+            if (isSelected) {
+                card.classList.remove('border', 'border-neutral-300/80', 'hover:border-neutral-400');
+                card.classList.add('border-2', 'border-petly-coral', 'ring-2', 'ring-petly-coral/20');
+
+                // Badge de la foto
+                const photoBadge = card.querySelector('.desktop-photo-badge');
+                if (photoBadge) {
+                    photoBadge.className = 'desktop-photo-badge absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-xs transition-all bg-petly-coral text-white';
+                }
+                const photoCheck = card.querySelector('.desktop-photo-check');
+                if (photoCheck) photoCheck.classList.remove('hidden');
+
+                // Indicador de estado y botón
+                const selectedIndicator = card.querySelector('.desktop-selected-indicator');
+                if (selectedIndicator) selectedIndicator.classList.remove('hidden');
+
+                const unselectedButton = card.querySelector('.desktop-unselected-button');
+                if (unselectedButton) unselectedButton.classList.add('hidden');
+
+                // Radio circular
+                const radioTarget = card.querySelector('.desktop-radio-target');
+                if (radioTarget) {
+                    radioTarget.className = 'desktop-radio-target w-6 h-6 rounded-full flex items-center justify-center transition-all border-2 border-petly-coral text-petly-coral';
+                }
+                const radioDot = card.querySelector('.desktop-radio-dot');
+                if (radioDot) radioDot.classList.remove('hidden');
+            } else {
+                card.classList.remove('border-2', 'border-petly-coral', 'ring-2', 'ring-petly-coral/20');
+                card.classList.add('border', 'border-neutral-300/80', 'hover:border-neutral-400');
+
+                // Badge de la foto
+                const photoBadge = card.querySelector('.desktop-photo-badge');
+                if (photoBadge) {
+                    photoBadge.className = 'desktop-photo-badge absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-xs transition-all bg-white/80 border border-neutral-300 text-transparent';
+                }
+                const photoCheck = card.querySelector('.desktop-photo-check');
+                if (photoCheck) photoCheck.classList.add('hidden');
+
+                // Indicador de estado y botón
+                const selectedIndicator = card.querySelector('.desktop-selected-indicator');
+                if (selectedIndicator) selectedIndicator.classList.add('hidden');
+
+                const unselectedButton = card.querySelector('.desktop-unselected-button');
+                if (unselectedButton) unselectedButton.classList.remove('hidden');
+
+                // Radio circular
+                const radioTarget = card.querySelector('.desktop-radio-target');
+                if (radioTarget) {
+                    radioTarget.className = 'desktop-radio-target w-6 h-6 rounded-full flex items-center justify-center transition-all border-2 border-neutral-300 text-transparent';
+                }
+                const radioDot = card.querySelector('.desktop-radio-dot');
+                if (radioDot) radioDot.classList.add('hidden');
+            }
+        });
+
+        // 2. Actualizar todas las tarjetas de MÓVIL
+        document.querySelectorAll('.mobile-pet-card').forEach(card => {
+            const isSelected = card.getAttribute('data-pet-id') === petId;
+
+            if (isSelected) {
+                card.classList.remove('border', 'border-neutral-300/80', 'hover:border-neutral-400');
+                card.classList.add('border-2', 'border-petly-coral');
+
+                const radioTarget = card.querySelector('.mobile-radio-target');
+                if (radioTarget) {
+                    radioTarget.className = 'mobile-radio-target w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all bg-petly-coral text-white';
+                }
+                const radioCheck = card.querySelector('.mobile-radio-check');
+                if (radioCheck) radioCheck.classList.remove('hidden');
+            } else {
+                card.classList.remove('border-2', 'border-petly-coral');
+                card.classList.add('border', 'border-neutral-300/80', 'hover:border-neutral-400');
+
+                const radioTarget = card.querySelector('.mobile-radio-target');
+                if (radioTarget) {
+                    radioTarget.className = 'mobile-radio-target w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all bg-petly-ice border border-neutral-300 text-transparent';
+                }
+                const radioCheck = card.querySelector('.mobile-radio-check');
+                if (radioCheck) radioCheck.classList.add('hidden');
+            }
+        });
+    }
+</script>
 {% endblock %}
