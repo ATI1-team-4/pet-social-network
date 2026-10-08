@@ -1,21 +1,483 @@
 {% extends 'layouts/app.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% translate "Mascotas interesadas" %} | Petly{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-8">
-    <div class="card-petly p-8 bg-white border border-neutral-300/80 mb-10 text-center">
-        <h1 class="title-h3 text-neutral-900 mb-2">{% translate "Mascotas interesadas" %}</h1>
-        <p class="text-caption text-neutral-500 mb-6">
-            {% translate "Bandeja de pretendientes y citas confirmadas en construcción." %}
-        </p>
-        <a href="{% url 'pets:match_feed' %}" class="btn-petly-outline text-xs px-4 py-2 inline-flex items-center gap-1.5 bg-white">
-            {% translate "← Volver a explorar parejas" %}
+<div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-6">
+
+    <!-- Mensajes flash del sistema si existen -->
+    {% include 'components/messages.html' %}
+
+    <!-- ============================================== -->
+    <!-- CABECERA Y CONTEXTO OFICIAL (reto 11, pág. 12)  -->
+    <!-- ============================================== -->
+
+    <!-- Subcabecera móvil -->
+    <div class="lg:hidden flex items-center justify-between pb-2 border-b border-neutral-200/80">
+        <div class="flex items-center gap-2">
+            <a href="{% url 'pets:match_feed' %}" class="w-8 h-8 rounded-full bg-white border border-neutral-300 flex items-center justify-center text-neutral-700 hover:text-petly-coral transition-colors shadow-xs" aria-label="{% translate 'Volver al feed' %}">
+                {% include 'components/icon.html' with name="chevron-down" class="w-4 h-4 rotate-90 text-neutral-700" %}
+            </a>
+            <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                {% include 'components/icon.html' with name="users" class="w-4 h-4" %}
+            </div>
+            <h1 class="title-h4 text-neutral-900 font-bold leading-tight">
+                {% translate "Mascotas Interesadas" %}
+            </h1>
+        </div>
+        <a href="{% url 'accounts:profile' %}" class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-petly-coral flex items-center justify-center shadow-xs" title="{% translate 'Mi perfil' %}">
+            {% include 'components/icon.html' with name="user" class="w-4 h-4" %}
         </a>
     </div>
 
-    <!-- Muestra de componentes para los desarrolladores -->
-    {% include 'components/components_palette.html' %}
+    <!-- Banner superior de pretendientes esperando respuesta -->
+    <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-petly-lilac text-petly-purple shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-purple-600 animate-pulse"></span>
+            <span>{% blocktranslate count counter=interested_count %}{{ counter }} pretendiente esperando respuesta{% plural %}{{ counter }} pretendientes esperando respuesta{% endblocktranslate %}</span>
+        </span>
+    </div>
+
+    <!-- Título y descripción principal -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+            <h1 class="title-h3 sm:title-h2 text-neutral-900 font-bold tracking-tight">
+                {% blocktranslate with name=active_pet.name %}Mascotas interesadas en {{ name }}{% endblocktranslate %}
+            </h1>
+            <p class="text-xs sm:text-sm text-neutral-500 max-w-2xl mt-1 leading-relaxed">
+                {% blocktranslate with name=active_pet.name %}
+                Estos tutores han mostrado interés en {{ name }} para cruza responsable o socialización canina. Revisa sus credenciales de salud, compatibilidad y coordina un encuentro seguro en espacios certificados.
+                {% endblocktranslate %}
+            </p>
+        </div>
+
+        <!-- Selector de mascota activa a la derecha -->
+        <div class="flex items-center gap-3 shrink-0">
+            <div class="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white border border-neutral-300 shadow-xs">
+                <div class="relative w-8 h-8 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200">
+                    <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}" class="w-full h-full object-cover">
+                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white"></span>
+                </div>
+                <div class="text-xs">
+                    <span class="font-bold text-neutral-900 block leading-tight">{{ active_pet.name }}</span>
+                    <span class="text-[11px] text-neutral-500">{{ active_pet.breed }} • {{ active_pet.gender_label }}</span>
+                </div>
+                <a href="{% url 'pets:pet_select' %}" class="text-xs font-semibold text-petly-coral hover:underline pl-1" title="{% translate 'Cambiar de mascota activa' %}">
+                    {% translate "Cambiar" %} ▾
+                </a>
+            </div>
+
+            <!-- Botón para volver a explorar parejas en el feed -->
+            <a href="{% url 'pets:match_feed' %}" class="btn-petly-primary text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5 shadow-md no-underline">
+                {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-white" %}
+                <span>{% translate "Explorar parejas" %}</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Barra de filtros horizontales -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+        <div class="flex items-center gap-2 overflow-x-auto py-1">
+            <button type="button" class="px-4 py-1.5 rounded-full text-xs font-semibold bg-[#A53B42] text-white shadow-xs whitespace-nowrap cursor-pointer">
+                {% translate "Todos" %} ({{ interested_count }})
+            </button>
+            <button type="button" class="px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-colors">
+                {% translate "Cruza Responsable / Pedigrí" %} (2)
+            </button>
+            <button type="button" class="px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-colors">
+                {% translate "Citas de Socialización" %} (1)
+            </button>
+            <button type="button" class="px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-colors">
+                {% translate "Cerca de ti (< 5 km)" %}
+            </button>
+        </div>
+
+        <div class="flex items-center gap-1.5 text-xs text-neutral-500 shrink-0">
+            <span>{% translate "Ordenar por:" %}</span>
+            <span class="font-bold text-neutral-800 cursor-pointer hover:text-petly-coral">
+                {% translate "Mayor compatibilidad" %} ▾
+            </span>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- LAYOUT PRINCIPAL: PRETENDIENTES + CITAS         -->
+    <!-- ============================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        <!-- ============================================== -->
+        <!-- COLUMNA IZQUIERDA: LISTA DE PRETENDIENTES      -->
+        <!-- ============================================== -->
+        <div class="lg:col-span-8 space-y-4">
+
+            <!-- PRETENDIENTE DESTACADO 1: KIRA (Pomerania Mini) -->
+            <div class="card-petly p-5 sm:p-6 bg-white border border-neutral-300/80 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                <div class="flex flex-col sm:flex-row gap-5 items-stretch">
+                    <!-- Fotografía cuadrada redondeada de Kira -->
+                    <div class="relative w-full sm:w-72 sm:h-80 rounded-2xl overflow-hidden bg-petly-ice shrink-0 shadow-xs border border-neutral-200">
+                        <img src="{{ featured_suitor.photo_url }}"
+                             alt="{{ featured_suitor.name }}"
+                             class="w-full h-full object-cover select-none">
+                    </div>
+
+                    <!-- Ficha descriptiva y opciones de Kira -->
+                    <div class="flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <!-- Fila de título y badge de match reciente (escritorio) -->
+                            <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
+                                <div class="flex items-center gap-1.5">
+                                    <h2 class="title-h3 text-neutral-900 font-bold leading-tight">
+                                        {{ featured_suitor.name }}
+                                    </h2>
+                                    <span class="text-sm font-bold text-petly-coral">
+                                        {{ featured_suitor.gender_symbol }}
+                                    </span>
+                                    <span class="text-neutral-400">•</span>
+                                    <span class="text-xs font-semibold text-neutral-600">
+                                        {{ featured_suitor.breed }}
+                                    </span>
+                                </div>
+                                <span class="hidden sm:inline-flex badge-tag text-[11px] font-semibold py-1 px-2.5">
+                                    {{ featured_suitor.recent_label }}
+                                </span>
+                            </div>
+
+                            <!-- Insignias de salud, certificado y temperamento -->
+                            <div class="flex flex-wrap items-center gap-1.5 mb-3">
+                                <span class="badge-gender-female text-xs py-0.5 px-2.5">
+                                    {% include 'components/icon.html' with name="female" class="w-3 h-3" %}
+                                    <span>{% translate "Hembra" %}</span>
+                                </span>
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-petly-ice text-neutral-700">
+                                    {% include 'components/icon.html' with name="calendar" class="w-3 h-3 text-neutral-500" %}
+                                    <span>{{ featured_suitor.birth_date }}</span>
+                                </span>
+                                <span class="badge-compat text-xs py-0.5 px-2.5 font-bold">
+                                    {% include 'components/icon.html' with name="award" class="w-3 h-3 text-emerald-900" %}
+                                    <span>{{ featured_suitor.certificate }}</span>
+                                </span>
+                                {% for trait in featured_suitor.temperaments %}
+                                    <span class="badge-tag text-xs font-medium py-0.5 px-2.5">
+                                        {{ trait }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Caja de mensaje directo del tutor -->
+                            <div class="p-3.5 rounded-2xl bg-petly-ice/70 border border-petly-blue/80 text-xs text-neutral-700 leading-relaxed space-y-1">
+                                <p class="italic">
+                                    "{{ featured_suitor.quote }}"
+                                </p>
+                                <span class="text-[11px] font-bold text-neutral-500 block">
+                                    — {{ featured_suitor.tutor_signature }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción principales -->
+                        <div class="pt-2 flex flex-wrap items-center justify-between gap-2.5">
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <button type="button"
+                                        onclick="openMeetingModal('{{ featured_suitor.name }}', '{{ featured_suitor.photo_url }}')"
+                                        class="btn-petly-primary flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold shadow-md inline-flex items-center justify-center gap-1.5">
+                                    {% include 'components/icon.html' with name="calendar" class="w-4 h-4 text-white" %}
+                                    <span>{% translate "Concertar Encuentro" %}</span>
+                                </button>
+                                <button type="button"
+                                        onclick="openMessageModal('{{ featured_suitor.name }}', 'Mariana Ríos')"
+                                        class="btn-petly-lilac flex-1 sm:flex-initial text-xs px-4 py-2.5 font-semibold inline-flex items-center justify-center gap-1.5 shadow-xs">
+                                    {% include 'components/icon.html' with name="message-square" class="w-4 h-4 text-purple-800" %}
+                                    <span>{% translate "Enviar Mensaje" %}</span>
+                                </button>
+                            </div>
+
+                            <button type="button"
+                                    onclick="dismissSuitor('{{ featured_suitor.name }}')"
+                                    class="text-xs font-semibold text-neutral-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1 py-1 cursor-pointer">
+                                <span>{% translate "Negar Interés" %}</span>
+                                <span>✕</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRETENDIENTES SECUNDARIOS (CHLOE Y MAYA) -->
+            {% for suitor in secondary_suitors %}
+                <div class="card-petly p-4 sm:p-5 bg-white border border-neutral-300/80 rounded-2xl shadow-xs hover:shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="relative w-14 h-14 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200 shadow-xs">
+                            <img src="{{ suitor.photo_url }}" alt="{{ suitor.name }}" class="w-full h-full object-cover">
+                        </div>
+
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="title-h5 text-neutral-900 font-bold leading-tight">
+                                    {{ suitor.name }}
+                                </h2>
+                                <span class="badge-tag text-[10px] font-bold py-0.5 px-2">
+                                    {{ suitor.match_percentage }} {% translate "Match" %}
+                                </span>
+                            </div>
+                            <p class="text-caption text-neutral-500 mt-0.5">
+                                {{ suitor.breed }} • {{ suitor.age }} • {{ suitor.distance }}
+                            </p>
+                            {% if suitor.badge_label %}
+                                <span class="text-[11px] font-semibold text-petly-coral block mt-0.5">
+                                    {{ suitor.badge_label }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción secundarios -->
+                    <div class="flex items-center gap-2 self-end sm:self-center">
+                        <button type="button"
+                                onclick="openMeetingModal('{{ suitor.name }}', '{{ suitor.photo_url }}')"
+                                class="btn-petly-primary text-xs px-4 py-2 font-bold shadow-xs inline-flex items-center gap-1.5">
+                            {% include 'components/icon.html' with name="calendar" class="w-3.5 h-3.5 text-white" %}
+                            <span>{% translate "Agendar Cita" %}</span>
+                        </button>
+                        <button type="button"
+                                onclick="openMessageModal('{{ suitor.name }}', 'Tutor de {{ suitor.name }}')"
+                                class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-600 hover:text-petly-coral hover:border-petly-coral/50 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
+                                title="{% translate 'Enviar mensaje' %}">
+                            {% include 'components/icon.html' with name="message-square" class="w-3.5 h-3.5" %}
+                        </button>
+                        <button type="button"
+                                onclick="dismissSuitor('{{ suitor.name }}')"
+                                class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
+                                title="{% translate 'Descartar solicitud' %}">
+                            {% include 'components/icon.html' with name="trash" class="w-3.5 h-3.5" %}
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
+
+        <!-- ============================================== -->
+        <!-- COLUMNA DERECHA: CITAS CONFIRMADAS             -->
+        <!-- ============================================== -->
+        <div class="lg:col-span-4 sticky top-24 space-y-4">
+
+            <!-- Tarjeta de Citas Confirmadas -->
+            <div class="card-petly p-5 sm:p-6 bg-white border border-neutral-300/80 shadow-md space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                            {% include 'components/icon.html' with name="calendar-days" class="w-4 h-4 text-emerald-700" %}
+                        </div>
+                        <h2 class="title-h4 text-neutral-900 font-bold text-sm">
+                            {% translate "Citas Confirmadas" %}
+                        </h2>
+                    </div>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" title="{% translate 'Citas activas' %}"></span>
+                </div>
+
+                <!-- Lista de citas confirmadas -->
+                <div class="space-y-3">
+                    {% for date in confirmed_dates %}
+                        <div class="p-3.5 rounded-2xl bg-petly-ice/50 border border-petly-blue/80 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="badge-compat text-[10px] font-bold py-0.5 px-2">
+                                    {{ date.badge }}
+                                </span>
+                                <span class="text-caption font-semibold text-neutral-500">
+                                    {{ date.day }}
+                                </span>
+                            </div>
+
+                            <div>
+                                <h3 class="text-xs font-bold text-neutral-900 leading-tight">
+                                    {{ date.title }}
+                                </h3>
+                                <p class="text-[11px] text-neutral-600 inline-flex items-center gap-1 mt-0.5">
+                                    {% include 'components/icon.html' with name="location" class="w-3 h-3 text-neutral-500" %}
+                                    <span>{{ date.location }}</span>
+                                </p>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-1 border-t border-petly-blue/40 text-xs">
+                                <span class="font-bold text-neutral-800">
+                                    🕒 {{ date.time }}
+                                </span>
+                                <button type="button" onclick="alert('Detalles de cita: {{ date.title }}\nLugar: {{ date.location }}\nHora: {{ date.time }}')" class="font-bold text-petly-coral hover:underline cursor-pointer">
+                                    {% translate "Ver detalles" %}
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Enlace de ayuda o recomendaciones -->
+                <div class="pt-2 text-[11px] text-neutral-500 leading-relaxed border-t border-neutral-200">
+                    {% translate "Llega con 10 minutos de anticipación al espacio verificado y lleva la cartilla de vacunación al día." %}
+                </div>
+            </div>
+
+            <!-- Botón secundario para volver al feed -->
+            <div class="p-4 rounded-2xl bg-white border border-neutral-200 text-center shadow-xs">
+                <p class="text-xs text-neutral-600 mb-2 font-medium">
+                    {% translate "¿Deseas seguir viendo más mascotas compatibles?" %}
+                </p>
+                <a href="{% url 'pets:match_feed' %}" class="btn-petly-outline w-full py-2.5 text-xs font-bold bg-white inline-flex items-center justify-center gap-1.5 no-underline shadow-xs hover:border-petly-coral hover:text-petly-coral">
+                    <span>{% translate "Continuar a Buscar Pareja" %}</span>
+                    <span>&rarr;</span>
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
+
+<!-- ============================================== -->
+<!-- MODALES INTERACTIVOS PARA CITAS Y MENSAJES     -->
+<!-- ============================================== -->
+
+<!-- Modal: Concertar Encuentro -->
+<div id="modal-schedule-meeting" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-meeting-title">
+    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-schedule-meeting')" aria-hidden="true"></div>
+    <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
+        <button type="button" onclick="closeModal('modal-schedule-meeting')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none" aria-label="{% translate 'Cerrar' %}">
+            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
+        </button>
+
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center">
+                {% include 'components/icon.html' with name="calendar" class="w-5 h-5" %}
+            </div>
+            <div>
+                <h3 id="modal-meeting-title" class="title-h4 text-neutral-900 font-bold">
+                    {% translate "Concertar Encuentro Seguro" %}
+                </h3>
+                <p class="text-caption text-neutral-500">
+                    {% translate "Cita con" %} <span id="meeting-pet-name" class="font-bold text-neutral-800">Kira</span>
+                </p>
+            </div>
+        </div>
+
+        <form onsubmit="handleConfirmMeeting(event)" class="space-y-3.5 text-xs">
+            <div>
+                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Fecha propuesta" %}</label>
+                <input type="date" value="2026-10-18" class="input-petly text-xs" required>
+            </div>
+
+            <div>
+                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Hora estimada" %}</label>
+                <input type="time" value="10:30" class="input-petly text-xs" required>
+            </div>
+
+            <div>
+                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Lugar de encuentro canino verificado" %}</label>
+                <select class="input-petly text-xs">
+                    <option>{% translate "Parque España (Zona Canina Verificada)" %}</option>
+                    <option>{% translate "Parque del Este (Área de Recreación Canina)" %}</option>
+                    <option>{% translate "Parque Vizcaya (Espacio Cercado)" %}</option>
+                </select>
+            </div>
+
+            <div class="pt-3 flex justify-end gap-2">
+                <button type="button" onclick="closeModal('modal-schedule-meeting')" class="btn-petly-outline text-xs px-4 py-2 bg-white">
+                    {% translate "Cancelar" %}
+                </button>
+                <button type="submit" class="btn-petly-primary text-xs px-5 py-2 font-bold shadow-md">
+                    {% translate "Confirmar Cita" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Enviar Mensaje -->
+<div id="modal-send-message" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-msg-title">
+    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-send-message')" aria-hidden="true"></div>
+    <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
+        <button type="button" onclick="closeModal('modal-send-message')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none" aria-label="{% translate 'Cerrar' %}">
+            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
+        </button>
+
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full bg-petly-lilac text-petly-purple flex items-center justify-center">
+                {% include 'components/icon.html' with name="message-square" class="w-5 h-5" %}
+            </div>
+            <div>
+                <h3 id="modal-msg-title" class="title-h4 text-neutral-900 font-bold">
+                    {% translate "Mensaje Directo" %}
+                </h3>
+                <p class="text-caption text-neutral-500">
+                    {% translate "Conversación con" %} <span id="msg-tutor-name" class="font-bold text-neutral-800">Mariana Ríos</span>
+                </p>
+            </div>
+        </div>
+
+        <form onsubmit="handleSendMessage(event)" class="space-y-3 text-xs">
+            <textarea rows="3" class="textarea-petly text-xs" placeholder="{% translate 'Escribe tu mensaje sobre acuerdos de cruza o socialización...' %}" required></textarea>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal('modal-send-message')" class="btn-petly-outline text-xs px-4 py-2 bg-white">
+                    {% translate "Cancelar" %}
+                </button>
+                <button type="submit" class="btn-petly-primary text-xs px-5 py-2 font-bold shadow-md">
+                    {% translate "Enviar Mensaje" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        }
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+
+    function openMeetingModal(petName, photoUrl) {
+        const titleName = document.getElementById('meeting-pet-name');
+        if (titleName) titleName.textContent = petName;
+        openModal('modal-schedule-meeting');
+    }
+
+    function openMessageModal(petName, tutorName) {
+        const titleName = document.getElementById('msg-tutor-name');
+        if (titleName) titleName.textContent = tutorName;
+        openModal('modal-send-message');
+    }
+
+    function handleConfirmMeeting(event) {
+        event.preventDefault();
+        alert('{% translate "¡Cita agendada con éxito! Se ha notificado al tutor de la mascota." %}');
+        closeModal('modal-schedule-meeting');
+    }
+
+    function handleSendMessage(event) {
+        event.preventDefault();
+        alert('{% translate "¡Mensaje enviado exitosamente!" %}');
+        closeModal('modal-send-message');
+    }
+
+    function dismissSuitor(petName) {
+        if (confirm(`{% translate "¿Deseas negar el interés de" %} ${petName}?`)) {
+            alert(`{% translate "Se ha descartado la solicitud de" %} ${petName}.`);
+        }
+    }
+</script>
 {% endblock %}

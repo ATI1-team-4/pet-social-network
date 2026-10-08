@@ -1,24 +1,654 @@
 {% extends 'layouts/app.html' %}
-{% load i18n %}
+{% load i18n static %}
 
-{% block title %}{% translate "Buscar pareja" %} | Petly{% endblock %}
+{% block title %}{% translate "Buscar Pareja" %} | Petly{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-8">
-    <div class="card-petly p-8 bg-white border border-neutral-300/80 mb-10 text-center">
-        <h1 class="title-h3 text-neutral-900 mb-2">{% translate "Buscar pareja" %}</h1>
-        <p class="text-caption text-neutral-500 mb-6">
-            {% translate "Feed interactivo de cruza/compatibilidad en construcción." %}
-        </p>
-        <div class="p-6 rounded-2xl bg-neutral-100/60 border border-neutral-300/60 max-w-sm mx-auto mb-4">
-            <p class="text-xs text-neutral-500 mb-3 font-medium">{% translate "Tarjeta central tipo Tinder" %}</p>
-            <a href="{% url 'pets:match_interested' %}" class="btn-petly-secondary text-xs px-4 py-2 inline-flex items-center gap-1.5">
-                {% translate "Ver mascotas interesadas →" %}
+<div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-5">
+
+    <!-- Mensajes flash del sistema si existen -->
+    {% include 'components/messages.html' %}
+
+    <!-- ============================================== -->
+    <!-- CABECERA SUPERIOR Y FILTROS RÁPIDOS            -->
+    <!-- ============================================== -->
+
+    <!-- Subcabecera móvil (reto 11, página 13 móvil) -->
+    <div class="lg:hidden flex items-center justify-between pb-2 border-b border-neutral-200/80">
+        <div class="flex items-center gap-2">
+            <a href="{% url 'pets:pet_select' %}" class="w-8 h-8 rounded-full bg-white border border-neutral-300 flex items-center justify-center text-neutral-700 hover:text-petly-coral transition-colors shadow-xs" aria-label="{% translate 'Cambiar mascota' %}">
+                {% include 'components/icon.html' with name="chevron-down" class="w-4 h-4 rotate-90 text-neutral-700" %}
             </a>
+            <div class="w-8 h-8 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0">
+                {% include 'components/icon.html' with name="heart-filled" class="w-4 h-4" %}
+            </div>
+            <h1 class="title-h4 text-neutral-900 font-bold leading-tight">
+                {% translate "Buscar Pareja" %}
+            </h1>
+        </div>
+        <a href="{% url 'accounts:profile' %}" class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-petly-coral flex items-center justify-center shadow-xs" title="{% translate 'Mi perfil' %}">
+            {% include 'components/icon.html' with name="user" class="w-4 h-4" %}
+        </a>
+    </div>
+
+    <!-- Barra de contexto y mascota activa (Escritorio) -->
+    <div class="hidden lg:flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <!-- Selector activo de mascota con enlace de retorno a Selección de Mascota -->
+            <div class="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white border border-neutral-300/80 shadow-xs">
+                <div class="relative w-8 h-8 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200">
+                    <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}" class="w-full h-full object-cover">
+                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white"></span>
+                </div>
+                <div class="text-xs">
+                    <span class="font-bold text-neutral-900">{{ active_pet.name }}</span>
+                    <span class="text-neutral-500">({{ active_pet.breed }} • {{ active_pet.gender_label }}, {{ active_pet.age_text }})</span>
+                </div>
+                <a href="{% url 'pets:pet_select' %}" class="text-xs font-semibold text-petly-coral hover:text-petly-coral-dark hover:underline inline-flex items-center gap-1 transition-colors pl-1">
+                    <span>{% translate "Cambiar a" %} {{ other_pet.name }}</span>
+                    <span>⇄</span>
+                </a>
+            </div>
+
+            <!-- Pastillas de filtros activos -->
+            <div class="flex items-center gap-1.5">
+                <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-neutral-300/80 text-neutral-700 shadow-xs">
+                    {% include 'components/icon.html' with name="location" class="w-3.5 h-3.5 text-neutral-500" %}
+                    <span>&lt; 5 km</span>
+                </span>
+                <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-neutral-300/80 text-neutral-700 shadow-xs">
+                    {% include 'components/icon.html' with name="dog" class="w-3.5 h-3.5 text-neutral-500" %}
+                    <span>{% translate "Perros" %}</span>
+                </span>
+                <span class="badge-compat text-xs py-1.5 px-3 shadow-xs">
+                    {% include 'components/icon.html' with name="award" class="w-3.5 h-3.5 text-emerald-800" %}
+                    <span>{% translate "Con Pedigrí FCI" %}</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Botón de filtros avanzados -->
+        <button type="button" onclick="openModal('modal-filters')" class="text-xs font-semibold text-neutral-600 hover:text-petly-coral inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white/80 transition-all cursor-pointer">
+            {% include 'components/icon.html' with name="sliders" class="w-4 h-4 text-neutral-600" %}
+            <span>{% translate "Configurar Filtros Avanzados" %}</span>
+        </button>
+    </div>
+
+    <!-- Barra de contexto para móvil -->
+    <div class="lg:hidden space-y-2">
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-white border border-neutral-200 shadow-xs">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200">
+                    <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                        {% translate "BUSCANDO PARA" %}
+                    </span>
+                    <span class="text-xs font-bold text-neutral-900 leading-tight">
+                        {{ active_pet.name }}, {{ active_pet.age_text }}
+                    </span>
+                    <span class="text-[11px] text-neutral-500 block">
+                        {{ active_pet.breed }} • {{ active_pet.gender_label }}
+                    </span>
+                </div>
+            </div>
+            <a href="{% url 'pets:pet_select' %}" class="btn-petly-outline text-xs px-3 py-1.5 rounded-full bg-white font-semibold">
+                {% translate "Cambiar" %} ⇄
+            </a>
+        </div>
+
+        <div class="flex items-center gap-1.5 overflow-x-auto py-1">
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white border border-neutral-300 text-neutral-700 whitespace-nowrap">
+                {% include 'components/icon.html' with name="location" class="w-3 h-3 text-neutral-500" %}
+                <span>&lt; 5 km</span>
+            </span>
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white border border-neutral-300 text-neutral-700 whitespace-nowrap">
+                {% include 'components/icon.html' with name="dog" class="w-3 h-3 text-neutral-500" %}
+                <span>{% translate "Perros" %}</span>
+            </span>
+            <span class="badge-compat text-xs py-1 px-3 whitespace-nowrap">
+                {% include 'components/icon.html' with name="award" class="w-3 h-3 text-emerald-800" %}
+                <span>{% translate "Con Pedigrí FCI" %}</span>
+            </span>
         </div>
     </div>
 
-    <!-- Muestra de componentes para los desarrolladores -->
-    {% include 'components/components_palette.html' %}
+    <!-- ============================================== -->
+    <!-- LAYOUT PRINCIPAL: FEED CENTRAL + SIDEBAR       -->
+    <!-- ============================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        <!-- ============================================== -->
+        <!-- COLUMNA PRINCIPAL: TARJETA CENTRAL TIPO TINDER -->
+        <!-- ============================================== -->
+        <div class="lg:col-span-8 flex flex-col items-center">
+
+            <!-- Tarjeta interactiva de descubrimiento de mascota
+                 Aplica dinámicamente el color de perfil personalizado elegido por el usuario (active_pet.profile_color_hex)
+            -->
+            <div id="discovery-card"
+                 class="relative w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-lg transition-all duration-300 border-2"
+                 style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; box-shadow: 0 8px 30px {{ active_pet.profile_color_hex|default:'#FA7D82' }}22;">
+
+                <!-- Fila superior de barra de color y acento de tutor -->
+                <div class="h-1.5 w-full transition-colors duration-200" style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};"></div>
+
+                <!-- SECCIÓN 1: FOTOGRAFÍA PRINCIPAL CON GRADIENTE E INFORMACIÓN -->
+                <div class="relative w-full h-80 sm:h-96 md:h-[420px] bg-neutral-900 overflow-hidden">
+                    <img id="card-photo"
+                         src="{{ current_candidate.photo_clean_url|default:current_candidate.photo_url }}"
+                         alt="{{ current_candidate.name }}"
+                         class="w-full h-full object-cover select-none transition-transform duration-500">
+
+                    <!-- Rayas indicadoras de historias superiores -->
+                    <div class="absolute top-3 inset-x-4 flex items-center gap-1.5 z-20">
+                        <div class="flex-1 h-1 rounded-full bg-white/90 shadow-xs"></div>
+                        <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
+                        <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
+                        <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
+                    </div>
+
+                    <!-- Insignia de compatibilidad en la esquina superior izquierda -->
+                    <div class="absolute top-7 left-4 z-20">
+                        <span id="card-compatibility-badge" class="badge-compat text-xs py-1 px-3 shadow-md">
+                            {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-emerald-900" %}
+                            <span id="card-compatibility-text">{{ current_candidate.compatibility }} {% translate "Compatible" %}</span>
+                        </span>
+                    </div>
+
+                    <!-- Insignia de propósito en la esquina superior derecha -->
+                    <div class="absolute top-7 right-4 z-20">
+                        <span id="card-purpose-badge" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur-xs text-neutral-800 shadow-md">
+                            <span class="w-2 h-2 rounded-full" style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};"></span>
+                            <span id="card-purpose-text">{{ current_candidate.purpose }}</span>
+                        </span>
+                    </div>
+
+                    <!-- Degradado inferior para legibilidad del nombre -->
+                    <div class="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-neutral-950/90 via-neutral-950/40 to-transparent pointer-events-none z-10"></div>
+
+                    <!-- Overlay de información básica sobre la foto -->
+                    <div class="absolute inset-x-5 bottom-4 z-20 flex items-end justify-between gap-3 text-white">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 id="card-name" class="title-h2 text-white font-bold tracking-tight drop-shadow-md">
+                                    {{ current_candidate.name }}
+                                </h2>
+                                <span id="card-gender-symbol" class="text-lg font-bold text-petly-coral drop-shadow-md">
+                                    {{ current_candidate.gender_symbol }}
+                                </span>
+                                <span id="card-age" class="text-sm font-semibold bg-white/20 backdrop-blur-xs px-2.5 py-0.5 rounded-full drop-shadow-xs">
+                                    {{ current_candidate.age }}
+                                </span>
+                            </div>
+                            <p id="card-breed" class="text-xs sm:text-sm text-neutral-200 font-medium drop-shadow-xs mt-0.5">
+                                {{ current_candidate.breed }}
+                            </p>
+                        </div>
+
+                        <!-- Badge de ubicación sobre la foto -->
+                        <div class="shrink-0">
+                            <span id="card-location" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-black/50 backdrop-blur-md text-white border border-white/20">
+                                {% include 'components/icon.html' with name="location" class="w-3 h-3 text-white" %}
+                                <span id="card-distance-text">{{ current_candidate.distance }} • {{ current_candidate.location }}</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 2: CUERPO DETALLADO DE LA MASCOTA -->
+                <div class="p-6 sm:p-7 space-y-5 bg-white">
+
+                    <!-- Personalidad y Temperamento -->
+                    <div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase text-neutral-400 mb-2 block">
+                            {% translate "PERSONALIDAD Y TEMPERAMENTO" %}
+                        </span>
+                        <div id="card-temperaments-container" class="flex flex-wrap gap-1.5">
+                            {% for trait in current_candidate.temperaments %}
+                                <span class="badge-tag text-xs font-medium py-1 px-3">
+                                    {{ trait }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Fila de métricas clave (3 cajas redondeadas) -->
+                    <div class="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl bg-petly-ice/70 border border-petly-blue/80 text-center">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-semibold text-neutral-500 uppercase">
+                                {% translate "Fecha Nacimiento" %}
+                            </span>
+                            <span id="card-birthdate" class="text-xs font-bold text-neutral-900 mt-0.5">
+                                {{ current_candidate.birth_date }}
+                            </span>
+                        </div>
+                        <div class="flex flex-col border-x border-neutral-300/60">
+                            <span class="text-[10px] font-semibold text-neutral-500 uppercase">
+                                {% translate "Peso Actual" %}
+                            </span>
+                            <span id="card-weight" class="text-xs font-bold text-neutral-900 mt-0.5">
+                                {{ current_candidate.weight }}
+                            </span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-semibold text-neutral-500 uppercase">
+                                {% translate "Certificado FCI" %}
+                            </span>
+                            <span id="card-certificate" class="text-xs font-bold text-neutral-900 mt-0.5">
+                                {{ current_candidate.certificate }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Biografía: Sobre la mascota -->
+                    <div>
+                        <h3 class="text-xs font-bold text-neutral-900 mb-1">
+                            {% blocktranslate with name=current_candidate.name %}Sobre {{ name }}{% endblocktranslate %}
+                        </h3>
+                        <p id="card-description" class="text-xs sm:text-sm text-neutral-600 leading-relaxed italic">
+                            "{{ current_candidate.description }}"
+                        </p>
+                    </div>
+
+                    <!-- Bloque de tutores responsables -->
+                    <div class="pt-2 border-t border-neutral-200/80 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-xs" style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
+                                <span id="card-tutor-avatar">{{ current_candidate.tutors.avatar_letter|default:"SC" }}</span>
+                            </div>
+                            <div>
+                                <span id="card-tutor-name" class="text-xs font-bold text-neutral-900 block leading-tight">
+                                    {{ current_candidate.tutors.name }}
+                                </span>
+                                <span class="text-[11px] text-neutral-500">
+                                    {% translate "Tutor Verificado" %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold">
+                            <span>★</span>
+                            <span id="card-tutor-rating">{{ current_candidate.tutors.rating }}</span>
+                            <span class="text-neutral-500 font-normal">({{ current_candidate.tutors.review_count }})</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: BOTONES DE ACCIÓN RÁPIDA (✕ y ♥) -->
+                <div class="p-4 sm:p-5 bg-neutral-50/80 border-t border-neutral-200 flex items-center justify-between gap-4">
+                    <!-- Botón flotante: Pasar / Descartar (✕) -->
+                    <button type="button"
+                            onclick="handlePassCandidate()"
+                            id="btn-pass"
+                            class="fab-petly-dismiss shrink-0"
+                            title="{% translate 'Pasar candidato' %}"
+                            aria-label="{% translate 'Pasar candidato' %}">
+                        {% include 'components/icon.html' with name="close" class="w-6 h-6 text-neutral-500" %}
+                    </button>
+
+                    <!-- Botón primario central: Mostrar Interés (♥) -->
+                    <button type="button"
+                            onclick="handleLikeCandidate()"
+                            id="btn-like"
+                            class="btn-petly-primary flex-1 py-3.5 text-sm sm:text-base font-bold shadow-md inline-flex items-center justify-center gap-2"
+                            style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
+                        {% include 'components/icon.html' with name="heart-filled" class="w-5 h-5 text-white" %}
+                        <span id="btn-like-text">{% blocktranslate with name=current_candidate.name %}Mostrar Interés en {{ name }}{% endblocktranslate %}</span>
+                    </button>
+
+                    <!-- Botón secundario: Información o reporte -->
+                    <button type="button"
+                            onclick="openCandidateInfoModal()"
+                            class="w-12 h-12 rounded-full bg-white border border-neutral-300 text-neutral-500 hover:text-neutral-800 hover:border-neutral-400 flex items-center justify-center transition-all shadow-xs shrink-0 cursor-pointer"
+                            title="{% translate 'Detalles del candidato' %}"
+                            aria-label="{% translate 'Detalles del candidato' %}">
+                        {% include 'components/icon.html' with name="id-card" class="w-5 h-5 text-neutral-600" %}
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ============================================== -->
+        <!-- COLUMNA DERECHA: BANDEJA LATERAL DE INTERESADOS-->
+        <!-- ============================================== -->
+        <div class="hidden lg:block lg:col-span-4 sticky top-24 space-y-4">
+
+            <!-- Tarjeta: Pretendientes interesados en Toby -->
+            <div class="card-petly p-6 bg-white border border-neutral-300/80 shadow-md space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0">
+                            {% include 'components/icon.html' with name="heart" class="w-4 h-4" %}
+                        </div>
+                        <h2 class="title-h4 text-neutral-900 font-bold text-sm">
+                            {% blocktranslate with name=active_pet.name %}Interesadas en {{ name }}{% endblocktranslate %}
+                        </h2>
+                    </div>
+                    <span class="badge-tag text-[11px] font-semibold py-0.5 px-2">
+                        {{ interested_count }} {% translate "nuevas" %}
+                    </span>
+                </div>
+
+                <!-- Lista de pretendientes rápidos -->
+                <div class="space-y-3 pt-1">
+                    {% for suitor in interested_sidebar %}
+                        <div class="p-3 rounded-2xl bg-petly-ice/50 hover:bg-petly-ice border border-petly-blue/60 transition-colors flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-full overflow-hidden bg-white border border-neutral-200 shrink-0 shadow-xs">
+                                    <img src="{{ suitor.photo_url }}" alt="{{ suitor.name }}" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold text-neutral-900 block leading-tight">
+                                        {{ suitor.name }} • {{ suitor.age }}
+                                    </span>
+                                    <span class="text-[11px] text-neutral-500 block">
+                                        {{ suitor.breed }} • {{ suitor.distance }}
+                                    </span>
+                                </div>
+                            </div>
+                            <button type="button"
+                                    onclick="quickMatchWith('{{ suitor.name }}', '{{ suitor.photo_url }}')"
+                                    class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-petly-coral hover:bg-petly-coral hover:text-white flex items-center justify-center transition-colors shadow-xs shrink-0 cursor-pointer"
+                                    title="{% translate 'Responder con Match' %}">
+                                {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5" %}
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Botón directo: Ver todas las solicitudes -->
+                <div class="pt-2">
+                    <a href="{% url 'pets:match_interested' %}"
+                       class="btn-petly-secondary w-full py-2.5 text-xs font-bold inline-flex items-center justify-center gap-1.5 no-underline shadow-xs">
+                        <span>{% translate "Ver todas las solicitudes" %} ({{ interested_count }})</span>
+                        <span>&rarr;</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tarjeta de consejos de bienestar animal -->
+            <div class="p-4 rounded-2xl bg-white border border-neutral-200 shadow-xs text-xs space-y-1.5">
+                <div class="flex items-center gap-1.5 text-emerald-800 font-bold">
+                    {% include 'components/icon.html' with name="award" class="w-4 h-4 text-emerald-600" %}
+                    <span>{% translate "Normas de Cruza Responsable" %}</span>
+                </div>
+                <p class="text-neutral-500 text-[11px] leading-relaxed">
+                    {% translate "Petly promueve únicamente cruzas éticas con certificados sanitarios y espacios caninos verificados." %}
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
+
+<!-- ============================================== -->
+<!-- MODAL VISUAL INTERACTIVO: ¡ES UN MATCH! 🎉      -->
+<!-- ============================================== -->
+<div id="modal-match-success" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-match-title">
+    <!-- Backdrop con desenfoque suave -->
+    <div class="fixed inset-0 bg-neutral-950/60 backdrop-blur-sm transition-opacity duration-300" onclick="closeModal('modal-match-success')" aria-hidden="true"></div>
+
+    <!-- Tarjeta del diálogo de match con animación y celebración -->
+    <div class="relative w-full max-w-md bg-white card-petly p-6 sm:p-8 shadow-2xl border-2 border-petly-coral z-10 overflow-hidden text-center animate-fade-in">
+        <!-- Botón de cierre en la esquina -->
+        <button type="button" onclick="closeModal('modal-match-success')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer select-none" aria-label="{% translate 'Cerrar diálogo' %}">
+            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
+        </button>
+
+        <!-- Efecto de celebración con destellos -->
+        <div class="w-14 h-14 rounded-full bg-petly-coral-light text-petly-coral mx-auto mb-3 flex items-center justify-center shadow-xs">
+            {% include 'components/icon.html' with name="sparkles" class="w-7 h-7 text-petly-coral" %}
+        </div>
+
+        <h2 id="modal-match-title" class="title-h2 text-neutral-900 font-bold mb-1">
+            {% translate "¡Es un Match!" %} 🎉
+        </h2>
+        <p class="text-xs sm:text-sm text-neutral-600 mb-6">
+            {% blocktranslate with tutor=current_candidate.tutors.name pet=current_candidate.name my_pet=active_pet.name %}
+            A {{ tutor }} (tutores de {{ pet }}) también les interesa conectar con {{ my_pet }}.
+            {% endblocktranslate %}
+        </p>
+
+        <!-- Avatares dobles entrelazados de las dos mascotas -->
+        <div class="relative flex items-center justify-center my-6">
+            <!-- Avatar de la mascota del tutor (Toby) -->
+            <div class="relative z-10 w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-petly-ice -mr-4">
+                <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}" class="w-full h-full object-cover">
+            </div>
+
+            <!-- Ícono central de corazón brillante -->
+            <div class="relative z-30 w-10 h-10 rounded-full bg-petly-coral text-white flex items-center justify-center shadow-lg border-2 border-white">
+                {% include 'components/icon.html' with name="heart-filled" class="w-5 h-5 text-white" %}
+            </div>
+
+            <!-- Avatar de la mascota candidata (Bella / Kira) -->
+            <div class="relative z-20 w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-petly-ice -ml-4">
+                <img id="match-candidate-avatar" src="{{ current_candidate.photo_clean_url|default:current_candidate.photo_url }}" alt="{{ current_candidate.name }}" class="w-full h-full object-cover">
+            </div>
+        </div>
+
+        <div class="text-xs font-semibold text-neutral-700 mb-6">
+            {{ active_pet.name }} &amp; <span id="match-candidate-name">{{ current_candidate.name }}</span>
+        </div>
+
+        <!-- Botones de acción del match -->
+        <div class="space-y-2.5">
+            <a href="{% url 'pets:match_interested' %}" class="btn-petly-primary w-full py-3 text-sm font-bold shadow-md inline-flex items-center justify-center gap-2 no-underline">
+                {% include 'components/icon.html' with name="message-square" class="w-4 h-4 text-white" %}
+                <span>{% translate "Enviar Mensaje a los Tutores" %}</span>
+            </a>
+
+            <button type="button" onclick="nextCandidateAfterMatch()" class="btn-petly-outline w-full py-2.5 text-xs font-semibold bg-white inline-flex items-center justify-center gap-1.5 shadow-xs">
+                <span>{% translate "Seguir Explorando Parejas" %}</span>
+                <span>&rarr;</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- MODAL DE FILTROS AVANZADOS                     -->
+<!-- ============================================== -->
+<div id="modal-filters" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-filters-title">
+    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-filters')" aria-hidden="true"></div>
+    <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
+        <button type="button" onclick="closeModal('modal-filters')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none" aria-label="{% translate 'Cerrar' %}">
+            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
+        </button>
+
+        <h3 id="modal-filters-title" class="title-h4 text-neutral-900 font-bold mb-4">
+            {% translate "Filtros de Búsqueda de Pareja" %}
+        </h3>
+
+        <div class="space-y-4 text-xs">
+            <div>
+                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Distancia máxima (km)" %}</label>
+                <input type="range" min="1" max="50" value="5" class="w-full accent-petly-coral">
+                <div class="flex justify-between text-[11px] text-neutral-500">
+                    <span>1 km</span>
+                    <span class="font-bold text-petly-coral">5 km</span>
+                    <span>50 km</span>
+                </div>
+            </div>
+
+            <div>
+                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Propósito principal" %}</label>
+                <select class="input-petly text-xs">
+                    <option>{% translate "Cruza Responsable y Socialización" %}</option>
+                    <option>{% translate "Únicamente Cruza con Pedigrí" %}</option>
+                    <option>{% translate "Únicamente Socialización y Citas de Juego" %}</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Certificación requerida" %}</label>
+                <label class="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked class="rounded border-neutral-300 text-petly-coral focus:ring-petly-coral">
+                    <span>{% translate "Solo candidatos con Certificado FCI o Pedigrí" %}</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end gap-2">
+            <button type="button" onclick="closeModal('modal-filters')" class="btn-petly-primary text-xs px-5 py-2">
+                {% translate "Aplicar Filtros" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        }
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+
+    // Dataset reactivo de candidatos oficiales según el prototipo
+    const CANDIDATES = {{ candidates_json|safe }};
+    let currentCandidateIndex = 0;
+
+    // Actualiza dinámicamente la tarjeta con el candidato en el índice dado
+    function renderCandidate(index) {
+        if (!CANDIDATES || CANDIDATES.length === 0) return;
+        const c = CANDIDATES[index % CANDIDATES.length];
+
+        // Foto y atributos visuales
+        const photo = document.getElementById('card-photo');
+        if (photo) photo.src = c.photo_clean_url || c.photo_url;
+
+        // Textos básicos
+        const nameElem = document.getElementById('card-name');
+        if (nameElem) nameElem.textContent = c.name;
+
+        const genderSymbol = document.getElementById('card-gender-symbol');
+        if (genderSymbol) genderSymbol.textContent = c.gender_symbol;
+
+        const ageElem = document.getElementById('card-age');
+        if (ageElem) ageElem.textContent = c.age;
+
+        const breedElem = document.getElementById('card-breed');
+        if (breedElem) breedElem.textContent = c.breed;
+
+        const distanceText = document.getElementById('card-distance-text');
+        if (distanceText) distanceText.textContent = `${c.distance} • ${c.location}`;
+
+        const purposeText = document.getElementById('card-purpose-text');
+        if (purposeText) purposeText.textContent = c.purpose;
+
+        const compatText = document.getElementById('card-compatibility-text');
+        if (compatText) compatText.textContent = `${c.compatibility} {% translate "Compatible" %}`;
+
+        // Métricas
+        const birthElem = document.getElementById('card-birthdate');
+        if (birthElem) birthElem.textContent = c.birth_date;
+
+        const weightElem = document.getElementById('card-weight');
+        if (weightElem) weightElem.textContent = c.weight;
+
+        const certElem = document.getElementById('card-certificate');
+        if (certElem) certElem.textContent = c.certificate;
+
+        const descElem = document.getElementById('card-description');
+        if (descElem) descElem.textContent = `"${c.description}"`;
+
+        // Tutores
+        if (c.tutors) {
+            const tutorName = document.getElementById('card-tutor-name');
+            if (tutorName) tutorName.textContent = c.tutors.name;
+
+            const tutorAvatar = document.getElementById('card-tutor-avatar');
+            if (tutorAvatar) tutorAvatar.textContent = c.tutors.avatar_letter || 'T';
+
+            const tutorRating = document.getElementById('card-tutor-rating');
+            if (tutorRating) tutorRating.textContent = c.tutors.rating;
+        }
+
+        // Temperamentos
+        const traitsContainer = document.getElementById('card-temperaments-container');
+        if (traitsContainer && c.temperaments) {
+            traitsContainer.innerHTML = c.temperaments.map(t => `<span class="badge-tag text-xs font-medium py-1 px-3">${t}</span>`).join('');
+        }
+
+        // Botón de Like
+        const btnLikeText = document.getElementById('btn-like-text');
+        if (btnLikeText) btnLikeText.textContent = `{% translate "Mostrar Interés en" %} ${c.name}`;
+
+        // Modal de Match
+        const matchName = document.getElementById('match-candidate-name');
+        if (matchName) matchName.textContent = c.name;
+
+        const matchAvatar = document.getElementById('match-candidate-avatar');
+        if (matchAvatar) matchAvatar.src = c.photo_clean_url || c.photo_url;
+    }
+
+    // Acción: Pasar candidato con animación tipo Tinder
+    function handlePassCandidate() {
+        const card = document.getElementById('discovery-card');
+        if (card) {
+            card.classList.add('-translate-x-12', 'opacity-50');
+            setTimeout(() => {
+                currentCandidateIndex = (currentCandidateIndex + 1) % CANDIDATES.length;
+                renderCandidate(currentCandidateIndex);
+                card.classList.remove('-translate-x-12', 'opacity-50');
+            }, 180);
+        }
+    }
+
+    // Acción: Mostrar Interés y disparar modal de Match
+    function handleLikeCandidate() {
+        const c = CANDIDATES[currentCandidateIndex % CANDIDATES.length];
+        const matchName = document.getElementById('match-candidate-name');
+        if (matchName) matchName.textContent = c.name;
+
+        const matchAvatar = document.getElementById('match-candidate-avatar');
+        if (matchAvatar) matchAvatar.src = c.photo_clean_url || c.photo_url;
+
+        openModal('modal-match-success');
+    }
+
+    // Avanzar al siguiente candidato tras celebrar el match
+    function nextCandidateAfterMatch() {
+        closeModal('modal-match-success');
+        currentCandidateIndex = (currentCandidateIndex + 1) % CANDIDATES.length;
+        renderCandidate(currentCandidateIndex);
+    }
+
+    // Match rápido desde la barra lateral de interesados
+    function quickMatchWith(name, photoUrl) {
+        const matchName = document.getElementById('match-candidate-name');
+        if (matchName) matchName.textContent = name;
+
+        const matchAvatar = document.getElementById('match-candidate-avatar');
+        if (matchAvatar) matchAvatar.src = photoUrl;
+
+        openModal('modal-match-success');
+    }
+
+    function openCandidateInfoModal() {
+        const c = CANDIDATES[currentCandidateIndex % CANDIDATES.length];
+        alert(`${c.name} (${c.breed})\n${c.description}`);
+    }
+</script>
 {% endblock %}
