@@ -277,7 +277,8 @@
                 </div>
 
                 <!-- SECCIÓN 3: BOTONES DE ACCIÓN RÁPIDA (✕ y ♥) -->
-                <div class="p-4 sm:p-5 bg-neutral-50/80 border-t border-neutral-200 flex items-center justify-between gap-4">
+                <!-- Versión Escritorio (sm en adelante) -->
+                <div class="hidden sm:flex p-4 sm:p-5 bg-neutral-50/80 border-t border-neutral-200 items-center justify-between gap-4">
                     <!-- Botón flotante: Pasar / Descartar (✕) -->
                     <button type="button"
                             onclick="handlePassCandidate()"
@@ -306,6 +307,49 @@
                             aria-label="{% translate 'Detalles del candidato' %}">
                         {% include 'components/icon.html' with name="id-card" class="w-5 h-5 text-neutral-600" %}
                     </button>
+                </div>
+
+                <!-- Versión Teléfono Móvil: Botones Circulares de Acción (FAB) oficiales -->
+                <div class="sm:hidden p-4 bg-white/95 backdrop-blur-xs border-t border-neutral-200/90 flex items-center justify-center gap-6">
+                    <!-- Botón Circular Descartar (✕) -->
+                    <div class="flex flex-col items-center gap-1.5">
+                        <button type="button"
+                                onclick="handlePassCandidate()"
+                                id="btn-pass-mobile"
+                                class="w-14 h-14 rounded-full bg-white border border-neutral-200/90 shadow-md hover:shadow-lg flex items-center justify-center text-neutral-600 active:scale-95 transition-all cursor-pointer"
+                                title="{% translate 'Descartar (✕)' %}"
+                                aria-label="{% translate 'Descartar' %}">
+                            {% include 'components/icon.html' with name="close" class="w-6 h-6 text-neutral-600" %}
+                        </button>
+                        <span class="text-[11px] font-semibold text-neutral-500">{% translate "Descartar" %}</span>
+                    </div>
+
+                    <!-- Botón Circular Añadir (+) -->
+                    <div class="flex flex-col items-center gap-1.5">
+                        <button type="button"
+                                onclick="openCandidateInfoModal()"
+                                id="btn-add-mobile"
+                                class="w-12 h-12 rounded-full bg-[#FDD8D9] hover:bg-[#FCC8C9] border border-[#FBA5A8]/50 shadow-md flex items-center justify-center text-[#C4464B] active:scale-95 transition-all cursor-pointer"
+                                title="{% translate 'Añadir (+)' %}"
+                                aria-label="{% translate 'Añadir' %}">
+                            {% include 'components/icon.html' with name="plus" class="w-5 h-5 text-[#C4464B]" %}
+                        </button>
+                        <span class="text-[11px] font-semibold text-neutral-500">{% translate "Añadir" %}</span>
+                    </div>
+
+                    <!-- Botón Circular Me Interesa (♥) -->
+                    <div class="flex flex-col items-center gap-1.5">
+                        <button type="button"
+                                onclick="handleLikeCandidate()"
+                                id="btn-like-mobile"
+                                class="w-14 h-14 rounded-full text-white shadow-lg flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                                style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; box-shadow: 0 10px 22px {{ active_pet.profile_color_hex|default:'#FA7D82' }}66;"
+                                title="{% translate 'Me interesa (♥)' %}"
+                                aria-label="{% translate 'Me interesa' %}">
+                            {% include 'components/icon.html' with name="heart-filled" class="w-6 h-6 text-white" %}
+                        </button>
+                        <span class="text-[11px] font-semibold text-neutral-700">{% translate "Me interesa" %}</span>
+                    </div>
                 </div>
 
             </div>

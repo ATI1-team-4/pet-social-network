@@ -159,8 +159,8 @@ MATCH_CANDIDATES = [
         'distance': 'A 3.2 km',
         'location': 'Los Teques',
         'purpose': 'Cruza y Socialización',
-        'photo_url': '/static/images/pets/bella.png',
-        'photo_clean_url': '/static/images/pets/bella_clean.png',
+        'photo_url': '/static/images/pets/Bella.png',
+        'photo_clean_url': '/static/images/pets/Bella.png',
         'temperaments': ['Juguetona', 'Sociable', 'Cariñosa', 'Ágil'],
         'description': (
             'Bella es una perrita alegre, noble y muy inteligente. Adora correr al aire libre, '
@@ -195,8 +195,8 @@ MATCH_CANDIDATES = [
         'distance': 'A 1.2 km',
         'location': 'Caracas',
         'purpose': 'Cruza responsable',
-        'photo_url': '/static/images/pets/kira.png',
-        'photo_clean_url': '/static/images/pets/kira.png',
+        'photo_url': '/static/images/pets/Kira.png',
+        'photo_clean_url': '/static/images/pets/Kira.png',
         'temperaments': ['Tranquila', 'Cariñosa', 'Sociable'],
         'description': (
             'Kira es súper dócil, tierna y juguetona en calma. Buscamos una cruza ética '
@@ -231,8 +231,8 @@ MATCH_CANDIDATES = [
         'distance': 'A 4.5 km',
         'location': 'El Hatillo',
         'purpose': 'Socialización',
-        'photo_url': '/static/images/pets/maya.png',
-        'photo_clean_url': '/static/images/pets/maya.png',
+        'photo_url': '/static/images/pets/Maya.png',
+        'photo_clean_url': '/static/images/pets/Maya.png',
         'temperaments': ['Curiosa', 'Juguetona', 'Protectora'],
         'description': (
             'Maya es activa, adora los paseos largos por el parque y jugar con pelotas. '
@@ -264,7 +264,7 @@ INTERESTED_SUITORS = [
         'match_percentage': '98%',
         'is_recent': True,
         'recent_label': 'Match Reciente (Hace 2h)',
-        'photo_url': '/static/images/pets/kira.png',
+        'photo_url': '/static/images/pets/Kira.png',
         'temperaments': ['Tranquila', 'Cariñosa'],
         'quote': (
             '¡Hola Sofía! Nos encantó Toby. Kira es súper dócil, tierna y juguetona en calma. '
@@ -294,7 +294,7 @@ INTERESTED_SUITORS = [
         'age': '3.1 años',
         'distance': 'A 4.5 km',
         'match_percentage': '92%',
-        'photo_url': '/static/images/pets/maya.png',
+        'photo_url': '/static/images/pets/Maya.png',
         'temperaments': ['Curiosa', 'Sociable'],
     },
 ]
