@@ -1,24 +1,340 @@
 {% extends 'layouts/app.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% translate "Gestión de usuario" %} | Petly{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-8">
-    <div class="card-petly p-8 bg-white border border-neutral-300/80 mb-10 text-center">
-        <h1 class="title-h3 text-neutral-900 mb-2">{% translate "Gestión de usuario" %}</h1>
-        <p class="text-caption text-neutral-500 mb-6">{% translate "Pantalla en construcción para el perfil del tutor." %}</p>
-        <div class="flex items-center justify-center gap-3 flex-wrap">
-            <a href="{% url 'pets:pet_management' %}" class="btn-petly-primary text-xs px-4 py-2 inline-flex items-center gap-1.5">
-                {% translate "Ir a gestión de perfiles de mascotas →" %}
-            </a>
-            <a href="{% url 'accounts:logout' %}" class="btn-petly-outline text-xs px-4 py-2 inline-flex items-center gap-1.5">
-                {% translate "Cerrar sesión" %}
-            </a>
+<div class="w-full min-w-0 max-w-6xl mx-auto px-3 sm:px-4 py-2 sm:py-6">
+    <!-- Miga de pan -->
+    <nav class="flex items-center gap-2 text-xs text-neutral-500 mb-4 sm:mb-6" aria-label="{% translate 'Ruta de navegación' %}">
+        <a href="{% url 'core:home' %}" class="hover:text-petly-coral transition-colors no-underline">{% translate "Inicio" %}</a>
+        <span class="text-neutral-400">&rsaquo;</span>
+        <a href="{% url 'accounts:profile' %}" class="hover:text-petly-coral transition-colors no-underline">{% translate "Mi Cuenta" %}</a>
+        <span class="text-neutral-400">&rsaquo;</span>
+        <span class="text-neutral-800 font-semibold" aria-current="page">{% translate "Gestión de Usuario" %}</span>
+    </nav>
+
+    <!-- Banner superior de perfil del dueño de mascotas-->
+    <div class="card-petly min-w-0 p-3 sm:p-6 mb-4 sm:mb-6 bg-white border border-neutral-300/80 shadow-xs">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
+            <!-- Bloque de información basica del dueño de mascotas -->
+            <div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3 sm:gap-5 min-w-0 flex-1">
+                <div class="relative shrink-0">
+                    <img src="{% static 'images/auth/register_showcase.jpg' %}"
+                         alt="Sofía Hernández Morales"
+                         class="w-20 h-20 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-white shadow-sm ring-2 ring-neutral-100">
+                    <button type="button"
+                            class="avatar-badge-camera cursor-pointer"
+                            title="{% translate 'Cambiar foto de perfil' %}"
+                            aria-label="{% translate 'Cambiar foto de perfil' %}">
+                        {% include 'components/icon.html' with name="camera" class="w-3.5 h-3.5 text-white" %}
+                    </button>
+                </div>
+
+                <div class="min-w-0">
+                    <h1 class="title-h3 text-neutral-900 font-bold mb-1 break-words">
+                        Sofía Hernández Morales
+                    </h1>
+                    <div class="flex items-center justify-center sm:justify-start gap-3 sm:gap-4 flex-wrap text-xs text-neutral-500">
+                        <span class="inline-flex items-center gap-1.5">
+                            {% include 'components/icon.html' with name="mail" class="w-3.5 h-3.5 text-neutral-400" %}
+                            <span class="truncate">sofia.tutor@ejemplo.com</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5">
+                            {% include 'components/icon.html' with name="calendar" class="w-3.5 h-3.5 text-neutral-400" %}
+                            <span>{% translate "Miembro desde Feb 2026" %}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 w-full lg:w-auto min-w-0 lg:shrink-0">
+                <!-- Mascotas registradas -->
+                <div class="stat-pill-petly min-w-0 min-h-14 px-2.5 sm:px-3.5 py-2 flex items-center gap-3 bg-white border border-neutral-300/80 rounded-2xl shadow-2xs">
+                    <div class="w-8 h-8 rounded-full bg-petly-coral-light flex items-center justify-center text-petly-coral shrink-0">
+                        {% include 'components/icon.html' with name="paw" class="w-4 h-4 text-petly-coral" %}
+                    </div>
+                    <div class="min-w-0 text-left">
+                        <div class="font-bold text-neutral-900 text-sm leading-tight">2</div>
+                        <div class="text-[10px] text-neutral-500 font-medium truncate">{% translate "Mascotas registradas" %}</div>
+                    </div>
+                </div>
+
+                <!-- Conexiones activas -->
+                <div class="stat-pill-petly min-w-0 min-h-14 px-2.5 sm:px-3.5 py-2 flex items-center gap-3 bg-white border border-neutral-300/80 rounded-2xl shadow-2xs">
+                    <div class="w-8 h-8 rounded-full bg-petly-blue flex items-center justify-center text-neutral-700 shrink-0">
+                        {% include 'components/icon.html' with name="users" class="w-4 h-4 text-neutral-700" %}
+                    </div>
+                    <div class="min-w-0 text-left">
+                        <div class="font-bold text-neutral-900 text-sm leading-tight">5</div>
+                        <div class="text-[10px] text-neutral-500 font-medium truncate">{% translate "Conexiones activas" %}</div>
+                    </div>
+                </div>
+
+                <!-- Mascota activa en búsqueda -->
+                <div class="stat-pill-petly min-w-0 min-h-14 px-2.5 sm:px-3.5 py-2 flex items-center gap-3 bg-white border border-neutral-300/80 rounded-2xl shadow-2xs">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    </div>
+                    <div class="min-w-0 text-left">
+                        <div class="font-bold text-neutral-900 text-sm leading-tight truncate">Toby Bulldog F.</div>
+                        <div class="text-[10px] text-neutral-500 font-medium truncate">{% translate "Mascota en búsqueda" %}</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Muestra de componentes para los desarrolladores -->
-    {% include 'components/components_palette.html' %}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Sección Mis Mascotas -->
+        <aside class="lg:col-span-4 w-full min-w-0" aria-label="{% translate 'Mis mascotas registradas' %}">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <h2 class="title-h4 text-neutral-900 font-bold flex items-center gap-2">
+                    {% include 'components/icon.html' with name="paw" class="w-4 h-4 text-petly-coral" %}
+                    <span>{% translate "Mis Mascotas" %}</span>
+                </h2>
+                <span class="text-xs bg-neutral-100 text-neutral-600 px-2.5 py-0.5 rounded-full font-medium border border-neutral-200">
+                    2 {% translate "perfiles" %}
+                </span>
+            </div>
+
+            <!-- Lista de tarjetas de mascotas  -->
+            <div class="space-y-3 mb-4">
+                <!-- Mascota 1: Toby -->
+                <div class="card-petly w-full min-w-0 p-3.5 sm:p-4 bg-white border border-neutral-200 rounded-2xl shadow-sm hover:border-petly-coral/40 hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-3">
+                        <img src="{% static 'images/auth/login_showcase.jpg' %}"
+                             alt="Toby"
+                             class="w-12 h-12 rounded-full object-cover shrink-0 border border-neutral-200 shadow-2xs">
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-sm font-bold text-neutral-900 group-hover:text-petly-coral transition-colors">
+                                Toby
+                            </h3>
+                            <p class="text-xs text-neutral-500 truncate">
+                                Bulldog Francés • 3 años
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-3 mt-3 border-t border-neutral-100 text-xs">
+                        {% include 'components/badge.html' with text=_("Buscando citas") variant="male" class="text-[11px] py-0.5 px-2.5" %}
+
+                        <a href="{% url 'pets:pet_management' %}"
+                           class="inline-flex items-center gap-1 font-semibold text-neutral-600 hover:text-petly-coral transition-colors no-underline text-xs">
+                            {% include 'components/icon.html' with name="palette" class="w-3.5 h-3.5 text-petly-coral" %}
+                            <span>{% translate "Editar Perfil" %}</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mascota 2: Luna -->
+                <div class="card-petly w-full min-w-0 p-3.5 sm:p-4 bg-white border border-neutral-200 rounded-2xl shadow-sm hover:border-petly-coral/40 hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-3">
+                        <img src="{% static 'images/auth/reset_showcase.jpg' %}"
+                             alt="Luna"
+                             class="w-12 h-12 rounded-full object-cover shrink-0 border border-neutral-200 shadow-2xs">
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-sm font-bold text-neutral-900 group-hover:text-petly-coral transition-colors">
+                                Luna
+                            </h3>
+                            <p class="text-xs text-neutral-500 truncate">
+                                Golden Retriever • 4 años
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-3 mt-3 border-t border-neutral-100 text-xs">
+                        {% include 'components/badge.html' with text=_("Solo paseos") variant="tag" class="text-[11px] py-0.5 px-2.5" %}
+
+                        <a href="{% url 'pets:pet_management' %}"
+                           class="inline-flex items-center gap-1 font-semibold text-neutral-600 hover:text-petly-coral transition-colors no-underline text-xs">
+                            {% include 'components/icon.html' with name="palette" class="w-3.5 h-3.5 text-petly-coral" %}
+                            <span>{% translate "Editar Perfil" %}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón de acción para registrar nueva mascota -->
+            <a href="{% url 'pets:pet_management' %}" class="btn-petly-soft w-full py-3 text-xs font-semibold rounded-full justify-center flex items-center gap-2 no-underline shadow-2xs hover:shadow-xs transition-all">
+                {% include 'components/icon.html' with name="plus" class="w-4 h-4 text-petly-coral-dark" %}
+                <span>{% translate "Registrar Nueva Mascota" %}</span>
+            </a>
+        </aside>
+
+        <main class="lg:col-span-8 w-full min-w-0" aria-label="{% translate 'Formulario de datos personales del tutor' %}">
+            <div class="card-petly w-full min-w-0 p-3 sm:p-8 bg-white border border-neutral-300/80 shadow-xs">
+                <!-- Cabecera del formulario -->
+                <div class="flex items-center justify-between pb-4 mb-6 border-b border-neutral-200/80">
+                    <h2 class="title-h4 text-neutral-900 font-bold flex items-center gap-2">
+                        {% include 'components/icon.html' with name="user" class="w-4 h-4 text-petly-coral" %}
+                        <span>{% translate "Datos del Tutor" %}</span>
+                    </h2>
+                    <span class="text-neutral-400" title="{% translate 'Perfil verificado' %}">
+                        {% include 'components/icon.html' with name="id-card" class="w-5 h-5 text-neutral-400" %}
+                    </span>
+                </div>
+
+                <!-- Formulario -->
+                <form method="post" action="{% url 'accounts:profile' %}" class="space-y-4 sm:space-y-5">
+                    {% csrf_token %}
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5 min-w-0">
+                        <!-- Nombre Completo -->
+                        <div class="flex flex-col gap-1.5">
+                            <label for="profile-full-name" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Nombre Completo" %}
+                            </label>
+                            {% include 'components/input.html' with name="full_name" id="profile-full-name" value="Sofía Hernández Morales" placeholder="Sofía Hernández Morales" icon="user" %}
+                        </div>
+
+                        <!-- Correo Electrónico -->
+                        <div class="flex flex-col gap-1.5">
+                            <label for="profile-email" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Correo Electrónico" %}
+                            </label>
+                            {% include 'components/input.html' with name="email" id="profile-email" type="email" value="sofia.tutor@ejemplo.com" placeholder="sofia.tutor@ejemplo.com" icon="mail" %}
+                        </div>
+
+                        <!-- Teléfono de Contacto -->
+                        <div class="flex flex-col gap-1.5">
+                            <label for="profile-phone" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Teléfono de Contacto" %}
+                            </label>
+                            {% include 'components/input.html' with name="phone" id="profile-phone" type="tel" value="+58 424 123 4567" placeholder="+58 424 123 4567" icon="phone" %}
+                        </div>
+
+                        <!-- Ciudad / Región -->
+                        <div class="flex flex-col gap-1.5">
+                            <label for="profile-city" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Ciudad / Región" %}
+                            </label>
+                            {% include 'components/input.html' with name="city" id="profile-city" value="Los Teques, Miranda" placeholder="Los Teques, Miranda" icon="location" %}
+                        </div>
+
+                        <!-- Fecha de Cumpleaños -->
+                        <div class="flex flex-col gap-1.5">
+                            <label for="profile-birth-date" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Fecha de Cumpleaños" %}
+                            </label>
+                            {% include 'components/input.html' with name="birth_date" id="profile-birth-date" type="text" value="10/05/1990" placeholder="10/05/1990" icon="calendar" %}
+                        </div>
+
+                        <!-- Selector de Género -->
+                        <div class="w-full flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-neutral-700">{% translate "Género" %}</label>
+                            <div class="pt-0.5">
+                                <div id="gender-segmented-control" role="tablist" class="flex flex-wrap items-center gap-1 w-fit max-w-full p-1 rounded-full bg-neutral-100 border border-neutral-300 text-xs font-medium">
+                                    <input type="hidden" name="gender" id="gender-input" value="Femenino">
+                                    <button type="button" role="tab" data-gender="Masculino" aria-selected="false" class="select-none segmented-pill segmented-pill-inactive">
+                                        {% translate "Masculino" %}
+                                    </button>
+                                    <button type="button" role="tab" data-gender="Femenino" aria-selected="true" class="select-none segmented-pill segmented-pill-active">
+                                        {% translate "Femenino" %}
+                                    </button>
+                                    <button type="button" role="tab" data-gender="Otro" aria-selected="false" class="select-none segmented-pill segmented-pill-inactive">
+                                        {% translate "Otro" %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Color Favorito -->
+                        <div class="flex flex-col gap-1.5">
+                            <label for="profile-favorite-color" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Color favorito" %}
+                            </label>
+                            {% include 'components/input.html' with name="favorite_color" id="profile-favorite-color" value="Rosado" placeholder="Rosado" icon="palette" %}
+                        </div>
+
+                        <!-- Libro Favorito -->
+                        <div class="flex flex-col gap-1.5">
+                            <label for="profile-favorite-book" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Libro favorito" %}
+                            </label>
+                            {% include 'components/input.html' with name="favorite_book" id="profile-favorite-book" placeholder="Escribe tu libro favorito" %}
+                        </div>
+
+                        <!-- Música Favorita -->
+                        <div class="flex flex-col gap-1.5">
+                            <label for="profile-favorite-music" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Música favorita" %}
+                            </label>
+                            {% include 'components/input.html' with name="favorite_music" id="profile-favorite-music" value="Pop" placeholder="Pop" %}
+                        </div>
+
+                        <!-- Videojuego Favorito -->
+                        <div class="flex flex-col gap-1.5">
+                            <label for="profile-favorite-game" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Videojuego favorito" %}
+                            </label>
+                            {% include 'components/input.html' with name="favorite_game" id="profile-favorite-game" placeholder="Escribe tu videojuego favorito" %}
+                        </div>
+                    </div>
+
+                    <!-- Descripción / Biografía -->
+                    <div class="flex flex-col gap-1.5 pt-2">
+                        <label for="profile-bio" class="text-xs font-semibold text-neutral-700">
+                            {% translate "Descripción" %}
+                        </label>
+                        <textarea id="profile-bio"
+                                  name="bio"
+                                  rows="3"
+                                  placeholder="{% translate 'Escribe una breve descripción sobre ti y tus mascotas...' %}"
+                                  class="textarea-petly">Me gusta escuchar música y pasar el día con mis mascotas. Salgo a caminar todas las tardes con Toby y Luna.</textarea>
+                        <span class="text-caption text-neutral-400">
+                            {% translate "Comparte un poco sobre tu rutina o lo que te gusta hacer con tus mascotas." %}
+                        </span>
+                    </div>
+
+                    <!-- Botón de guardado -->
+                    <div class="pt-3 flex items-center justify-between flex-wrap gap-3">
+                        <div class="w-full sm:w-auto">
+                            {% include 'components/button.html' with text=_("Guardar Información Personal") type="submit" variant="primary" icon="check" class="w-full sm:w-auto px-8 py-3 text-sm font-semibold rounded-full shadow-xs justify-center" %}
+                        </div>
+
+                        <span class="text-xs text-neutral-400 hidden sm:inline">
+                            {% translate "Los cambios se guardan al presionar el botón" %}
+                        </span>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Botón de cerrar sesión -->
+            <div class="mt-6 sm:hidden">
+                <a href="{% url 'accounts:logout' %}" class="btn-petly-danger w-full py-3 text-xs font-semibold rounded-full justify-center flex items-center gap-2 no-underline shadow-xs">
+                    {% include 'components/icon.html' with name="log-out" class="w-4 h-4 text-white" %}
+                    <span>{% translate "Cerrar Sesión" %}</span>
+                </a>
+            </div>
+        </main>
+    </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const genderControl = document.getElementById('gender-segmented-control');
+        if (genderControl) {
+            const pills = genderControl.querySelectorAll('.segmented-pill');
+            const hiddenInput = document.getElementById('gender-input');
+
+            pills.forEach(pill => {
+                pill.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    pills.forEach(p => {
+                        p.classList.remove('segmented-pill-active');
+                        p.classList.add('segmented-pill-inactive');
+                        p.setAttribute('aria-selected', 'false');
+                    });
+                    this.classList.remove('segmented-pill-inactive');
+                    this.classList.add('segmented-pill-active');
+                    this.setAttribute('aria-selected', 'true');
+                    if (hiddenInput) {
+                        hiddenInput.value = this.getAttribute('data-gender');
+                    }
+                });
+            });
+        }
+    });
+</script>
 {% endblock %}
