@@ -561,43 +561,195 @@
 <!-- Modal: Eliminar Foto de Perfil -->
 {% include 'components/confirmation_modal.html' with id="modal-delete-photo" variant="danger" icon="trash" title=_("¿Eliminar la foto de perfil?") text=_("La mascota volverá a mostrar la ilustración predeterminada de Petly.") confirm_text=_("Eliminar foto") cancel_text=_("Mantener foto") onconfirm="removePetPhoto()" %}
 
-<!-- Modal: Vista Previa de Tarjeta de Descubrimiento (Pet Discovery Preview) -->
+<!-- Modal: Vista Previa de Tarjeta de Descubrimiento (Pet Discovery Preview con estructura oficial de Buscar Pareja) -->
 <div id="modal-pet-preview" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-preview-title">
-    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity duration-200 cursor-pointer" onclick="closeModal('modal-pet-preview')" aria-hidden="true"></div>
-    <div class="relative w-full max-w-sm bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 overflow-hidden text-center">
-        <button type="button" onclick="closeModal('modal-pet-preview')" class="absolute top-3.5 right-3.5 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors select-none" aria-label="{% translate 'Cerrar' %}">
-            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
-        </button>
+    <div class="fixed inset-0 bg-neutral-900/60 backdrop-blur-xs transition-opacity duration-200 cursor-pointer" onclick="closeModal('modal-pet-preview')" aria-hidden="true"></div>
+    <div class="relative w-full max-w-lg bg-white card-petly p-4 sm:p-6 shadow-2xl border border-neutral-300 z-10 overflow-hidden text-center max-h-[92vh] overflow-y-auto">
 
-        <span class="inline-block text-[10px] font-bold tracking-wider uppercase text-neutral-500 mb-3">
-            {% translate "VISTA PREVIA EN BUSCADOR DE PAREJAS" %}
-        </span>
+        <!-- Cabecera del modal -->
+        <div class="flex items-center justify-between pb-3 border-b border-neutral-200/80 mb-4 text-left">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0">
+                    {% include 'components/icon.html' with name="eye" class="w-3.5 h-3.5" %}
+                </div>
+                <div>
+                    <h3 id="modal-preview-title" class="text-xs font-bold tracking-wider uppercase text-neutral-800">
+                        {% translate "VISTA PREVIA EN BUSCADOR DE PAREJAS" %}
+                    </h3>
+                    <p class="text-[11px] text-neutral-500">
+                        {% translate "Así verán otros tutores la tarjeta de tu mascota en Buscar Pareja" %}
+                    </p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-pet-preview')" class="w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors select-none cursor-pointer" aria-label="{% translate 'Cerrar' %}">
+                {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
+            </button>
+        </div>
 
-        <!-- Tarjeta de vista previa con el color seleccionado dinámicamente -->
-        <div id="preview-card-container" class="p-4 rounded-2xl border-2 transition-colors duration-200" style="border-color: #FA7D82; background: linear-gradient(180deg, #ffffff 0%, #FA7D82 250%);">
-            <div class="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-white shadow-md mb-3">
+        <!-- Tarjeta de descubrimiento oficial de Buscar Pareja -->
+        <div id="preview-card-container"
+             class="relative w-full bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border-[3px] text-left"
+             style="border-color: #FA7D82; box-shadow: 0 12px 36px rgba(250, 125, 130, 0.25);">
+
+            <!-- Barra superior del color de perfil -->
+            <div id="modal-preview-top-bar" class="h-2 w-full transition-colors duration-200" style="background-color: #FA7D82;"></div>
+
+            <!-- FOTOGRAFÍA PRINCIPAL (Cuadrada con esquinas redondeadas según Buscar Pareja) -->
+            <div class="relative w-full h-64 sm:h-72 md:h-80 bg-neutral-900 overflow-hidden">
                 <img id="modal-preview-avatar"
                      src="{% if active_pet.photo_url %}{{ active_pet.photo_url }}{% else %}{% static 'images/pets/Toby.png' %}{% endif %}"
                      alt=""
-                     class="w-full h-full object-cover">
+                     class="w-full h-full object-cover select-none transition-transform duration-500">
+
+                <!-- Rayas indicadoras de historias superiores -->
+                <div class="absolute top-3 inset-x-4 flex items-center gap-1.5 z-20">
+                    <div class="flex-1 h-1 rounded-full bg-white/90 shadow-xs"></div>
+                    <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
+                    <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
+                    <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
+                </div>
+
+                <!-- Insignia de compatibilidad en la esquina superior izquierda -->
+                <div class="absolute top-7 left-4 z-20">
+                    <span class="badge-compat text-xs py-1 px-3 shadow-md">
+                        {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-emerald-900" %}
+                        <span>98% {% translate "Compatible" %}</span>
+                    </span>
+                </div>
+
+                <!-- Insignia de propósito en la esquina superior derecha -->
+                <div class="absolute top-7 right-4 z-20">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur-xs text-neutral-800 shadow-md">
+                        <span id="modal-preview-purpose-dot" class="w-2 h-2 rounded-full" style="background-color: #FA7D82;"></span>
+                        <span id="modal-preview-purpose-text">{% translate "Cruza y Socialización" %}</span>
+                    </span>
+                </div>
+
+                <!-- Degradado inferior para legibilidad del texto sobre la foto -->
+                <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-neutral-950/90 via-neutral-950/40 to-transparent pointer-events-none z-10"></div>
+
+                <!-- Overlay de información sobre la foto -->
+                <div class="absolute inset-x-5 bottom-3.5 z-20 flex items-end justify-between gap-3 text-white">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 id="modal-preview-name" class="title-h2 text-white font-bold tracking-tight drop-shadow-md">
+                                {{ active_pet.name|default:"Toby" }}
+                            </h2>
+                            <span id="modal-preview-gender-symbol" class="text-lg font-bold drop-shadow-md" style="color: #FA7D82;">
+                                {{ active_pet.gender_symbol|default:"♂" }}
+                            </span>
+                            <span id="modal-preview-age-badge" class="text-xs font-semibold bg-white/20 backdrop-blur-xs px-2.5 py-0.5 rounded-full drop-shadow-xs">
+                                {{ active_pet.age_text|default:"3 años" }}
+                            </span>
+                        </div>
+                        <p id="modal-preview-breed-line" class="text-xs sm:text-sm text-neutral-200 font-medium drop-shadow-xs mt-0.5">
+                            {{ active_pet.breed|default:"Bulldog Francés" }} • {{ active_pet.species_label|default:"Perro" }}
+                        </p>
+                    </div>
+
+                    <div class="shrink-0">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-black/50 backdrop-blur-md text-white border border-white/20">
+                            {% include 'components/icon.html' with name="location" class="w-3 h-3 text-white" %}
+                            <span>{% translate "Tu mascota" %}</span>
+                        </span>
+                    </div>
+                </div>
             </div>
-            <h3 id="modal-preview-name" class="title-h4 text-neutral-900 font-bold mb-0.5">
-                {{ active_pet.name|default:"Toby" }}
-            </h3>
-            <p id="modal-preview-breed-age" class="text-caption text-neutral-600 mb-3">
-                {{ active_pet.breed|default:"Bulldog Francés" }} • {{ active_pet.age_text|default:"3 años" }}
-            </p>
-            <div class="flex flex-wrap justify-center gap-1.5 mb-3" id="modal-preview-traits">
-                <span class="badge-tag text-[10px] py-0.5 px-2">Juguetón</span>
-                <span class="badge-tag text-[10px] py-0.5 px-2">Sociable</span>
-                <span class="badge-tag text-[10px] py-0.5 px-2">Cariñoso</span>
+
+            <!-- CUERPO DETALLADO DE LA MASCOTA -->
+            <div id="modal-preview-card-body" class="p-5 sm:p-6 space-y-4" style="background: linear-gradient(180deg, #ffffff 65%, rgba(250, 125, 130, 0.12) 100%);">
+
+                <!-- Personalidad y Temperamento -->
+                <div>
+                    <span class="text-[10px] font-bold tracking-wider uppercase text-neutral-400 mb-2 block">
+                        {% translate "PERSONALIDAD Y TEMPERAMENTO" %}
+                    </span>
+                    <div id="modal-preview-traits" class="flex flex-wrap gap-1.5">
+                        <span class="badge-tag text-xs font-medium py-1 px-3">Juguetón</span>
+                        <span class="badge-tag text-xs font-medium py-1 px-3">Sociable</span>
+                        <span class="badge-tag text-xs font-medium py-1 px-3">Cariñoso</span>
+                    </div>
+                </div>
+
+                <!-- Fila de métricas clave (3 cajas redondeadas) -->
+                <div id="modal-preview-metrics-box" class="grid grid-cols-3 gap-2 p-3 rounded-2xl border text-center" style="border-color: rgba(250, 125, 130, 0.3); background-color: rgba(250, 125, 130, 0.05);">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-semibold text-neutral-500 uppercase">
+                            {% translate "Fecha Nacimiento" %}
+                        </span>
+                        <span id="modal-preview-birthdate" class="text-xs font-bold text-neutral-900 mt-0.5">
+                            {{ active_pet.birth_date|default:"04/15/2022" }}
+                        </span>
+                    </div>
+                    <div class="flex flex-col border-x border-neutral-300/60">
+                        <span class="text-[10px] font-semibold text-neutral-500 uppercase">
+                            {% translate "Especie / Género" %}
+                        </span>
+                        <span id="modal-preview-species-gender" class="text-xs font-bold text-neutral-900 mt-0.5">
+                            {{ active_pet.species_label|default:"Perro" }} • {{ active_pet.gender_label|default:"Macho" }}
+                        </span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-semibold text-neutral-500 uppercase">
+                            {% translate "Certificación" %}
+                        </span>
+                        <span id="modal-preview-certificate" class="text-xs font-bold text-neutral-900 mt-0.5">
+                            {{ active_pet.certificate_label|default:"Certificado FCI" }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Biografía: Sobre la mascota -->
+                <div>
+                    <h3 class="text-xs font-bold text-neutral-900 mb-1">
+                        {% translate "Sobre" %} <span id="modal-preview-about-name">{{ active_pet.name|default:"Toby" }}</span>
+                    </h3>
+                    <p id="modal-preview-desc" class="text-xs sm:text-sm text-neutral-600 leading-relaxed italic">
+                        "{{ active_pet.description|default:'Adora correr en el parque, jugar con pelotas y dormir siestas al sol.' }}"
+                    </p>
+                </div>
+
+                <!-- Bloque de tutor responsable -->
+                <div class="pt-2 border-t border-neutral-200/80 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div id="modal-preview-tutor-avatar" class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-xs" style="background-color: #FA7D82;">
+                            <span id="modal-preview-tutor-letter">TO</span>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-neutral-900 block leading-tight">
+                                {% translate "Tú (Tutor Verificado)" %}
+                            </span>
+                            <span class="text-[11px] text-neutral-500">
+                                {% translate "Perfil Oficial en PetMatch" %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold">
+                        <span>★</span>
+                        <span>5.0</span>
+                        <span class="text-neutral-500 font-normal">({% translate "Tu perfil" %})</span>
+                    </div>
+                </div>
+
+                <!-- Simulación de botones de acción Buscar Pareja -->
+                <div class="pt-3 border-t border-neutral-200/80 flex items-center justify-between gap-3">
+                    <div class="w-11 h-11 rounded-full bg-white border border-neutral-200 shadow-xs flex items-center justify-center text-neutral-400 select-none">
+                        {% include 'components/icon.html' with name="close" class="w-5 h-5 text-neutral-400" %}
+                    </div>
+                    <div id="modal-preview-btn-like"
+                         class="flex-1 py-3 px-4 rounded-full text-white text-xs sm:text-sm font-bold shadow-md inline-flex items-center justify-center gap-2 select-none"
+                         style="background-color: #FA7D82;">
+                        {% include 'components/icon.html' with name="heart-filled" class="w-4 h-4 text-white" %}
+                        <span>{% translate "Mostrar Interés en" %} <span id="modal-preview-btn-name">{{ active_pet.name|default:"Toby" }}</span></span>
+                    </div>
+                </div>
+
             </div>
-            <p id="modal-preview-desc" class="text-xs text-neutral-700 italic line-clamp-3 bg-white/70 p-2.5 rounded-xl border border-neutral-200/60">
-                "{{ active_pet.description|default:'Adora correr en el parque...' }}"
-            </p>
         </div>
 
-        <button type="button" onclick="closeModal('modal-pet-preview')" class="btn-petly-primary text-xs w-full py-2.5 mt-5">
+        <!-- Botón de cierre de vista previa -->
+        <button type="button" onclick="closeModal('modal-pet-preview')" class="btn-petly-primary text-xs w-full py-3 mt-4 rounded-full font-bold shadow-xs cursor-pointer">
             {% translate "Cerrar Vista Previa" %}
         </button>
     </div>
@@ -754,30 +906,114 @@
         closeModal('modal-delete-photo');
     }
 
-    // Abrir modal de vista previa dinámico
+    // Abrir modal de vista previa dinámico con estructura de Buscar Pareja
     function openPreviewModal() {
-        const name = document.getElementById('pet-name-input').value || '{{ active_pet.name|default:"Toby" }}';
-        const breed = document.getElementById('pet-breed-input').value || '{{ active_pet.breed|default:"Bulldog Francés" }}';
-        const desc = document.getElementById('pet-description-input').value || '{{ active_pet.description|default:"Sin descripción" }}';
+        const nameInput = document.getElementById('pet-name-input');
+        const name = (nameInput && nameInput.value.trim()) || '{{ active_pet.name|default:"Toby" }}';
+        const breedInput = document.getElementById('pet-breed-input');
+        const breed = (breedInput && breedInput.value.trim()) || '{{ active_pet.breed|default:"Bulldog Francés" }}';
+        const descInput = document.getElementById('pet-description-input');
+        const desc = (descInput && descInput.value.trim()) || '{{ active_pet.description|default:"Sin descripción" }}';
         const color = document.getElementById('input-profile-color').value || 'coral';
+        const species = document.getElementById('input-species').value || 'perro';
+        const gender = document.getElementById('input-gender').value || 'macho';
+        const birthInput = document.getElementById('pet-birthdate-input');
+        const birth = (birthInput && birthInput.value.trim()) || '{{ active_pet.birth_date|default:"04/15/2022" }}';
+        const certificate = document.getElementById('input-certificate').value || 'fci';
+        const toggleMatching = document.getElementById('toggle-matching');
+        const toggleSocializing = document.getElementById('toggle-socializing');
+        const matching = toggleMatching ? toggleMatching.checked : true;
+        const socializing = toggleSocializing ? toggleSocializing.checked : true;
 
-        document.getElementById('modal-preview-name').textContent = name;
-        document.getElementById('modal-preview-breed-age').textContent = `${breed} • {{ active_pet.age_text|default:"3 años" }}`;
-        document.getElementById('modal-preview-desc').textContent = `"${desc}"`;
+        // Foto actual (usar la del avatar interactivo si se cambió o subió)
+        const currentAvatar = document.getElementById('pet-avatar-img');
+        const modalAvatar = document.getElementById('modal-preview-avatar');
+        if (currentAvatar && modalAvatar) {
+            modalAvatar.src = currentAvatar.src;
+        }
 
+        // Textos del nombre
+        const nameElem = document.getElementById('modal-preview-name');
+        if (nameElem) nameElem.textContent = name;
+        const aboutName = document.getElementById('modal-preview-about-name');
+        if (aboutName) aboutName.textContent = name;
+        const btnName = document.getElementById('modal-preview-btn-name');
+        if (btnName) btnName.textContent = name;
+
+        // Iniciales para el avatar del tutor
+        const tutorLetter = document.getElementById('modal-preview-tutor-letter');
+        if (tutorLetter) {
+            tutorLetter.textContent = (name.substring(0, 2) || 'TO').toUpperCase();
+        }
+
+        // Género y símbolo
+        const isMale = (gender === 'macho');
+        const genderSym = document.getElementById('modal-preview-gender-symbol');
+        if (genderSym) genderSym.textContent = isMale ? '♂' : '♀';
+
+        // Especie y Raza
+        const speciesLabel = species === 'gato' ? '{% translate "Gato" %}' : (species === 'otro' ? '{% translate "Otro" %}' : '{% translate "Perro" %}');
+        const genderLabel = isMale ? '{% translate "Macho" %}' : '{% translate "Hembra" %}';
+        const breedLine = document.getElementById('modal-preview-breed-line');
+        if (breedLine) breedLine.textContent = `${breed} • ${speciesLabel}`;
+
+        const speciesGender = document.getElementById('modal-preview-species-gender');
+        if (speciesGender) speciesGender.textContent = `${speciesLabel} • ${genderLabel}`;
+
+        const birthElem = document.getElementById('modal-preview-birthdate');
+        if (birthElem) birthElem.textContent = birth;
+
+        // Certificado
+        const certMap = {
+            'fci': '{% translate "Certificado FCI" %}',
+            'tramite': '{% translate "En trámite" %}',
+            'sin_pedigri': '{% translate "Sin Pedigrí" %}'
+        };
+        const certElem = document.getElementById('modal-preview-certificate');
+        if (certElem) certElem.textContent = certMap[certificate] || '{% translate "Certificado FCI" %}';
+
+        // Propósito
+        let purposeText = '{% translate "Cruza y Socialización" %}';
+        if (matching && !socializing) purposeText = '{% translate "Cruza Responsable" %}';
+        else if (!matching && socializing) purposeText = '{% translate "Socialización" %}';
+        else if (!matching && !socializing) purposeText = '{% translate "Perfil Registrado" %}';
+        const purposeElem = document.getElementById('modal-preview-purpose-text');
+        if (purposeElem) purposeElem.textContent = purposeText;
+
+        // Descripción
+        const descElem = document.getElementById('modal-preview-desc');
+        if (descElem) descElem.textContent = `"${desc}"`;
+
+        // Color de perfil seleccionado
         const hex = COLOR_HEX_MAP[color] || '#FA7D82';
         const container = document.getElementById('preview-card-container');
         if (container) {
             container.style.borderColor = hex;
-            container.style.background = `linear-gradient(180deg, #ffffff 0%, ${hex}40 100%)`;
+            container.style.boxShadow = `0 14px 40px ${hex}38`;
+        }
+        const topBar = document.getElementById('modal-preview-top-bar');
+        if (topBar) topBar.style.backgroundColor = hex;
+        const purposeDot = document.getElementById('modal-preview-purpose-dot');
+        if (purposeDot) purposeDot.style.backgroundColor = hex;
+        if (genderSym) genderSym.style.color = hex;
+        const tutorAvatar = document.getElementById('modal-preview-tutor-avatar');
+        if (tutorAvatar) tutorAvatar.style.backgroundColor = hex;
+        const btnLike = document.getElementById('modal-preview-btn-like');
+        if (btnLike) btnLike.style.backgroundColor = hex;
+        const cardBody = document.getElementById('modal-preview-card-body');
+        if (cardBody) cardBody.style.background = `linear-gradient(180deg, #ffffff 65%, ${hex}18 100%)`;
+        const metricsBox = document.getElementById('modal-preview-metrics-box');
+        if (metricsBox) {
+            metricsBox.style.borderColor = `${hex}40`;
+            metricsBox.style.backgroundColor = `${hex}0c`;
         }
 
         // Refrescar traits en vista previa
         const traitsVal = document.getElementById('input-temperaments').value;
-        const traits = traitsVal ? traitsVal.split(',') : ['Juguetón', 'Sociable'];
+        const traits = traitsVal ? traitsVal.split(',').map(t => t.trim()).filter(Boolean) : ['Juguetón', 'Sociable', 'Cariñoso'];
         const traitsContainer = document.getElementById('modal-preview-traits');
         if (traitsContainer) {
-            traitsContainer.innerHTML = traits.map(t => `<span class="badge-tag text-[10px] py-0.5 px-2">${t.trim()}</span>`).join('');
+            traitsContainer.innerHTML = traits.map(t => `<span class="badge-tag text-xs font-medium py-1 px-3">${t}</span>`).join('');
         }
 
         openModal('modal-pet-preview');

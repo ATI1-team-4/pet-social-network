@@ -147,11 +147,11 @@
                  Aplica dinámicamente el color de perfil personalizado elegido por el usuario (active_pet.profile_color_hex)
             -->
             <div id="discovery-card"
-                 class="relative w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-lg transition-all duration-300 border-2"
-                 style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; box-shadow: 0 8px 30px {{ active_pet.profile_color_hex|default:'#FA7D82' }}22;">
+                 class="relative w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border-[3px]"
+                 style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; box-shadow: 0 12px 36px {{ active_pet.profile_color_hex|default:'#FA7D82' }}33;">
 
                 <!-- Fila superior de barra de color y acento de tutor -->
-                <div class="h-1.5 w-full transition-colors duration-200" style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};"></div>
+                <div class="h-2 w-full transition-colors duration-200" style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};"></div>
 
                 <!-- SECCIÓN 1: FOTOGRAFÍA PRINCIPAL CON GRADIENTE E INFORMACIÓN -->
                 <div class="relative w-full h-80 sm:h-96 md:h-[420px] bg-neutral-900 overflow-hidden">
@@ -194,7 +194,7 @@
                                 <h2 id="card-name" class="title-h2 text-white font-bold tracking-tight drop-shadow-md">
                                     {{ current_candidate.name }}
                                 </h2>
-                                <span id="card-gender-symbol" class="text-lg font-bold text-petly-coral drop-shadow-md">
+                                <span id="card-gender-symbol" class="text-lg font-bold drop-shadow-md" style="color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
                                     {{ current_candidate.gender_symbol }}
                                 </span>
                                 <span id="card-age" class="text-sm font-semibold bg-white/20 backdrop-blur-xs px-2.5 py-0.5 rounded-full drop-shadow-xs">
@@ -217,7 +217,7 @@
                 </div>
 
                 <!-- SECCIÓN 2: CUERPO DETALLADO DE LA MASCOTA -->
-                <div class="p-6 sm:p-7 space-y-5 bg-white">
+                <div id="card-body-container" class="p-6 sm:p-7 space-y-5" style="background: linear-gradient(180deg, #ffffff 65%, {{ active_pet.profile_color_hex|default:'#FA7D82' }}18 100%);">
 
                     <!-- Personalidad y Temperamento -->
                     <div>
@@ -234,7 +234,7 @@
                     </div>
 
                     <!-- Fila de métricas clave (3 cajas redondeadas) -->
-                    <div class="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl bg-petly-ice/70 border border-petly-blue/80 text-center">
+                    <div class="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl border text-center" style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}44; background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}0d;">
                         <div class="flex flex-col">
                             <span class="text-[10px] font-semibold text-neutral-500 uppercase">
                                 {% translate "Fecha Nacimiento" %}
@@ -368,17 +368,20 @@
         <div class="hidden lg:block lg:col-span-4 sticky top-24 space-y-4">
 
             <!-- Tarjeta: Pretendientes interesados en Toby -->
-            <div class="card-petly p-6 bg-white border border-neutral-300/80 shadow-md space-y-4">
+            <div class="card-petly p-6 bg-white shadow-md space-y-4 border-2"
+                 style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}44; box-shadow: 0 6px 24px {{ active_pet.profile_color_hex|default:'#FA7D82' }}18;">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0">
+                        <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                             style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}22; color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
                             {% include 'components/icon.html' with name="heart" class="w-4 h-4" %}
                         </div>
                         <h2 class="title-h4 text-neutral-900 font-bold text-sm">
                             {% blocktranslate with name=active_pet.name %}Interesadas en {{ name }}{% endblocktranslate %}
                         </h2>
                     </div>
-                    <span class="badge-tag text-[11px] font-semibold py-0.5 px-2">
+                    <span class="badge-tag text-[11px] font-semibold py-0.5 px-2 text-white"
+                          style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
                         {{ interested_count }} {% translate "nuevas" %}
                     </span>
                 </div>
@@ -386,9 +389,11 @@
                 <!-- Lista de pretendientes rápidos -->
                 <div class="space-y-3 pt-1">
                     {% for suitor in interested_sidebar %}
-                        <div class="p-3 rounded-2xl bg-petly-ice/50 hover:bg-petly-ice border border-petly-blue/60 transition-colors flex items-center justify-between gap-3">
+                        <div class="p-3 rounded-2xl bg-white hover:bg-neutral-50 border transition-all flex items-center justify-between gap-3 shadow-xs"
+                             style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}55;">
                             <div class="flex items-center gap-3">
-                                <div class="w-11 h-11 rounded-full overflow-hidden bg-white border border-neutral-200 shrink-0 shadow-xs">
+                                <div class="w-11 h-11 rounded-full overflow-hidden bg-white border shrink-0 shadow-xs"
+                                     style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}66;">
                                     <img src="{{ suitor.photo_url }}" alt="{{ suitor.name }}" class="w-full h-full object-cover">
                                 </div>
                                 <div>
@@ -402,9 +407,10 @@
                             </div>
                             <button type="button"
                                     onclick="quickMatchWith('{{ suitor.name }}', '{{ suitor.photo_url }}')"
-                                    class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-petly-coral hover:bg-petly-coral hover:text-white flex items-center justify-center transition-colors shadow-xs shrink-0 cursor-pointer"
+                                    class="w-8 h-8 rounded-full text-white flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer"
+                                    style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};"
                                     title="{% translate 'Responder con Match' %}">
-                                {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5" %}
+                                {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-white" %}
                             </button>
                         </div>
                     {% endfor %}
@@ -413,7 +419,8 @@
                 <!-- Botón directo: Ver todas las solicitudes -->
                 <div class="pt-2">
                     <a href="{% url 'pets:match_interested' %}"
-                       class="btn-petly-secondary w-full py-2.5 text-xs font-bold inline-flex items-center justify-center gap-1.5 no-underline shadow-xs">
+                       class="w-full py-2.5 text-xs font-bold inline-flex items-center justify-center gap-1.5 no-underline shadow-xs rounded-full border-2 transition-all hover:opacity-90"
+                       style="color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}12;">
                         <span>{% translate "Ver todas las solicitudes" %} ({{ interested_count }})</span>
                         <span>&rarr;</span>
                     </a>
@@ -421,7 +428,8 @@
             </div>
 
             <!-- Tarjeta de consejos de bienestar animal -->
-            <div class="p-4 rounded-2xl bg-white border border-neutral-200 shadow-xs text-xs space-y-1.5">
+            <div class="p-4 rounded-2xl bg-white border shadow-xs text-xs space-y-1.5"
+                 style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}33;">
                 <div class="flex items-center gap-1.5 text-emerald-800 font-bold">
                     {% include 'components/icon.html' with name="award" class="w-4 h-4 text-emerald-600" %}
                     <span>{% translate "Normas de Cruza Responsable" %}</span>
