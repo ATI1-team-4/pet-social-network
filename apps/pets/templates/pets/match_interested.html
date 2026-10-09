@@ -45,7 +45,7 @@
             <h1 class="title-h3 sm:title-h2 text-neutral-900 font-bold tracking-tight">
                 {% blocktranslate with name=active_pet.name %}Mascotas interesadas en {{ name }}{% endblocktranslate %}
             </h1>
-            <p class="text-xs sm:text-sm text-neutral-500 max-w-2xl mt-1 leading-relaxed">
+            <p class="hidden md:block text-xs sm:text-sm text-neutral-500 max-w-2xl mt-1 leading-relaxed">
                 {% blocktranslate with name=active_pet.name %}
                 Estos tutores han mostrado interés en {{ name }} para cruza responsable o socialización canina. Revisa sus credenciales de salud, compatibilidad y coordina un encuentro seguro en espacios certificados.
                 {% endblocktranslate %}
@@ -68,11 +68,13 @@
                 </a>
             </div>
 
-            <!-- Botón para volver a explorar parejas en el feed -->
-            <a href="{% url 'pets:match_feed' %}" class="btn-petly-primary text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5 shadow-md no-underline">
-                {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-white" %}
-                <span>{% translate "Explorar parejas" %}</span>
-            </a>
+            <!-- Botón para volver a explorar parejas en el feed (solo escritorio) -->
+            <div class="hidden md:block">
+                <a href="{% url 'pets:match_feed' %}" class="btn-petly-primary text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5 shadow-md no-underline">
+                    {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-white" %}
+                    <span>{% translate "Explorar parejas" %}</span>
+                </a>
+            </div>
         </div>
     </div>
 
