@@ -2,13 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-07 00:19-0400\n"
+"POT-Creation-Date: 2026-10-08 17:54-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,10 +19,131 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
 "1 : 2;\n"
 
+#: apps/accounts/forms.py:18
+msgid "Correo electrónico o usuario"
+msgstr ""
+
+#: apps/accounts/forms.py:24 apps/accounts/forms.py:70
+#: apps/accounts/templates/accounts/login.html:49
+#: apps/accounts/templates/accounts/register.html:159
+msgid "Contraseña"
+msgstr ""
+
+#: apps/accounts/forms.py:31 apps/accounts/templates/accounts/login.html:58
+msgid "Recordar mi sesión"
+msgstr ""
+
+#: apps/accounts/forms.py:39
+msgid "Nombre completo"
+msgstr ""
+
+#: apps/accounts/forms.py:44 apps/accounts/templates/accounts/login.html:41
+#: apps/accounts/templates/accounts/register.html:86
+msgid "Correo electrónico"
+msgstr ""
+
+#: apps/accounts/forms.py:48 apps/accounts/models.py:24
+#: apps/accounts/templates/accounts/register.html:98
+msgid "Código de país"
+msgstr ""
+
+#: apps/accounts/forms.py:54 apps/accounts/templates/accounts/register.html:94
+msgid "Teléfono / contacto"
+msgstr ""
+
+#: apps/accounts/forms.py:59 apps/accounts/models.py:36
+#: apps/accounts/templates/accounts/register.html:132
+msgid "Tipo de documento"
+msgstr ""
+
+#: apps/accounts/forms.py:65 apps/accounts/templates/accounts/register.html:128
+msgid "Cédula"
+msgstr ""
+
+#: apps/accounts/forms.py:75 apps/accounts/templates/accounts/register.html:167
+msgid "Confirmar contraseña"
+msgstr ""
+
+#: apps/accounts/forms.py:83
+msgid "Ya existe una cuenta registrada con este correo electrónico."
+msgstr ""
+
+#: apps/accounts/forms.py:94
+msgid "Las contraseñas no coinciden."
+msgstr ""
+
+#: apps/accounts/forms.py:98
+msgid "La contraseña debe contener al menos un número."
+msgstr ""
+
+#: apps/accounts/forms.py:106
+msgid "La cédula debe contener únicamente números."
+msgstr ""
+
+#: apps/accounts/forms.py:111
+#, python-format
+msgid ""
+"Ya existe una cuenta registrada con este documento de identidad (%(type)s-"
+"%(number)s)."
+msgstr ""
+
+#: apps/accounts/forms.py:123
+#: apps/accounts/templates/accounts/password_reset.html:68
+msgid "Correo electrónico registrado"
+msgstr ""
+
+#: apps/accounts/models.py:18
+msgid "Usuario"
+msgstr ""
+
+#: apps/accounts/models.py:19
+msgid "Cuenta de usuario vinculada al perfil."
+msgstr ""
+
+#: apps/accounts/models.py:25
+msgid "Prefijo telefónico internacional."
+msgstr ""
+
+#: apps/accounts/models.py:30
+msgid "Teléfono"
+msgstr ""
+
+#: apps/accounts/models.py:31
+msgid "Número de teléfono o contacto del tutor."
+msgstr ""
+
+#: apps/accounts/models.py:37
+msgid "Nacionalidad o tipo de documento (V, E, J, P)."
+msgstr ""
+
+#: apps/accounts/models.py:42
+msgid "Número de cédula/documento"
+msgstr ""
+
+#: apps/accounts/models.py:43
+msgid "Número de identificación legal del tutor."
+msgstr ""
+
+#: apps/accounts/models.py:47
+msgid "Biografía"
+msgstr ""
+
+#: apps/accounts/models.py:48
+msgid "Presentación o notas sobre el tutor."
+msgstr ""
+
+#: apps/accounts/models.py:52
+msgid "Perfil de usuario"
+msgstr ""
+
+#: apps/accounts/models.py:53
+msgid "Perfiles de usuario"
+msgstr ""
+
 #: apps/accounts/templates/accounts/login.html:4
-#: apps/accounts/templates/accounts/login.html:57
-#: apps/core/templates/core/home.html:32
-#: templates/components/navbar_public.html:45
+#: apps/accounts/templates/accounts/login.html:67
+#: apps/core/templates/core/home.html:154
+#: templates/components/navbar_public.html:24
 msgid "Iniciar sesión"
 msgstr ""
 
@@ -40,115 +161,103 @@ msgid ""
 "mascotas."
 msgstr ""
 
-#: apps/accounts/templates/accounts/login.html:39
-#: apps/accounts/templates/accounts/register.html:82
-msgid "Correo electrónico"
-msgstr ""
-
-#: apps/accounts/templates/accounts/login.html:42
-#: apps/accounts/templates/accounts/register.html:142
-msgid "Contraseña"
-msgstr ""
-
-#: apps/accounts/templates/accounts/login.html:48
-msgid "Recordar mi sesión"
-msgstr ""
-
 #: apps/accounts/templates/accounts/login.html:51
+#: apps/accounts/templates/accounts/register.html:161
+#: apps/accounts/templates/accounts/register.html:169
+msgid "Mostrar u ocultar contraseña"
+msgstr ""
+
+#: apps/accounts/templates/accounts/login.html:61
+#: apps/core/templates/core/home.html:134
 msgid "¿Olvidaste tu contraseña?"
 msgstr ""
 
-#: apps/accounts/templates/accounts/login.html:65
+#: apps/accounts/templates/accounts/login.html:75
 msgid "¿Aún no tienes cuenta?"
 msgstr ""
 
-#: apps/accounts/templates/accounts/login.html:67
+#: apps/accounts/templates/accounts/login.html:77
 msgid "Regístrate aquí"
 msgstr ""
 
-#: apps/accounts/templates/accounts/login.html:80
+#: apps/accounts/templates/accounts/login.html:90
 msgid "Mascotas felices conectadas en Petly"
 msgstr ""
 
-#: apps/accounts/templates/accounts/login.html:91
+#: apps/accounts/templates/accounts/login.html:101
 msgid "matches esta semana"
 msgstr ""
 
-#: apps/accounts/templates/accounts/login.html:104
+#: apps/accounts/templates/accounts/login.html:114
 msgid "Mejores amigos desde 2026"
 msgstr ""
 
-#: apps/accounts/templates/accounts/login.html:113
+#: apps/accounts/templates/accounts/login.html:123
 msgid "experiencia real"
 msgstr ""
 
-#: apps/accounts/templates/accounts/login.html:116
+#: apps/accounts/templates/accounts/login.html:126
 msgid ""
 "Encontrar compañeros de paseo para Milo transformó su energía. En PetMatch "
 "conocimos a tutores súper comprometidos y seguros."
 msgstr ""
 
-#: apps/accounts/templates/accounts/login.html:126
+#: apps/accounts/templates/accounts/login.html:136
 msgid "Tutora de Golden & Siamés"
 msgstr ""
 
-#: apps/accounts/templates/accounts/login.html:131
+#: apps/accounts/templates/accounts/login.html:141
 msgid "Identidad confirmada"
 msgstr ""
 
 #: apps/accounts/templates/accounts/password_reset.html:4
-#: apps/accounts/templates/accounts/password_reset.html:51
-#: apps/core/templates/core/home.html:40
+#: apps/accounts/templates/accounts/password_reset.html:50
+#: apps/core/templates/core/home.html:156
 msgid "Recuperar contraseña"
 msgstr ""
 
-#: apps/accounts/templates/accounts/password_reset.html:15
+#: apps/accounts/templates/accounts/password_reset.html:12
+#: apps/accounts/templates/accounts/register.html:12
+msgid "Volver a iniciar sesión"
+msgstr ""
+
+#: apps/accounts/templates/accounts/password_reset.html:23
 msgid "Cuidamos cada detalle de tu cuenta."
 msgstr ""
 
-#: apps/accounts/templates/accounts/password_reset.html:18
+#: apps/accounts/templates/accounts/password_reset.html:26
 msgid ""
 "Más de 15,000 guardianes confían en nosotros para encontrar los mejores "
 "compañeros y momentos de juego para sus mascotas."
 msgstr ""
 
-#: apps/accounts/templates/accounts/password_reset.html:25
+#: apps/accounts/templates/accounts/password_reset.html:33
 msgid "Cuidado y seguridad para tus mascotas"
 msgstr ""
 
-#: apps/accounts/templates/accounts/password_reset.html:40
-#: apps/accounts/templates/accounts/register.html:12
-msgid "Volver a iniciar sesión"
-msgstr ""
-
-#: apps/accounts/templates/accounts/password_reset.html:54
+#: apps/accounts/templates/accounts/password_reset.html:53
 msgid ""
 "No te preocupes. Escribe el correo registrado y te enviaremos un código "
 "seguro para restablecer tu acceso."
 msgstr ""
 
-#: apps/accounts/templates/accounts/password_reset.html:67
-msgid "Correo electrónico registrado"
-msgstr ""
-
-#: apps/accounts/templates/accounts/password_reset.html:72
+#: apps/accounts/templates/accounts/password_reset.html:76
 msgid "Te enviaremos un enlace de un solo uso con 15 minutos de validez."
 msgstr ""
 
-#: apps/accounts/templates/accounts/password_reset.html:79
+#: apps/accounts/templates/accounts/password_reset.html:83
 msgid "Enviar enlace de recuperación"
 msgstr ""
 
-#: apps/accounts/templates/accounts/password_reset.html:89
+#: apps/accounts/templates/accounts/password_reset.html:93
 msgid "¿No recuerdas tu correo?"
 msgstr ""
 
-#: apps/accounts/templates/accounts/password_reset.html:91
+#: apps/accounts/templates/accounts/password_reset.html:95
 msgid "Contactar soporte"
 msgstr ""
 
 #: apps/accounts/templates/accounts/register.html:4
-#: apps/core/templates/core/home.html:36
 msgid "Registro de usuario"
 msgstr ""
 
@@ -178,104 +287,324 @@ msgstr ""
 msgid "Crea tu cuenta de tutor y empieza a explorar matches en tu localidad."
 msgstr ""
 
-#: apps/accounts/templates/accounts/register.html:77
+#: apps/accounts/templates/accounts/register.html:78
 msgid "Nombre completo del tutor"
 msgstr ""
 
-#: apps/accounts/templates/accounts/register.html:88
-msgid "Teléfono / contacto"
-msgstr ""
-
-#: apps/accounts/templates/accounts/register.html:92
-msgid "Código de país"
-msgstr ""
-
-#: apps/accounts/templates/accounts/register.html:117
-msgid "Cédula"
-msgstr ""
-
-#: apps/accounts/templates/accounts/register.html:121
-msgid "Tipo de documento"
-msgstr ""
-
-#: apps/accounts/templates/accounts/register.html:147
-msgid "Confirmar contraseña"
-msgstr ""
-
-#: apps/accounts/templates/accounts/register.html:153
+#: apps/accounts/templates/accounts/register.html:175
 msgid "Al menos 8 caracteres y un número."
 msgstr ""
 
-#: apps/accounts/templates/accounts/register.html:160
+#: apps/accounts/templates/accounts/register.html:182
 msgid "Registrarme y empezar"
 msgstr ""
 
-#: apps/accounts/templates/accounts/register.html:170
+#: apps/accounts/templates/accounts/register.html:192
 msgid "¿Ya tienes cuenta?"
 msgstr ""
 
-#: apps/accounts/templates/accounts/register.html:172
+#: apps/accounts/templates/accounts/register.html:194
 msgid "Inicia sesión"
 msgstr ""
 
 #: apps/accounts/templates/accounts/user_profile.html:4
-#: apps/accounts/templates/accounts/user_profile.html:9
-#: apps/core/templates/core/home.html:44
+#: apps/core/templates/core/home.html:157
 msgid "Gestión de usuario"
 msgstr ""
 
+#: apps/accounts/templates/accounts/user_profile.html:9
+msgid "Ruta de navegación"
+msgstr ""
+
 #: apps/accounts/templates/accounts/user_profile.html:10
-msgid "Pantalla en construcción para el perfil del tutor."
-msgstr ""
-
-#: apps/accounts/templates/accounts/user_profile.html:13
-msgid "Ir a gestión de perfiles de mascotas →"
-msgstr ""
-
-#: apps/accounts/templates/accounts/user_profile.html:16
-msgid "Cerrar sesión"
-msgstr ""
-
-#: apps/core/templates/core/home.html:4
 msgid "Inicio"
 msgstr ""
 
-#: apps/core/templates/core/home.html:13
+#: apps/accounts/templates/accounts/user_profile.html:12
+msgid "Mi Cuenta"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:14
+msgid "Gestión de Usuario"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:28
+#: apps/accounts/templates/accounts/user_profile.html:29
+msgid "Cambiar foto de perfil"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:45
+msgid "Miembro desde Feb 2026"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:60
+msgid "Mascotas registradas"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:71
+msgid "Conexiones activas"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:82
+msgid "Mascota en búsqueda"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:92
+msgid "Mis mascotas registradas"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:96
+msgid "Mis Mascotas"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:99
+msgid "perfiles"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:122
+msgid "Buscando citas"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:127
+#: apps/accounts/templates/accounts/user_profile.html:154
+msgid "Editar Perfil"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:149
+msgid "Solo paseos"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:163
+msgid "Registrar Nueva Mascota"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:168
+msgid "Formulario de datos personales del tutor"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:174
+msgid "Datos del Tutor"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:176
+msgid "Perfil verificado"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:187
+msgid "Nombre Completo"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:190
+msgid "Correo Electrónico"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:193
+msgid "Teléfono de Contacto"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:196
+msgid "Ciudad / Región"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:199
+msgid "Fecha de Cumpleaños"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:203
+msgid "Género"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:208
+msgid "Masculino"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:211
+msgid "Femenino"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:214
+msgid "Otro"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:221
+msgid "Color favorito"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:224
+msgid "Libro favorito"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:224
+msgid "Escribe tu libro favorito"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:227
+msgid "Música favorita"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:230
+msgid "Videojuego favorito"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:230
+msgid "Escribe tu videojuego favorito"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:236
+msgid "Descripción"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:241
+msgid "Escribe una breve descripción sobre ti y tus mascotas..."
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:244
+msgid ""
+"Comparte un poco sobre tu rutina o lo que te gusta hacer con tus mascotas."
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:251
+msgid "Guardar Información Personal"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:255
+msgid "Los cambios se guardan al presionar el botón"
+msgstr ""
+
+#: apps/accounts/templates/accounts/user_profile.html:265
+msgid "Cerrar Sesión"
+msgstr ""
+
+#: apps/accounts/views.py:48
+msgid ""
+"Correo electrónico o contraseña incorrectos. Por favor, verifica tus "
+"credenciales."
+msgstr ""
+
+#: apps/accounts/views.py:52
+msgid "Por favor, completa todos los campos requeridos."
+msgstr ""
+
+#: apps/accounts/views.py:105
+#, python-format
+msgid ""
+"Si el correo %(email)s está registrado, te hemos enviado un enlace seguro "
+"para restablecer tu acceso."
+msgstr ""
+
+#: apps/accounts/views.py:113
+msgid "Por favor, ingresa un correo electrónico válido para continuar."
+msgstr ""
+
+#: apps/core/templates/core/home.html:4
+msgid "Inicio - Bienvenida"
+msgstr ""
+
+#: apps/core/templates/core/home.html:18
+msgid "Compatibilidad"
+msgstr ""
+
+#: apps/core/templates/core/home.html:35
+msgid "A 1.8 km de ti • Los Teques"
+msgstr ""
+
+#: apps/core/templates/core/home.html:38
+msgid "Más información"
+msgstr ""
+
+#: apps/core/templates/core/home.html:45
+msgid "Descartar"
+msgstr ""
+
+#: apps/core/templates/core/home.html:50
+msgid "Guardar en favoritos"
+msgstr ""
+
+#: apps/core/templates/core/home.html:55
+msgid "Me interesa"
+msgstr ""
+
+#: apps/core/templates/core/home.html:62
+#: templates/components/components_palette.html:15
+msgid "Juguetón"
+msgstr ""
+
+#: apps/core/templates/core/home.html:63
+msgid "Sociable con gatos"
+msgstr ""
+
+#: apps/core/templates/core/home.html:64
+msgid "Golden Retriever & Siberiano"
+msgstr ""
+
+#: apps/core/templates/core/home.html:74
 msgid "Bienvenido a Petly"
 msgstr ""
 
-#: apps/core/templates/core/home.html:15
-msgid "Estructura base lista para el desarrollo de vistas."
+#: apps/core/templates/core/home.html:79
+msgid "Conexiones que"
 msgstr ""
 
-#: apps/core/templates/core/home.html:24
-msgid "Directorio de interfaces"
+#: apps/core/templates/core/home.html:80
+msgid "mueven colitas"
 msgstr ""
 
-#: apps/core/templates/core/home.html:26
-msgid "8 interfaces registradas"
+#: apps/core/templates/core/home.html:85
+msgid ""
+"Descubre compañeros de juego ideales, socialización supervisada y procesos "
+"de cruza ética o adopción certificada. Diseñado con amor y cuidado "
+"veterinario para garantizar el bienestar de cada miembro de cuatro patas."
 msgstr ""
 
-#: apps/core/templates/core/home.html:48
+#: apps/core/templates/core/home.html:88
+msgid ""
+"El lugar ideal para encontrar pareja de cruza responsable, citas de juego y "
+"adopción con perfiles verificados."
+msgstr ""
+
+#: apps/core/templates/core/home.html:100
+msgid "mascotas registradas"
+msgstr ""
+
+#: apps/core/templates/core/home.html:111
+msgid "matches felices"
+msgstr ""
+
+#: apps/core/templates/core/home.html:120
+msgid "Crear Cuenta Nueva"
+msgstr ""
+
+#: apps/core/templates/core/home.html:127
+msgid "Ya tengo una cuenta • Iniciar Sesión"
+msgstr ""
+
+#: apps/core/templates/core/home.html:147
+msgid "Directorio de interfaces de desarrollo & Guía de componentes"
+msgstr ""
+
+#: apps/core/templates/core/home.html:155
+msgid "Registro"
+msgstr ""
+
+#: apps/core/templates/core/home.html:158
 msgid "Gestión de mascotas"
 msgstr ""
 
-#: apps/core/templates/core/home.html:52
+#: apps/core/templates/core/home.html:159
 #: apps/pets/templates/pets/pet_select.html:4
 msgid "Seleccionar mascota"
 msgstr ""
 
-#: apps/core/templates/core/home.html:56
+#: apps/core/templates/core/home.html:160
 #: apps/pets/templates/pets/match_feed.html:4
 #: apps/pets/templates/pets/match_feed.html:9
-#: templates/components/navbar.html:47 templates/components/navbar.html:74
+#: templates/components/navbar.html:26 templates/components/navbar.html:63
 msgid "Buscar pareja"
 msgstr ""
 
-#: apps/core/templates/core/home.html:60
-#: apps/pets/templates/pets/match_interested.html:4
-#: apps/pets/templates/pets/match_interested.html:9
-msgid "Mascotas interesadas"
+#: apps/core/templates/core/home.html:161 templates/components/navbar.html:29
+#: templates/components/navbar.html:67
+msgid "Interesados"
 msgstr ""
 
 #: apps/pets/templates/pets/match_feed.html:11
@@ -288,6 +617,11 @@ msgstr ""
 
 #: apps/pets/templates/pets/match_feed.html:16
 msgid "Ver mascotas interesadas →"
+msgstr ""
+
+#: apps/pets/templates/pets/match_interested.html:4
+#: apps/pets/templates/pets/match_interested.html:9
+msgid "Mascotas interesadas"
 msgstr ""
 
 #: apps/pets/templates/pets/match_interested.html:11
@@ -359,10 +693,6 @@ msgstr ""
 #: templates/components/components_palette.html:14
 #, python-format
 msgid "98%% compatibilidad"
-msgstr ""
-
-#: templates/components/components_palette.html:15
-msgid "Juguetón"
 msgstr ""
 
 #: templates/components/components_palette.html:16
@@ -550,40 +880,30 @@ msgstr ""
 msgid "Normas de bienestar animal"
 msgstr ""
 
-#: templates/components/input.html:26
-msgid "Requerido"
-msgstr ""
-
-#: templates/components/input.html:53
-msgid "Mostrar u ocultar contraseña"
-msgstr ""
-
-#: templates/components/navbar.html:21 templates/components/navbar.html:26
-#: templates/components/navbar_public.html:21
-#: templates/components/navbar_public.html:26
+#: templates/components/language_selector.html:8
 msgid "Seleccionar idioma"
 msgstr ""
 
-#: templates/components/navbar.html:42
+#: templates/components/navbar.html:21
 msgid "Navegación principal"
 msgstr ""
 
-#: templates/components/navbar.html:44 templates/components/navbar.html:70
+#: templates/components/navbar.html:23 templates/components/navbar.html:59
 msgid "Mis mascotas"
 msgstr ""
 
-#: templates/components/navbar.html:50 templates/components/navbar.html:78
-msgid "Interesados"
-msgstr ""
-
-#: templates/components/navbar.html:56 templates/components/navbar.html:82
+#: templates/components/navbar.html:35 templates/components/navbar.html:71
 msgid "Mi perfil"
 msgstr ""
 
-#: templates/components/navbar.html:66
+#: templates/components/navbar.html:43 templates/components/navbar.html:44
+msgid "Cerrar sesión"
+msgstr ""
+
+#: templates/components/navbar.html:55
 msgid "Navegación móvil"
 msgstr ""
 
-#: templates/components/navbar_public.html:48
+#: templates/components/navbar_public.html:27
 msgid "Registrarse"
 msgstr ""
