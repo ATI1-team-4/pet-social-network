@@ -147,7 +147,7 @@
                  Aplica dinámicamente el color de perfil personalizado elegido por el usuario (active_pet.profile_color_hex)
             -->
             <div id="discovery-card"
-                 class="relative w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border-[3px]"
+                 class="relative w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border-[3px] mb-8 lg:mb-0"
                  style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; box-shadow: 0 12px 36px {{ active_pet.profile_color_hex|default:'#FA7D82' }}33;">
 
                 <!-- Fila superior de barra de color y acento de tutor -->
@@ -296,8 +296,8 @@
                 </div>
 
                 <!-- SECCIÓN 3: BOTONES DE ACCIÓN RÁPIDA (✕ y ♥) -->
-                <!-- Versión Escritorio (sm en adelante) -->
-                <div class="hidden sm:flex p-4 sm:p-5 bg-neutral-50/80 border-t border-neutral-200 items-center justify-between gap-4">
+                <!-- Versión Escritorio (md en adelante) -->
+                <div class="hidden md:flex p-4 sm:p-5 bg-neutral-50/80 border-t border-neutral-200 items-center justify-between gap-4">
                     <!-- Botón flotante: Pasar / Descartar (✕) -->
                     <button type="button"
                             onclick="handlePassCandidate()"
@@ -329,7 +329,7 @@
                 </div>
 
                 <!-- Versión Teléfono Móvil: Botones Circulares de Acción (FAB) oficiales -->
-                <div class="sm:hidden p-4 bg-white/95 backdrop-blur-xs border-t border-neutral-200/90 flex items-center justify-center gap-10">
+                <div class="md:hidden px-4 pt-4 pb-6 bg-white/95 backdrop-blur-xs border-t border-neutral-200/90 flex items-center justify-center gap-10">
                     <!-- Botón Circular Descartar (✕) -->
                     <div class="flex flex-col items-center gap-1.5">
                         <button type="button"
