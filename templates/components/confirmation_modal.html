@@ -1,19 +1,20 @@
 {% load i18n %}
 {% comment %}
-Componente de diálogo modal de confirmación (reto 11).
-Permite confirmar acciones importantes, destructivas, formularios o funciones JavaScript.
+Componente de diálogo modal de confirmación reutilizable (reto 11, páginas 4 y 10).
+Permite confirmar acciones importantes, destructivas, envío de formularios o funciones JavaScript.
 
 Parámetros disponibles:
-- id: Identificador único del modal (requerido para asociar con openModal('id')).
+- id: Identificador único del modal (requerido para asociar con openModal('id') y closeModal('id')).
 - title: Título del diálogo en sentence case (ej. "¿Deseas descartar los cambios?").
-- text: Mensaje descriptivo o advertencia de la acción.
-- icon: Nombre del ícono SVG opcional ('trash', 'close', 'paw', 'heart-filled', 'check').
-- variant: 'danger' (rojo para descartar/eliminar) o 'success' (coral/menta para confirmar/match).
+- text: Mensaje descriptivo o advertencia sobre las consecuencias de la acción.
+- icon: Nombre del ícono SVG opcional ('trash', 'close', 'paw', 'heart-filled', 'check', 'award').
+- variant: 'danger' (rojo para descartar/eliminar) | 'warning' (ámbar para advertencias) | 'success' (coral/menta para confirmar/match) | 'default' (azul).
 - confirm_text: Texto del botón de confirmación en sentence case (ej. "Descartar cambios").
-- confirm_variant: Variante visual del botón ('primary' | 'secondary' | 'outline' | 'danger').
+- confirm_variant: Variante visual del botón de confirmación ('primary' | 'secondary' | 'outline' | 'danger').
 - confirm_url: Enlace opcional si el botón redirige a otra URL.
 - confirm_form_id: Identificador de formulario a enviar al confirmar (opcional).
 - onconfirm: Código o función JavaScript a ejecutar al confirmar (opcional).
+- confirm_action: Alias alternativo para código o función JavaScript a ejecutar al confirmar (opcional).
 - cancel_text: Texto del botón de cancelación en sentence case (ej. "Seguir editando").
 - cancel_variant: Variante del botón de cancelación ('outline' | 'secondary').
 - class: Clases CSS complementarias para la tarjeta interior.

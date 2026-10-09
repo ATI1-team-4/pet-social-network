@@ -69,7 +69,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'password_confirm': 'Password123',
         }
         response = self.client.post(reverse('accounts:register'), register_data)
-        self.assertRedirects(response, reverse('pets:pet_management'))
+        self.assertRedirects(response, reverse('pets:pet_select'))
 
         user = User.objects.filter(email='carlos@petly.com').first()
         self.assertIsNotNone(user)
@@ -123,7 +123,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'password_confirm': 'Password123',
         }
         response = self.client.post(reverse('accounts:register'), foreigner_data)
-        self.assertRedirects(response, reverse('pets:pet_management'))
+        self.assertRedirects(response, reverse('pets:pet_select'))
 
         user = User.objects.filter(email='hans.muller@petly.com').first()
         self.assertIsNotNone(user)
@@ -140,7 +140,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'remember_me': True,
         }
         response = self.client.post(reverse('accounts:login'), login_data)
-        self.assertRedirects(response, reverse('pets:pet_management'))
+        self.assertRedirects(response, reverse('pets:pet_select'))
 
         user = User.objects.get(username='edwyn')
         login_log = AuditLog.objects.filter(action='LOGIN_SUCCESS', user=user).first()

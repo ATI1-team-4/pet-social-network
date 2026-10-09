@@ -1,7 +1,7 @@
 {% extends 'layouts/app.html' %}
 {% load i18n static %}
 
-{% block title %}{% translate "Buscar Pareja" %} | Petly{% endblock %}
+{% block title %}{% translate "Buscar pareja" %} | Petly{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-5">
@@ -9,37 +9,9 @@
     <!-- Mensajes flash del sistema si existen -->
     {% include 'components/messages.html' %}
 
-    <!-- ============================================== -->
-    <!-- CABECERA SUPERIOR Y FILTROS RÁPIDOS            -->
-    <!-- ============================================== -->
-
-    <!-- Subcabecera móvil (reto 11, página 13 móvil) -->
-    <div class="lg:hidden flex items-center justify-between pb-2 border-b border-neutral-200/80">
-        <div class="flex items-center gap-2">
-            <a href="{% url 'pets:pet_select' %}" class="w-8 h-8 rounded-full bg-white border border-neutral-300 flex items-center justify-center text-neutral-700 hover:text-petly-coral transition-colors shadow-xs" aria-label="{% translate 'Cambiar mascota' %}">
-                {% include 'components/icon.html' with name="chevron-down" class="w-4 h-4 rotate-90 text-neutral-700" %}
-            </a>
-            <div class="w-8 h-8 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0">
-                {% include 'components/icon.html' with name="heart-filled" class="w-4 h-4" %}
-            </div>
-            <h1 class="title-h4 text-neutral-900 font-bold leading-tight">
-                {% translate "Buscar Pareja" %}
-            </h1>
-        </div>
-        <div class="flex items-center gap-2">
-            <!-- Botón de filtros avanzados solo con símbolo para móvil -->
-            <button type="button"
-                    onclick="openModal('modal-filters')"
-                    class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-petly-coral flex items-center justify-center shadow-xs cursor-pointer"
-                    title="{% translate 'Configurar Filtros Avanzados' %}"
-                    aria-label="{% translate 'Configurar Filtros Avanzados' %}">
-                {% include 'components/icon.html' with name="sliders" class="w-4 h-4 text-neutral-700" %}
-            </button>
-            <a href="{% url 'accounts:profile' %}" class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-petly-coral flex items-center justify-center shadow-xs" title="{% translate 'Mi perfil' %}">
-                {% include 'components/icon.html' with name="user" class="w-4 h-4" %}
-            </a>
-        </div>
-    </div>
+    <!-- Miga de pan de navegación -->
+    {% translate "Buscar pareja" as current_bc %}
+    {% include 'components/breadcrumbs.html' with current_label=current_bc %}
 
     <!-- Barra de contexto y mascota activa (Escritorio) -->
     <div class="hidden lg:flex items-center justify-between gap-4">
@@ -70,17 +42,15 @@
                     {% include 'components/icon.html' with name="dog" class="w-3.5 h-3.5 text-neutral-500" %}
                     <span>{% translate "Perros" %}</span>
                 </span>
-                <span class="badge-compat text-xs py-1.5 px-3 shadow-xs">
-                    {% include 'components/icon.html' with name="award" class="w-3.5 h-3.5 text-emerald-800" %}
-                    <span>{% translate "Con Pedigrí FCI" %}</span>
-                </span>
+                {% translate "Con pedigrí FCI" as fci_label %}
+                {% include 'components/badge.html' with text=fci_label variant="compat" icon="award" class="text-xs py-1.5 px-3 shadow-xs" %}
             </div>
         </div>
 
         <!-- Botón de filtros avanzados -->
         <button type="button" onclick="openModal('modal-filters')" class="text-xs font-semibold text-neutral-600 hover:text-petly-coral inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white/80 transition-all cursor-pointer">
             {% include 'components/icon.html' with name="sliders" class="w-4 h-4 text-neutral-600" %}
-            <span>{% translate "Configurar Filtros Avanzados" %}</span>
+            <span>{% translate "Configurar filtros avanzados" %}</span>
         </button>
     </div>
 
@@ -93,7 +63,7 @@
                 </div>
                 <div>
                     <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-                        {% translate "BUSCANDO PARA" %}
+                        {% translate "Buscando para" %}
                     </span>
                     <span class="text-xs font-bold text-neutral-900 leading-tight">
                         {{ active_pet.name }}, {{ active_pet.age_text }}
@@ -103,9 +73,9 @@
                     </span>
                 </div>
             </div>
-            <a href="{% url 'pets:pet_select' %}" class="btn-petly-outline text-xs px-3 py-1.5 rounded-full bg-white font-semibold">
-                {% translate "Cambiar" %} ⇄
-            </a>
+            {% translate "Cambiar" as change_label %}
+            {% url 'pets:pet_select' as pet_select_url %}
+            {% include 'components/button.html' with href=pet_select_url text=change_label variant="outline" class="text-xs px-3 py-1.5 rounded-full bg-white font-semibold" attrs='aria-label="Cambiar mascota"' %}
         </div>
 
         <div class="flex items-center justify-between gap-2 py-1">
@@ -118,16 +88,14 @@
                     {% include 'components/icon.html' with name="dog" class="w-3 h-3 text-neutral-500" %}
                     <span>{% translate "Perros" %}</span>
                 </span>
-                <span class="badge-compat text-xs py-1 px-3 whitespace-nowrap">
-                    {% include 'components/icon.html' with name="award" class="w-3 h-3 text-emerald-800" %}
-                    <span>{% translate "Con Pedigrí FCI" %}</span>
-                </span>
+                {% translate "Con pedigrí FCI" as fci_label_mob %}
+                {% include 'components/badge.html' with text=fci_label_mob variant="compat" icon="award" class="text-xs py-1 px-3 whitespace-nowrap" %}
             </div>
             <button type="button"
                     onclick="openModal('modal-filters')"
                     class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-petly-coral flex items-center justify-center shadow-xs shrink-0 cursor-pointer"
-                    title="{% translate 'Configurar Filtros Avanzados' %}"
-                    aria-label="{% translate 'Configurar Filtros Avanzados' %}">
+                    title="{% translate 'Configurar filtros avanzados' %}"
+                    aria-label="{% translate 'Configurar filtros avanzados' %}">
                 {% include 'components/icon.html' with name="sliders" class="w-4 h-4 text-neutral-700" %}
             </button>
         </div>
@@ -166,13 +134,11 @@
                         <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
                         <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
                         <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
-                    </div>
-
-                    <!-- Insignia de compatibilidad en la esquina superior izquierda -->
+                          <!-- Insignia de compatibilidad en la esquina superior izquierda -->
                     <div class="absolute top-7 left-4 z-20">
                         <span id="card-compatibility-badge" class="badge-compat text-xs py-1 px-3 shadow-md">
                             {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-emerald-900" %}
-                            <span id="card-compatibility-text">{{ current_candidate.compatibility }} {% translate "Compatible" %}</span>
+                            <span id="card-compatibility-text">{{ current_candidate.compatibility }} {% translate "compatible" %}</span>
                         </span>
                     </div>
 
@@ -222,7 +188,7 @@
                     <!-- Personalidad y Temperamento -->
                     <div>
                         <span class="text-[10px] font-bold tracking-wider uppercase text-neutral-400 mb-2 block">
-                            {% translate "PERSONALIDAD Y TEMPERAMENTO" %}
+                            {% translate "Personalidad y temperamento" %}
                         </span>
                         <div id="card-temperaments-container" class="flex flex-wrap gap-1.5">
                             {% for trait in current_candidate.temperaments %}
@@ -237,7 +203,7 @@
                     <div class="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl border text-center" style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}44; background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}0d;">
                         <div class="flex flex-col">
                             <span class="text-[10px] font-semibold text-neutral-500 uppercase">
-                                {% translate "Fecha Nacimiento" %}
+                                {% translate "Fecha de nacimiento" %}
                             </span>
                             <span id="card-birthdate" class="text-xs font-bold text-neutral-900 mt-0.5">
                                 {{ current_candidate.birth_date }}
@@ -245,7 +211,7 @@
                         </div>
                         <div class="flex flex-col border-x border-neutral-300/60">
                             <span class="text-[10px] font-semibold text-neutral-500 uppercase">
-                                {% translate "Peso Actual" %}
+                                {% translate "Peso actual" %}
                             </span>
                             <span id="card-weight" class="text-xs font-bold text-neutral-900 mt-0.5">
                                 {{ current_candidate.weight }}
@@ -282,7 +248,7 @@
                                     {{ current_candidate.tutors.name }}
                                 </span>
                                 <span class="text-[11px] text-neutral-500">
-                                    {% translate "Tutor Verificado" %}
+                                    {% translate "Tutor verificado" %}
                                 </span>
                             </div>
                         </div>
@@ -299,23 +265,17 @@
                 <!-- Versión Escritorio (md en adelante) -->
                 <div class="hidden md:flex p-4 sm:p-5 bg-neutral-50/80 border-t border-neutral-200 items-center justify-between gap-4">
                     <!-- Botón flotante: Pasar / Descartar (✕) -->
-                    <button type="button"
-                            onclick="handlePassCandidate()"
-                            id="btn-pass"
-                            class="fab-petly-dismiss shrink-0"
-                            title="{% translate 'Pasar candidato' %}"
-                            aria-label="{% translate 'Pasar candidato' %}">
-                        {% include 'components/icon.html' with name="close" class="w-6 h-6 text-neutral-500" %}
-                    </button>
+                    {% translate "Pasar candidato" as pass_cand_label %}
+                    {% include 'components/button.html' with variant="fab-dismiss" type="button" id="btn-pass" onclick="handlePassCandidate()" class="shrink-0" aria_label=pass_cand_label %}
 
                     <!-- Botón primario central: Mostrar Interés (♥) -->
                     <button type="button"
                             onclick="handleLikeCandidate()"
                             id="btn-like"
-                            class="btn-petly-primary flex-1 py-3.5 text-sm sm:text-base font-bold shadow-md inline-flex items-center justify-center gap-2"
+                            class="select-none btn-petly-primary flex-1 py-3.5 text-sm sm:text-base font-bold shadow-md inline-flex items-center justify-center gap-2"
                             style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
                         {% include 'components/icon.html' with name="heart-filled" class="w-5 h-5 text-white" %}
-                        <span id="btn-like-text">{% blocktranslate with name=current_candidate.name %}Mostrar Interés en {{ name }}{% endblocktranslate %}</span>
+                        <span id="btn-like-text">{% blocktranslate with name=current_candidate.name %}Mostrar interés en {{ name }}{% endblocktranslate %}</span>
                     </button>
 
                     <!-- Botón secundario: Información o reporte -->
@@ -332,28 +292,15 @@
                 <div class="md:hidden px-4 pt-4 pb-6 bg-white/95 backdrop-blur-xs border-t border-neutral-200/90 flex items-center justify-center gap-10">
                     <!-- Botón Circular Descartar (✕) -->
                     <div class="flex flex-col items-center gap-1.5">
-                        <button type="button"
-                                onclick="handlePassCandidate()"
-                                id="btn-pass-mobile"
-                                class="w-16 h-16 rounded-full bg-white border border-neutral-200/90 shadow-md hover:shadow-lg flex items-center justify-center text-neutral-600 active:scale-95 transition-all cursor-pointer"
-                                title="{% translate 'Descartar (✕)' %}"
-                                aria-label="{% translate 'Descartar' %}">
-                            {% include 'components/icon.html' with name="close" class="w-7 h-7 text-neutral-600" %}
-                        </button>
+                        {% translate "Descartar" as pass_mob_label %}
+                        {% include 'components/button.html' with variant="fab-dismiss" type="button" id="btn-pass-mobile" onclick="handlePassCandidate()" class="w-16 h-16 bg-white border border-neutral-200/90 shadow-md hover:shadow-lg active:scale-95 transition-all text-neutral-600" aria_label=pass_mob_label %}
                         <span class="text-xs font-semibold text-neutral-500">{% translate "Descartar" %}</span>
                     </div>
 
                     <!-- Botón Circular Me Interesa (♥) -->
                     <div class="flex flex-col items-center gap-1.5">
-                        <button type="button"
-                                onclick="handleLikeCandidate()"
-                                id="btn-like-mobile"
-                                class="w-16 h-16 rounded-full text-white shadow-lg flex items-center justify-center active:scale-95 transition-all cursor-pointer"
-                                style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; box-shadow: 0 10px 25px {{ active_pet.profile_color_hex|default:'#FA7D82' }}66;"
-                                title="{% translate 'Me interesa (♥)' %}"
-                                aria-label="{% translate 'Me interesa' %}">
-                            {% include 'components/icon.html' with name="heart-filled" class="w-7 h-7 text-white" %}
-                        </button>
+                        {% translate "Me interesa" as like_mob_label %}
+                        {% include 'components/button.html' with variant="fab-like" type="button" id="btn-like-mobile" onclick="handleLikeCandidate()" class="w-16 h-16 shadow-lg active:scale-95 transition-all text-white" attrs='style="background-color: {{ active_pet.profile_color_hex|default:\x27#FA7D82\x27 }}; box-shadow: 0 10px 25px {{ active_pet.profile_color_hex|default:\x27#FA7D82\x27 }}66;"' aria_label=like_mob_label %}
                         <span class="text-xs font-semibold text-neutral-700">{% translate "Me interesa" %}</span>
                     </div>
                 </div>
@@ -409,7 +356,7 @@
                                     onclick="quickMatchWith('{{ suitor.name }}', '{{ suitor.photo_url }}')"
                                     class="w-8 h-8 rounded-full text-white flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer"
                                     style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};"
-                                    title="{% translate 'Responder con Match' %}">
+                                    title="{% translate 'Responder con match' %}">
                                 {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-white" %}
                             </button>
                         </div>
@@ -432,7 +379,7 @@
                  style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}33;">
                 <div class="flex items-center gap-1.5 text-emerald-800 font-bold">
                     {% include 'components/icon.html' with name="award" class="w-4 h-4 text-emerald-600" %}
-                    <span>{% translate "Normas de Cruza Responsable" %}</span>
+                    <span>{% translate "Normas de cruza responsable" %}</span>
                 </div>
                 <p class="text-neutral-500 text-[11px] leading-relaxed">
                     {% translate "Petly promueve únicamente cruzas éticas con certificados sanitarios y espacios caninos verificados." %}
@@ -465,7 +412,7 @@
         </div>
 
         <h2 id="modal-match-title" class="title-h2 text-neutral-900 font-bold mb-1">
-            {% translate "¡Es un Match!" %} 🎉
+            {% translate "¡Es un match!" %} 🎉
         </h2>
         <p class="text-xs sm:text-sm text-neutral-600 mb-6">
             {% blocktranslate with tutor=current_candidate.tutors.name pet=current_candidate.name my_pet=active_pet.name %}
@@ -497,15 +444,12 @@
 
         <!-- Botones de acción del match -->
         <div class="space-y-2.5">
-            <a href="{% url 'pets:match_interested' %}" class="btn-petly-primary w-full py-3 text-sm font-bold shadow-md inline-flex items-center justify-center gap-2 no-underline">
-                {% include 'components/icon.html' with name="message-square" class="w-4 h-4 text-white" %}
-                <span>{% translate "Enviar Mensaje a los Tutores" %}</span>
-            </a>
+            {% translate "Enviar mensaje a los tutores" as send_msg_text %}
+            {% url 'pets:match_interested' as match_int_url %}
+            {% include 'components/button.html' with href=match_int_url text=send_msg_text icon="message-square" icon_class="w-4 h-4 text-white" class="w-full py-3 text-sm font-bold shadow-md inline-flex items-center justify-center gap-2 no-underline" %}
 
-            <button type="button" onclick="nextCandidateAfterMatch()" class="btn-petly-outline w-full py-2.5 text-xs font-semibold bg-white inline-flex items-center justify-center gap-1.5 shadow-xs">
-                <span>{% translate "Seguir Explorando Parejas" %}</span>
-                <span>&rarr;</span>
-            </button>
+            {% translate "Seguir explorando parejas" as explore_more_text %}
+            {% include 'components/button.html' with text=explore_more_text variant="outline" type="button" onclick="nextCandidateAfterMatch()" class="w-full py-2.5 text-xs font-semibold bg-white inline-flex items-center justify-center gap-1.5 shadow-xs" %}
         </div>
     </div>
 </div>
@@ -521,7 +465,7 @@
         </button>
 
         <h3 id="modal-filters-title" class="title-h4 text-neutral-900 font-bold mb-4">
-            {% translate "Filtros de Búsqueda de Pareja" %}
+            {% translate "Filtros de búsqueda de pareja" %}
         </h3>
 
         <div class="space-y-4 text-xs">
@@ -538,9 +482,9 @@
             <div>
                 <label class="font-semibold text-neutral-700 block mb-1">{% translate "Propósito principal" %}</label>
                 <select class="input-petly text-xs">
-                    <option>{% translate "Cruza Responsable y Socialización" %}</option>
-                    <option>{% translate "Únicamente Cruza con Pedigrí" %}</option>
-                    <option>{% translate "Únicamente Socialización y Citas de Juego" %}</option>
+                    <option>{% translate "Cruza responsable y socialización" %}</option>
+                    <option>{% translate "Únicamente cruza con pedigrí" %}</option>
+                    <option>{% translate "Únicamente socialización y citas de juego" %}</option>
                 </select>
             </div>
 
@@ -548,15 +492,14 @@
                 <label class="font-semibold text-neutral-700 block mb-1">{% translate "Certificación requerida" %}</label>
                 <label class="inline-flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked class="rounded border-neutral-300 text-petly-coral focus:ring-petly-coral">
-                    <span>{% translate "Solo candidatos con Certificado FCI o Pedigrí" %}</span>
+                    <span>{% translate "Solo candidatos con certificado FCI o pedigrí" %}</span>
                 </label>
             </div>
         </div>
 
         <div class="mt-6 flex justify-end gap-2">
-            <button type="button" onclick="closeModal('modal-filters')" class="btn-petly-primary text-xs px-5 py-2">
-                {% translate "Aplicar Filtros" %}
-            </button>
+            {% translate "Aplicar filtros" as apply_flt_text %}
+            {% include 'components/button.html' with text=apply_flt_text variant="primary" type="button" onclick="closeModal('modal-filters')" class="text-xs px-5 py-2 font-bold" %}
         </div>
     </div>
 </div>
@@ -616,7 +559,7 @@
         if (purposeText) purposeText.textContent = c.purpose;
 
         const compatText = document.getElementById('card-compatibility-text');
-        if (compatText) compatText.textContent = `${c.compatibility} {% translate "Compatible" %}`;
+        if (compatText) compatText.textContent = `${c.compatibility} {% translate "compatible" %}`;
 
         // Métricas
         const birthElem = document.getElementById('card-birthdate');
@@ -651,7 +594,7 @@
 
         // Botón de Like
         const btnLikeText = document.getElementById('btn-like-text');
-        if (btnLikeText) btnLikeText.textContent = `{% translate "Mostrar Interés en" %} ${c.name}`;
+        if (btnLikeText) btnLikeText.textContent = `{% translate "Mostrar interés en" %} ${c.name}`;
 
         // Modal de Match
         const matchName = document.getElementById('match-candidate-name');

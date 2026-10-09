@@ -222,6 +222,42 @@ body {
   line-height: 1.50;
 }
 
+/* Escalamiento responsivo de títulos oficiales en pantallas móviles */
+@media (max-width: 640px) {
+  .title-h1 {
+    font-size: 26px !important;
+    line-height: 1.20 !important;
+  }
+  .title-h2 {
+    font-size: 22px !important;
+    line-height: 1.25 !important;
+  }
+  .title-h3 {
+    font-size: 19px !important;
+    line-height: 1.30 !important;
+  }
+  .title-h4 {
+    font-size: 16px !important;
+    line-height: 1.35 !important;
+  }
+  .title-h5 {
+    font-size: 15px !important;
+    line-height: 1.35 !important;
+  }
+  .title-h6 {
+    font-size: 13px !important;
+    line-height: 1.40 !important;
+  }
+  .text-display {
+    font-size: 20px !important;
+    line-height: 1.35 !important;
+  }
+  .text-large {
+    font-size: 16px !important;
+    line-height: 1.40 !important;
+  }
+}
+
 /* Componentes oficiales de la interfaz (reto 11 - diseño y prototipado) */
 .btn-petly-primary {
   display: inline-flex;
@@ -385,6 +421,21 @@ body {
 }
 .btn-petly-danger:active {
   transform: scale(0.98);
+}
+
+/* Adaptabilidad de botones oficiales en pantallas móviles: evita sobredimensión o desbordes */
+@media (max-width: 640px) {
+  .btn-petly-primary,
+  .btn-petly-secondary,
+  .btn-petly-soft,
+  .btn-petly-lilac,
+  .btn-petly-outline,
+  .btn-petly-danger {
+    padding: 0.5rem 1rem !important;
+    min-height: 2.25rem !important;
+    font-size: 0.8125rem !important;
+    line-height: 1.25 !important;
+  }
 }
 
 /* Botones flotantes (FAB) del prototipo */

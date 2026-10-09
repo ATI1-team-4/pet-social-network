@@ -4,7 +4,7 @@
         <div class="flex items-center justify-between h-14 sm:h-16 gap-3 flex-nowrap">
             <!-- Columna izquierda: Logotipo y marca oficial del prototipo -->
             <div class="flex items-center justify-start shrink-0">
-                <a href="{% url 'core:home' %}" class="flex items-center gap-2 group select-none no-underline py-1">
+                <a href="{% url 'pets:pet_select' %}" class="flex items-center gap-2 group select-none no-underline py-1">
                     <img src="{% static 'images/logo.png' %}" alt="Petly" class="w-5 h-5 sm:w-6.5 sm:h-6.5 object-contain shrink-0 group-hover:scale-105 transition-transform duration-200">
                     <span class="font-bold text-xl sm:text-2xl tracking-tight text-neutral-800 group-hover:text-petly-coral transition-colors leading-none">
                         Petly
@@ -12,7 +12,7 @@
                 </a>
             </div>
 
-            <!-- Columna derecha: Selector de idioma, navegación de pestañas y perfil móvil -->
+            <!-- Columna derecha: Selector de idioma, navegación de pestañas y perfil (escritorio) -->
             <div class="flex items-center justify-end gap-2.5 sm:gap-4 shrink-0 flex-nowrap">
                 <!-- Selector de idioma con ícono SVG oficial (a la izquierda de la navegación) -->
                 {% include 'components/language_selector.html' with id_suffix="auth" %}
@@ -30,20 +30,20 @@
                     </a>
                 </nav>
 
-                <!-- Perfil del usuario autenticado (ícono circular visible en escritorio y móvil) -->
-                <div class="flex items-center shrink-0">
+                <!-- Perfil del usuario autenticado (ícono circular visible solo en escritorio; en móvil se accede desde la barra inferior) -->
+                <div class="hidden md:flex items-center shrink-0">
                     <a href="{% url 'accounts:profile' %}" title="{% translate 'Mi perfil' %}" class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-petly-coral hover:border-petly-coral/40 flex items-center justify-center transition-all shadow-xs shrink-0 no-underline">
                         {% include 'components/icon.html' with name="user" class="w-4 h-4" %}
                     </a>
                 </div>
 
-                <!-- Botón de cerrar sesión persistente (visible en escritorio y móvil a la derecha del nav) -->
+                <!-- Botón redondo de cerrar sesión oficial visible en todo momento (incluso en mobile) -->
                 <div class="flex items-center shrink-0">
                     <a href="{% url 'accounts:logout' %}"
                        title="{% translate 'Cerrar sesión' %}"
                        aria-label="{% translate 'Cerrar sesión' %}"
-                       class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-red-500 hover:border-red-300 hover:bg-red-50/40 flex items-center justify-center transition-all duration-150 shadow-xs shrink-0 no-underline cursor-pointer">
-                        {% include 'components/icon.html' with name="log-out" class="w-4 h-4" %}
+                       class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 flex items-center justify-center transition-all shadow-xs shrink-0 no-underline cursor-pointer">
+                        {% include 'components/icon.html' with name="log-out" class="w-4 h-4 text-neutral-600 hover:text-rose-600" %}
                     </a>
                 </div>
             </div>

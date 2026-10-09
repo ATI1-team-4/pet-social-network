@@ -45,7 +45,7 @@ class PetsViewsTests(TestCase):
         url_new = reverse('pets:pet_management') + '?new=true'
         response_new = self.client.get(url_new)
         self.assertEqual(response_new.status_code, 200)
-        self.assertContains(response_new, 'Registrar Mascota')
+        self.assertContains(response_new, 'Registrar mascota')
 
     def test_pet_management_post_save_and_delete(self):
         """Verifica el procesamiento de formularios POST en la gestión de mascotas."""
@@ -102,5 +102,5 @@ class PetsViewsTests(TestCase):
         self.assertContains(response, 'Maya')
 
         # Verifica citas confirmadas y enlace de retorno al feed
-        self.assertContains(response, 'Citas Confirmadas')
+        self.assertContains(response, 'Citas confirmadas')
         self.assertContains(response, reverse('pets:match_feed'))
