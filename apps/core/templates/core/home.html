@@ -4,9 +4,9 @@
 {% block title %}{% translate "Inicio - Bienvenida" %} | Petly{% endblock %}
 
 {% block content %}
-<escape>
-    <div class="py-2 sm:py-6 lg:py-10 max-w-6xl mx-auto">
-</escape>
+
+<div class="py-2 sm:py-6 lg:py-10 max-w-6xl mx-auto">
+
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8 lg:gap-12 items-center">
     <!-- Tarjeta visual (Toby & Bella) -->
     <div class="order-1 lg:order-2 lg:col-span-5 flex justify-center py-2 sm:py-4">
@@ -141,40 +141,5 @@
     </div>
 </div>
 
-<div class="mt-14 pt-8 border-t border-neutral-300/70">
-    <details class="group cursor-pointer">
-        <summary
-            class="flex items-center justify-between text-neutral-600 hover:text-neutral-900 font-semibold text-sm select-none list-none py-2">
-            <span class="flex items-center gap-2">
-                {% include 'components/icon.html' with name="sliders" class="w-4 h-4 text-petly-coral" %}
-                <span>{% translate "Directorio de interfaces de desarrollo & Guía de componentes" %}</span>
-            </span>
-            <span class="text-xs text-neutral-400 group-open:rotate-180 transition-transform duration-200">▼</span>
-        </summary>
-
-        <div class="mt-6 pt-4 border-t border-neutral-200/60">
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-                <a href="{% url 'accounts:login' %}"
-                    class="btn-petly-primary text-xs px-3 py-2 text-center justify-center">{% translate "Iniciar sesión" %}</a>
-                <a href="{% url 'accounts:register' %}"
-                    class="btn-petly-secondary text-xs px-3 py-2 text-center justify-center">{% translate "Registro" %}</a>
-                <a href="{% url 'accounts:password_reset' %}"
-                    class="btn-petly-outline text-xs px-3 py-2 text-center justify-center bg-white">{% translate "Recuperar contraseña" %}</a>
-                <a href="{% url 'accounts:profile' %}"
-                    class="btn-petly-soft text-xs px-3 py-2 text-center justify-center">{% translate "Gestión de usuario" %}</a>
-                <a href="{% url 'pets:pet_management' %}"
-                    class="btn-petly-primary text-xs px-3 py-2 text-center justify-center">{% translate "Gestión de mascotas" %}</a>
-                <a href="{% url 'pets:pet_select' %}"
-                    class="btn-petly-secondary text-xs px-3 py-2 text-center justify-center">{% translate "Seleccionar mascota" %}</a>
-                <a href="{% url 'pets:match_feed' %}"
-                    class="btn-petly-lilac text-xs px-3 py-2 text-center justify-center">{% translate "Buscar pareja" %}</a>
-                <a href="{% url 'pets:match_interested' %}"
-                    class="btn-petly-outline text-xs px-3 py-2 text-center justify-center bg-white">{% translate "Interesados" %}</a>
-            </div>
-
-            {% include 'components/components_palette.html' %}
-        </div>
-    </details>
-</div>
 </div>
 {% endblock %}
