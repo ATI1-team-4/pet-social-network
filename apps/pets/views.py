@@ -98,19 +98,25 @@ def pet_management_view(request):
                     species = request.POST.get('species', pet.get('species', 'perro'))
                     pet['species'] = species
                     pet['species_label'] = (
-                        _('Gato') if species == 'gato' else (_('Otro') if species == 'otro' else _('Perro'))
+                        _('Gato')
+                        if species == 'gato'
+                        else (_('Otro') if species == 'otro' else _('Perro'))
                     )
                     gender = request.POST.get('gender', pet.get('gender', 'macho'))
                     pet['gender'] = gender
                     pet['gender_symbol'] = '♀' if gender == 'hembra' else '♂'
                     pet['gender_label'] = _('Hembra') if gender == 'hembra' else _('Macho')
-                    pet['birth_date'] = request.POST.get('birth_date', pet.get('birth_date', '04/15/2022'))
+                    pet['birth_date'] = request.POST.get(
+                        'birth_date', pet.get('birth_date', '04/15/2022')
+                    )
                     pet['description'] = request.POST.get('description', pet.get('description', ''))
                     pet['profile_color'] = profile_color
                     pet['profile_color_hex'] = color_hex
                     temperaments_str = request.POST.get('temperaments', '')
                     if temperaments_str:
-                        pet['temperaments'] = [t.strip() for t in temperaments_str.split(',') if t.strip()]
+                        pet['temperaments'] = [
+                            t.strip() for t in temperaments_str.split(',') if t.strip()
+                        ]
                     break
 
             messages.success(

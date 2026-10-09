@@ -28,7 +28,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.core.urls')),
     path('accounts/', include('apps.accounts.urls')),
-    path('profile/', RedirectView.as_view(pattern_name='accounts:profile', permanent=False), name='profile_shortcut'),
+    path(
+        'profile/',
+        RedirectView.as_view(pattern_name='accounts:profile', permanent=False),
+        name='profile_shortcut',
+    ),
     path('pets/', include('apps.pets.urls')),
     path('i18n/', include('django.conf.urls.i18n')),
 ]
