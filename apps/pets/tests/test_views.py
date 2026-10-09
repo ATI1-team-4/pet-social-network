@@ -1,11 +1,31 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import resolve, reverse
 
 from apps.pets import views
 
+User = get_user_model()
+
 
 class PetsViewsTests(TestCase):
     """Pruebas unitarias para las rutas y vistas de la aplicación pets."""
+
+    def setUp(self):
+        self.user = User.objects.get(username='edwyn')
+        self.client.force_login(self.user)
+
+    def test_unauthenticated_user_redirected_to_login(self):
+        """Verifica que un usuario no autenticado sea redirigido a login al intentar acceder a la app."""
+        self.client.logout()
+        protected_urls = [
+            reverse('pets:pet_management'),
+            reverse('pets:pet_select'),
+            reverse('pets:match_feed'),
+            reverse('pets:match_interested'),
+        ]
+        for url in protected_urls:
+            response = self.client.get(url)
+            self.assertRedirects(response, f"{reverse('accounts:login')}?next={url}")
 
     def test_pet_management_url_and_view(self):
         url = reverse('pets:pet_management')

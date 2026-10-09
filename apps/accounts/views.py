@@ -2,6 +2,7 @@
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
@@ -127,9 +128,11 @@ def logout_view(request):
     return redirect('core:home')
 
 
+@login_required
 def profile_view(request):
     """
     Renderiza la pantalla oficial de Gestión de usuario.
-    Permanece abierta para maquetación y pruebas del equipo sin bloqueos de login.
+    Requiere que el tutor esté autenticado en el sistema.
     """
     return render(request, 'accounts/user_profile.html')
+

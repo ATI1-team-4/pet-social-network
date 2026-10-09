@@ -1,6 +1,7 @@
 import json
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 
@@ -65,6 +66,7 @@ DEFAULT_PETS = [
 ]
 
 
+@login_required
 def pet_management_view(request):
     """
     Renderiza la pantalla oficial de Gestión de Perfiles de Mascotas (reto 11, página 10).
@@ -144,6 +146,7 @@ def pet_management_view(request):
     return render(request, 'pets/pet_management.html', context)
 
 
+@login_required
 def pet_select_view(request):
     """
     Renderiza la pantalla intermedia oficial de Selección de Mascota activa (reto 11, página 11)
@@ -356,6 +359,7 @@ CONFIRMED_DATES = [
 ]
 
 
+@login_required
 def match_feed_view(request):
     """
     Renderiza la pantalla oficial de Buscar Pareja (feed de cruza/compatibilidad, reto 11 pág. 13).
@@ -384,6 +388,7 @@ def match_feed_view(request):
     return render(request, 'pets/match_feed.html', context)
 
 
+@login_required
 def match_interested_view(request):
     """
     Renderiza la pantalla oficial de Interesados - Mascotas Interesadas y citas (reto 11 pág. 12).

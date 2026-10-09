@@ -1,9 +1,16 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+
+User = get_user_model()
 
 
 class InternationalizationTests(TestCase):
     """Pruebas para verificar la infraestructura de internacionalización (i18n)."""
+
+    def setUp(self):
+        self.user = User.objects.get(username='edwyn')
+        self.client.force_login(self.user)
 
     def test_default_language_is_spanish(self):
         """Verifica que el idioma predeterminado del sistema sea español."""

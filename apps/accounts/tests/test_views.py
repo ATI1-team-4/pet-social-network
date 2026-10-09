@@ -43,9 +43,17 @@ class AccountsViewsTests(TestCase):
     def test_profile_url_and_view(self):
         url = reverse('accounts:profile')
         self.assertEqual(resolve(url).func, views.profile_view)
+        # Usuario no autenticado es redirigido a login
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'accounts/user_profile.html')
+        self.assertRedirects(response, f"{reverse('accounts:login')}?next={url}")
+
+        # Usuario autenticado accede exitosamente
+        user = User.objects.get(username='edwyn')
+        self.client.force_login(user)
+        response_auth = self.client.get(url)
+        self.assertEqual(response_auth.status_code, 200)
+        self.assertTemplateUsed(response_auth, 'accounts/user_profile.html')
+
 
 
 class AccountsSecurityAndAuditTests(TestCase):
