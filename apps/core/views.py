@@ -6,4 +6,3 @@ def home(request):
     if request.user.is_authenticated:
         return redirect('pets:pet_select')
     return render(request, 'core/home.html')
-

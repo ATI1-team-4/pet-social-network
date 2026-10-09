@@ -135,4 +135,3 @@ def profile_view(request):
     Requiere que el tutor esté autenticado en el sistema.
     """
     return render(request, 'accounts/user_profile.html')
-

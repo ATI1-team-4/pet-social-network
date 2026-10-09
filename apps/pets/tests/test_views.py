@@ -25,7 +25,7 @@ class PetsViewsTests(TestCase):
         ]
         for url in protected_urls:
             response = self.client.get(url)
-            self.assertRedirects(response, f"{reverse('accounts:login')}?next={url}")
+            self.assertRedirects(response, f'{reverse("accounts:login")}?next={url}')
 
     def test_pet_management_url_and_view(self):
         url = reverse('pets:pet_management')
