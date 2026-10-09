@@ -159,6 +159,12 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Autenticación y redirecciones del sistema Petly
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'pets:pet_select'
+LOGOUT_REDIRECT_URL = 'core:home'
+
+
 # Internacionalización y localización
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 

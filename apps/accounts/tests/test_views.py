@@ -43,9 +43,16 @@ class AccountsViewsTests(TestCase):
     def test_profile_url_and_view(self):
         url = reverse('accounts:profile')
         self.assertEqual(resolve(url).func, views.profile_view)
+        # Usuario no autenticado es redirigido a login
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'accounts/user_profile.html')
+        self.assertRedirects(response, f'{reverse("accounts:login")}?next={url}')
+
+        # Usuario autenticado accede exitosamente
+        user = User.objects.get(username='edwyn')
+        self.client.force_login(user)
+        response_auth = self.client.get(url)
+        self.assertEqual(response_auth.status_code, 200)
+        self.assertTemplateUsed(response_auth, 'accounts/user_profile.html')
 
 
 class AccountsSecurityAndAuditTests(TestCase):
@@ -69,7 +76,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'password_confirm': 'Password123',
         }
         response = self.client.post(reverse('accounts:register'), register_data)
-        self.assertRedirects(response, reverse('pets:pet_management'))
+        self.assertRedirects(response, reverse('pets:pet_select'))
 
         user = User.objects.filter(email='carlos@petly.com').first()
         self.assertIsNotNone(user)
@@ -123,7 +130,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'password_confirm': 'Password123',
         }
         response = self.client.post(reverse('accounts:register'), foreigner_data)
-        self.assertRedirects(response, reverse('pets:pet_management'))
+        self.assertRedirects(response, reverse('pets:pet_select'))
 
         user = User.objects.filter(email='hans.muller@petly.com').first()
         self.assertIsNotNone(user)
@@ -140,7 +147,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'remember_me': True,
         }
         response = self.client.post(reverse('accounts:login'), login_data)
-        self.assertRedirects(response, reverse('pets:pet_management'))
+        self.assertRedirects(response, reverse('pets:pet_select'))
 
         user = User.objects.get(username='edwyn')
         login_log = AuditLog.objects.filter(action='LOGIN_SUCCESS', user=user).first()

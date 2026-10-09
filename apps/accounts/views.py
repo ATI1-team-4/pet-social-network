@@ -2,6 +2,7 @@
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
@@ -17,7 +18,7 @@ from apps.accounts.signals import get_client_ip
 def login_view(request):
     """Procesa el inicio de sesión y renderiza la pantalla correspondiente."""
     if request.user.is_authenticated:
-        return redirect('pets:pet_management')
+        return redirect('pets:pet_select')
 
     form = LoginForm()
     if request.method == 'POST':
@@ -40,7 +41,7 @@ def login_view(request):
                     next_url, allowed_hosts={request.get_host()}
                 ):
                     return redirect(next_url)
-                return redirect('pets:pet_management')
+                return redirect('pets:pet_select')
 
             messages.error(
                 request,
@@ -57,7 +58,7 @@ def login_view(request):
 def register_view(request):
     """Procesa el registro de nuevos tutores y renderiza la pantalla correspondiente."""
     if request.user.is_authenticated:
-        return redirect('pets:pet_management')
+        return redirect('pets:pet_select')
 
     # Garantizar que al ingresar a la pantalla de registro no se arrastren mensajes previos
     if request.method == 'GET':
@@ -81,9 +82,9 @@ def register_view(request):
                 ip_address=client_ip,
             )
 
-            # Iniciar sesión automáticamente tras el registro y redirigir al menú principal
+            # Iniciar sesión automáticamente tras el registro y redirigir a selección de mascota
             login(request, user)
-            return redirect('pets:pet_management')
+            return redirect('pets:pet_select')
 
         # Mostrar errores específicos del formulario en el banner de mensajes
         for field, errors in form.errors.items():
@@ -127,9 +128,10 @@ def logout_view(request):
     return redirect('core:home')
 
 
+@login_required
 def profile_view(request):
     """
     Renderiza la pantalla oficial de Gestión de usuario.
-    Permanece abierta para maquetación y pruebas del equipo sin bloqueos de login.
+    Requiere que el tutor esté autenticado en el sistema.
     """
     return render(request, 'accounts/user_profile.html')

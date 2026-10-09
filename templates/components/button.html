@@ -1,11 +1,12 @@
 {% comment %}
-Componente de botón reutilizable según guía de estilos del prototipo.
+Componente de botón reutilizable según guía de estilos del prototipo (reto 11, página 4).
 Permite renderizar botones interactivos <button> o enlaces <a> con soporte de eventos y accesibilidad.
 
 Parámetros:
-- text: Texto del botón en sentence case (opcional para botones FAB)
-- variant: 'primary' | 'secondary' | 'soft' | 'lilac' | 'outline' | 'danger' | 'segmented-active' | 'segmented-inactive' | 'fab-like' | 'fab-dismiss' | 'fab-add'
-- href: Enlace opcional (si se define, renderiza <a>, sino <button>)
+- text: Texto del botón en sentence case (opcional para botones de tipo FAB)
+- text_id: Identificador id para el elemento <span> interior que contiene el texto (útil para actualizaciones dinámicas con JavaScript)
+- variant: 'primary' (coral) | 'secondary' (azul/gris) | 'soft' (coral claro) | 'lilac' (morado suave) | 'outline' (borde neutral) | 'danger' (rojo) | 'segmented-active' | 'segmented-inactive' | 'fab-like' (circular corazón) | 'fab-dismiss' (circular cerrar) | 'fab-add' (circular más) (predeterminado: 'primary')
+- href: Enlace opcional (si se define, renderiza <a> con estilo de botón, sino <button>)
 - type: 'button' | 'submit' | 'reset' (predeterminado: 'button')
 - onclick: Código o función JavaScript a ejecutar al hacer clic (ej. "openModal('id')")
 - id: Identificador único del elemento (opcional)
@@ -16,11 +17,11 @@ Parámetros:
 - role: Rol de accesibilidad (ej. 'tab') (opcional)
 - aria_selected: Estado de selección (ej. 'true' | 'false') (opcional)
 - data_value: Valor asociado a data-value para controles interactivos (opcional)
-- icon: Nombre del ícono SVG opcional (ej. 'paw', 'heart', 'plus', 'trash')
+- icon: Nombre del ícono SVG opcional (ej. 'paw', 'heart', 'plus', 'trash', 'calendar', 'eye', 'check', 'close')
 - icon_class: Clases CSS personalizadas para el ícono SVG (opcional)
-- aria_label: Etiqueta descriptiva para lectores de pantalla (recomendada si no hay texto)
-- class: Clases CSS complementarias
-- attrs: Atributos HTML adicionales personalizados (opcional)
+- aria_label: Etiqueta descriptiva para lectores de pantalla (recomendada si no hay texto visible)
+- class: Clases CSS complementarias para estilos adicionales o espaciado
+- attrs: Atributos HTML adicionales personalizados (ej. 'style="..." data-id="..."')
 {% endcomment %}
 
 {% if href %}
@@ -42,7 +43,7 @@ Parámetros:
         {% elif variant == 'fab-add' and not text %}
             <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="plus" class="w-6 h-6" %}</span>
         {% endif %}
-        {% if text %}<span>{{ text }}</span>{% endif %}
+        {% if text %}<span {% if text_id %}id="{{ text_id }}"{% endif %}>{{ text }}</span>{% endif %}
     </a>
 {% else %}
     <button type="{{ type|default:'button' }}"
@@ -67,6 +68,6 @@ Parámetros:
         {% elif variant == 'fab-add' and not text %}
             <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="plus" class="w-6 h-6" %}</span>
         {% endif %}
-        {% if text %}<span>{{ text }}</span>{% endif %}
+        {% if text %}<span {% if text_id %}id="{{ text_id }}"{% endif %}>{{ text }}</span>{% endif %}
     </button>
 {% endif %}

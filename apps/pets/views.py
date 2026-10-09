@@ -1,6 +1,7 @@
 import json
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 
@@ -21,7 +22,7 @@ DEFAULT_PETS = [
         'age_text': '3 años',
         'age_completed': '3 años cumplidos',
         'certificate': 'fci',
-        'certificate_label': 'Certificado FCI / Con Pedigrí',
+        'certificate_label': 'Certificado FCI / con pedigrí',
         'temperaments': ['Juguetón', 'Sociable', 'Cariñoso'],
         'description': 'Adora correr en el parque, jugar con pelotas y dormir siestas al sol. Muy amigable con otros perros.',
         'profile_color': 'coral',
@@ -49,7 +50,7 @@ DEFAULT_PETS = [
         'age_text': '4 años',
         'age_completed': '4 años cumplidos',
         'certificate': 'fci',
-        'certificate_label': 'Pedigrí Certificado',
+        'certificate_label': 'Pedigrí certificado',
         'temperaments': ['Tranquilo', 'Cariñoso', 'Curioso'],
         'description': 'Le encanta nadar, buscar pelotas en el parque y descansar en familia.',
         'profile_color': 'lilac',
@@ -65,6 +66,7 @@ DEFAULT_PETS = [
 ]
 
 
+@login_required
 def pet_management_view(request):
     """
     Renderiza la pantalla oficial de Gestión de Perfiles de Mascotas (reto 11, página 10).
@@ -144,6 +146,7 @@ def pet_management_view(request):
     return render(request, 'pets/pet_management.html', context)
 
 
+@login_required
 def pet_select_view(request):
     """
     Renderiza la pantalla intermedia oficial de Selección de Mascota activa (reto 11, página 11)
@@ -197,11 +200,11 @@ MATCH_CANDIDATES = [
         'compatibility_num': 98,
         'distance': 'A 3.2 km',
         'location': 'Los Teques',
-        'purpose': 'Cruza y Socialización',
+        'purpose': 'Cruza y socialización',
         'profile_color': 'coral',
         'profile_color_hex': '#FA7D82',
-        'photo_url': '/static/images/pets/Bella.png',
-        'photo_clean_url': '/static/images/pets/Bella.png',
+        'photo_url': '/static/images/pets/bella.png',
+        'photo_clean_url': '/static/images/pets/bella.png',
         'temperaments': ['Juguetona', 'Sociable', 'Cariñosa', 'Ágil'],
         'description': (
             'Bella es una perrita alegre, noble y muy inteligente. Adora correr al aire libre, '
@@ -238,8 +241,8 @@ MATCH_CANDIDATES = [
         'purpose': 'Cruza responsable',
         'profile_color': 'lilac',
         'profile_color_hex': '#E9D5FF',
-        'photo_url': '/static/images/pets/Kira.png',
-        'photo_clean_url': '/static/images/pets/Kira.png',
+        'photo_url': '/static/images/pets/kira.png',
+        'photo_clean_url': '/static/images/pets/kira.png',
         'temperaments': ['Tranquila', 'Cariñosa', 'Sociable'],
         'description': (
             'Kira es súper dócil, tierna y juguetona en calma. Buscamos una cruza ética '
@@ -276,8 +279,8 @@ MATCH_CANDIDATES = [
         'purpose': 'Socialización',
         'profile_color': 'mint',
         'profile_color_hex': '#8FFFB4',
-        'photo_url': '/static/images/pets/Maya.png',
-        'photo_clean_url': '/static/images/pets/Maya.png',
+        'photo_url': '/static/images/pets/maya.png',
+        'photo_clean_url': '/static/images/pets/maya.png',
         'temperaments': ['Curiosa', 'Juguetona', 'Protectora'],
         'description': (
             'Maya es activa, adora los paseos largos por el parque y jugar con pelotas. '
@@ -308,8 +311,8 @@ INTERESTED_SUITORS = [
         'location': 'Pomerania',
         'match_percentage': '98%',
         'is_recent': True,
-        'recent_label': 'Match Reciente (Hace 2h)',
-        'photo_url': '/static/images/pets/Kira.png',
+        'recent_label': 'Match reciente (hace 2h)',
+        'photo_url': '/static/images/pets/kira.png',
         'temperaments': ['Tranquila', 'Cariñosa'],
         'quote': (
             '¡Hola Sofía! Nos encantó Toby. Kira es súper dócil, tierna y juguetona en calma. '
@@ -339,7 +342,7 @@ INTERESTED_SUITORS = [
         'age': '3.1 años',
         'distance': 'A 4.5 km',
         'match_percentage': '92%',
-        'photo_url': '/static/images/pets/Maya.png',
+        'photo_url': '/static/images/pets/maya.png',
         'temperaments': ['Curiosa', 'Sociable'],
     },
 ]
@@ -348,7 +351,7 @@ CONFIRMED_DATES = [
     {
         'id': 'date-1',
         'badge': 'Confirmado por ambos',
-        'day': 'Este Sábado',
+        'day': 'Este sábado',
         'title': 'Cita con Luna & Thor',
         'location': 'Parque España (Zona Canina Verificada)',
         'time': '11:00 AM',
@@ -356,6 +359,7 @@ CONFIRMED_DATES = [
 ]
 
 
+@login_required
 def match_feed_view(request):
     """
     Renderiza la pantalla oficial de Buscar Pareja (feed de cruza/compatibilidad, reto 11 pág. 13).
@@ -384,6 +388,7 @@ def match_feed_view(request):
     return render(request, 'pets/match_feed.html', context)
 
 
+@login_required
 def match_interested_view(request):
     """
     Renderiza la pantalla oficial de Interesados - Mascotas Interesadas y citas (reto 11 pág. 12).
