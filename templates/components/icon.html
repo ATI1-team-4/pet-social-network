@@ -1,0 +1,22 @@
+{% load static %}
+{% comment %}
+Componente de ícono SVG del sistema de diseño (reto 11).
+Consume directamente los archivos SVG alojados en static/images/icons/<name>.svg.
+Parámetros:
+- name: Nombre del ícono sin extensión (ej. "paw", "heart", "sparkle", "globe", "user")
+- class: Clases CSS (ej. "w-4 h-4 text-petly-coral")
+- as_img: Opcional (booleano). Si es True, renderiza como <img> en lugar de máscara CSS
+{% endcomment %}
+
+{% if as_img %}
+    <img src="{% static 'images/icons/' %}{{ name }}.svg"
+         alt=""
+         class="{{ class|default:'w-4 h-4' }} inline-block select-none align-middle"
+         aria-hidden="true">
+{% else %}
+    {% with icon_file='images/icons/'|add:name|add:'.svg' %}
+        <span class="inline-block {{ class|default:'w-4 h-4' }} bg-current select-none shrink-0 align-middle"
+              style="mask-image: url('{% static icon_file %}'); -webkit-mask-image: url('{% static icon_file %}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;"
+              aria-hidden="true"></span>
+    {% endwith %}
+{% endif %}

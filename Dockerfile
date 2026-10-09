@@ -8,6 +8,10 @@ ENV PYTHONUNBUFFERED=1
 # Directorio de trabajo dentro del contenedor
 WORKDIR /app
 
+# Instalar dependencias del sistema operativo (gettext para soporte de internacionalización i18n)
+RUN apt-get update && apt-get install -y --no-install-recommends gettext \
+    && rm -rf /var/lib/apt/lists/*
+
 # Instalar dependencias de Python y precargar binario de Tailwind
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt \
@@ -23,5 +27,5 @@ RUN tailwindcss -i theme/static_src/src/styles.css -o theme/static/css/dist/styl
 # Exponer el puerto de desarrollo de Django
 EXPOSE 8000
 
-# Iniciar el servidor de desarrollo escuchando en todas las interfaces
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Iniciar compilador continuo de Tailwind y servidor de desarrollo Django
+CMD ["sh", "-c", "tailwindcss -i theme/static_src/src/styles.css -o theme/static/css/dist/styles.css --watch=always --poll & python manage.py runserver 0.0.0.0:8000"]

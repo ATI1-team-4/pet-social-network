@@ -1,0 +1,153 @@
+{% load i18n %}
+{% comment %}
+Catálogo interactivo de componentes oficiales del sistema de diseño (reto 11).
+Muestra todos los componentes creados con sus variantes, estados hover, responsividad, soporte multilingüe e íconos SVG.
+{% endcomment %}
+
+<!-- Traducción dinámica de textos para componentes -->
+{% translate "Primario" as txt_btn_primary %}
+{% translate "Secundario" as txt_btn_secondary %}
+{% translate "Suave" as txt_btn_soft %}
+{% translate "Lila" as txt_btn_lilac %}
+{% translate "Borde" as txt_btn_outline %}
+
+{% translate "98% compatibilidad" as txt_badge_compat %}
+{% translate "Juguetón" as txt_badge_playful %}
+{% translate "Macho" as txt_badge_male %}
+{% translate "Hembra" as txt_badge_female %}
+
+{% translate "Nombre de la mascota" as txt_input_label %}
+{% translate "Escribir" as txt_input_placeholder %}
+
+{% translate "Buscando pareja" as txt_toggle_match %}
+{% translate "En adopción" as txt_toggle_adopt %}
+
+{% translate "Selecciona" as txt_segmented_select %}
+
+{% translate "Diálogo de confirmación" as txt_modal_card_title %}
+{% translate "Ventana emergente interactiva para confirmar acciones importantes o destructivas." as txt_modal_card_desc %}
+{% translate "Modal de descarte" as txt_btn_open_modal_danger %}
+{% translate "Modal de confirmación" as txt_btn_open_modal_match %}
+{% translate "¿Deseas descartar los cambios?" as txt_modal_danger_title %}
+{% translate "Se perderán todos los datos no guardados del formulario de la mascota." as txt_modal_danger_desc %}
+{% translate "Descartar cambios" as txt_modal_danger_confirm %}
+{% translate "Seguir editando" as txt_modal_danger_cancel %}
+{% translate "¡Nuevo match encontrado!" as txt_modal_match_title %}
+{% translate "Tu mascota y Luna tienen un 98% de compatibilidad. ¿Deseas iniciar una conversación ahora?" as txt_modal_match_desc %}
+{% translate "Iniciar conversación" as txt_modal_match_confirm %}
+{% translate "Más tarde" as txt_modal_match_cancel %}
+
+<section class="mt-12 pt-8 border-t border-neutral-300/70 w-full" aria-label="{% translate 'Catálogo de componentes del sistema' %}">
+    <div class="mb-6 flex items-center justify-between flex-wrap gap-2">
+        <div>
+            <h2 class="title-h4 text-neutral-800 flex items-center gap-2">
+                {% include 'components/icon.html' with name="palette" class="w-5 h-5 text-petly-coral" %}
+                <span>{% translate "Componentes del sistema de diseño" %}</span>
+            </h2>
+            <p class="text-caption text-neutral-500 mt-0.5">
+                {% translate "Guía interactiva de componentes reutilizables según el prototipo oficial." %}
+            </p>
+        </div>
+        <span class="badge-compat">
+            {% include 'components/icon.html' with name="check" class="w-3.5 h-3.5" %}
+            <span>{% translate "100% offline & responsivo" %}</span>
+        </span>
+    </div>
+
+    <!-- Rejilla de componentes simétrica y responsiva -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- 1. Botones estándar -->
+        <div class="card-petly p-5 flex flex-col justify-between">
+            <div>
+                <h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3">{% translate "Botones principales" %}</h3>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    {% include 'components/button.html' with text=txt_btn_primary variant="primary" class="text-xs sm:text-sm px-5 py-2.5 min-w-[95px] justify-center" %}
+                    {% include 'components/button.html' with text=txt_btn_secondary variant="secondary" class="text-xs sm:text-sm px-5 py-2.5 min-w-[95px] justify-center" %}
+                    {% include 'components/button.html' with text=txt_btn_soft variant="soft" class="text-xs sm:text-sm px-5 py-2.5 min-w-[95px] justify-center" %}
+                    {% include 'components/button.html' with text=txt_btn_lilac variant="lilac" class="text-xs sm:text-sm px-5 py-2.5 min-w-[95px] justify-center" %}
+                    {% include 'components/button.html' with text=txt_btn_outline variant="outline" class="text-xs sm:text-sm px-5 py-2.5 min-w-[95px] justify-center" %}
+                </div>
+            </div>
+            <p class="text-[11px] text-neutral-400 mt-4">{% translate "Píldoras con interacción :hover y :active suaves." %}</p>
+        </div>
+
+        <!-- 2. Botones flotantes (FAB) -->
+        <div class="card-petly p-5 flex flex-col justify-between">
+            <div>
+                <h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3">{% translate "Botones de acción (FAB)" %}</h3>
+                <div class="flex items-center justify-center gap-4 py-2">
+                    {% include 'components/button.html' with variant="fab-dismiss" %}
+                    {% include 'components/button.html' with variant="fab-add" %}
+                    {% include 'components/button.html' with variant="fab-like" %}
+                </div>
+            </div>
+            <p class="text-[11px] text-neutral-400 mt-4 text-center">{% translate "Descartar (✕), añadir (+) y me interesa (♥)." %}</p>
+        </div>
+
+        <!-- 3. Insignias y etiquetas con íconos vectoriales -->
+        <div class="card-petly p-5 flex flex-col justify-between">
+            <div>
+                <h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3">{% translate "Insignias y etiquetas" %}</h3>
+                <div class="flex flex-wrap items-center gap-2">
+                    {% include 'components/badge.html' with text=txt_badge_compat variant="compat" %}
+                    {% include 'components/badge.html' with text=txt_badge_playful variant="tag" %}
+                    {% include 'components/badge.html' with text=txt_badge_male variant="male" %}
+                    {% include 'components/badge.html' with text=txt_badge_female variant="female" %}
+                </div>
+            </div>
+            <p class="text-[11px] text-neutral-400 mt-4">{% translate "Etiquetas cromáticas por afinidad, rasgo y género." %}</p>
+        </div>
+
+        <!-- 4. Campos de formulario -->
+        <div class="card-petly p-5 flex flex-col justify-between">
+            <div>
+                <h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3">{% translate "Entrada de texto redondeada" %}</h3>
+                <div class="space-y-3">
+                    {% include 'components/input.html' with name="pet_name" id="demo-pet-name" label=txt_input_label placeholder=txt_input_placeholder  %}
+                </div>
+            </div>
+            <p class="text-[11px] text-neutral-400 mt-4">{% translate "Fondo celeste hielo, foco con anillo coral." %}</p>
+        </div>
+
+        <!-- 5. Interruptores de alternancia (Toggle) -->
+        <div class="card-petly p-5 flex flex-col justify-between">
+            <div>
+                <h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3">{% translate "Interruptor de alternancia" %}</h3>
+                <div class="space-y-3">
+                    {% include 'components/toggle.html' with label=txt_toggle_match checked=True id="toggle-demo-1" %}
+                    {% include 'components/toggle.html' with label=txt_toggle_adopt checked=False id="toggle-demo-2" %}
+                </div>
+            </div>
+            <p class="text-[11px] text-neutral-400 mt-4">{% translate "Simetría matemática de 2px de margen en ambos estados." %}</p>
+        </div>
+
+        <!-- 6. Control segmentado (Pestañas interactivas) -->
+        <div class="card-petly p-5 flex flex-col justify-between">
+            <div>
+                <h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3">{% translate "Control segmentado" %}</h3>
+                <div class="flex items-center justify-center py-2">
+                    {% include 'components/segmented.html' with text_1=txt_segmented_select text_2=txt_segmented_select %}
+                </div>
+            </div>
+            <p class="text-[11px] text-neutral-400 mt-4 text-center">{% translate "Píldoras para alternar filtros o modos." %}</p>
+        </div>
+    </div>
+
+    <!-- 7. Diálogo modal de confirmación emergente (sección a todo lo ancho con espacio simétrico) -->
+    <div class="mt-6 w-full card-petly p-5 sm:p-6 bg-white border border-neutral-300/80">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+                <h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider">{{ txt_modal_card_title }}</h3>
+                <p class="text-caption text-neutral-500 mt-1">{{ txt_modal_card_desc }}</p>
+            </div>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+                {% include 'components/button.html' with text=txt_btn_open_modal_danger variant="danger" icon="trash" onclick="openModal('demo-modal-danger')" class="w-full sm:w-auto min-w-[200px] sm:min-w-[220px] px-8 py-3 text-sm font-semibold shadow-xs justify-center whitespace-nowrap" %}
+                {% include 'components/button.html' with text=txt_btn_open_modal_match variant="primary" icon="heart-filled" onclick="openModal('demo-modal-match')" class="w-full sm:w-auto min-w-[200px] sm:min-w-[220px] px-8 py-3 text-sm font-semibold shadow-xs justify-center whitespace-nowrap" %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales interactivos autocontenidos embebidos en el DOM -->
+    {% include 'components/confirmation_modal.html' with id="demo-modal-danger" variant="danger" icon="trash" title=txt_modal_danger_title text=txt_modal_danger_desc confirm_text=txt_modal_danger_confirm cancel_text=txt_modal_danger_cancel %}
+    {% include 'components/confirmation_modal.html' with id="demo-modal-match" variant="success" icon="heart-filled" title=txt_modal_match_title text=txt_modal_match_desc confirm_text=txt_modal_match_confirm cancel_text=txt_modal_match_cancel %}
+</section>

@@ -1,0 +1,109 @@
+{% comment %}
+Componente de control segmentado (tabs de pastilla) según guía de estilos del prototipo.
+Autocontenido: reutiliza components/button.html para cada pastilla y maneja su propia alternancia.
+
+Parámetros:
+- id: Identificador único del contenedor (opcional)
+- name: Nombre del campo si se usa dentro de un formulario (actualiza un input oculto automáticamente)
+- text_1: Texto de la primera pastilla (activa por defecto)
+- value_1: Valor de la primera pastilla (por defecto igual al texto)
+- onclick_1: Código o función JS a ejecutar al hacer clic en la primera pastilla
+- icon_1: Ícono SVG opcional para la primera pastilla
+- text_2: Texto de la segunda pastilla
+- value_2: Valor de la segunda pastilla (por defecto igual al texto)
+- onclick_2: Código o función JS a ejecutar al hacer clic en la segunda pastilla
+- icon_2: Ícono SVG opcional para la segunda pastilla
+- text_3: Texto opcional de una tercera pastilla
+- value_3: Valor opcional de la tercera pastilla
+- onclick_3: Código o función JS a ejecutar al hacer clic en la tercera pastilla
+- icon_3: Ícono SVG opcional para la tercera pastilla
+- slot: Contenido HTML directo si se prefieren botones o enlaces personalizados
+- class: Clases CSS complementarias para el contenedor
+{% endcomment %}
+
+<div {% if id %}id="{{ id }}"{% endif %} data-segmented="true" role="tablist" class="inline-flex items-center gap-1 shrink-0 p-1 rounded-full bg-neutral-100 border border-neutral-300 text-xs font-medium {{ class|default:'' }}">
+    {% if name %}
+        <input type="hidden" name="{{ name }}" value="{{ value_1|default:text_1|default:'1' }}">
+    {% endif %}
+
+    {% if slot %}
+        {{ slot|safe }}
+    {% else %}
+        {% if onclick_1 %}
+            {% include 'components/button.html' with text=text_1|default:'Opción 1' variant="segmented-active" onclick="if (this.getAttribute('aria-selected') === 'true') return false; "|add:onclick_1 role="tab" aria_selected="true" data_value=value_1|default:text_1|default:'1' icon=icon_1 icon_class="w-3.5 h-3.5" %}
+        {% else %}
+            {% include 'components/button.html' with text=text_1|default:'Opción 1' variant="segmented-active" role="tab" aria_selected="true" data_value=value_1|default:text_1|default:'1' icon=icon_1 icon_class="w-3.5 h-3.5" %}
+        {% endif %}
+
+        {% if onclick_2 %}
+            {% include 'components/button.html' with text=text_2|default:'Opción 2' variant="segmented-inactive" onclick="if (this.getAttribute('aria-selected') === 'true') return false; "|add:onclick_2 role="tab" aria_selected="false" data_value=value_2|default:text_2|default:'2' icon=icon_2 icon_class="w-3.5 h-3.5" %}
+        {% else %}
+            {% include 'components/button.html' with text=text_2|default:'Opción 2' variant="segmented-inactive" role="tab" aria_selected="false" data_value=value_2|default:text_2|default:'2' icon=icon_2 icon_class="w-3.5 h-3.5" %}
+        {% endif %}
+
+        {% if text_3 %}
+            {% if onclick_3 %}
+                {% include 'components/button.html' with text=text_3 variant="segmented-inactive" onclick="if (this.getAttribute('aria-selected') === 'true') return false; "|add:onclick_3 role="tab" aria_selected="false" data_value=value_3|default:text_3|default:'3' icon=icon_3 icon_class="w-3.5 h-3.5" %}
+            {% else %}
+                {% include 'components/button.html' with text=text_3 variant="segmented-inactive" role="tab" aria_selected="false" data_value=value_3|default:text_3|default:'3' icon=icon_3 icon_class="w-3.5 h-3.5" %}
+            {% endif %}
+        {% endif %}
+    {% endif %}
+</div>
+
+<script>
+    /**
+     * Alternancia interactiva y eventos para controles segmentados (.segmented-pill).
+     */
+    if (!window.petlySegmentedInitialized) {
+        window.petlySegmentedInitialized = true;
+
+        document.addEventListener('click', function(event) {
+            const clickedPill = event.target.closest('.segmented-pill');
+            if (!clickedPill) return;
+
+            // Si es un enlace de navegación con href, permitir que el navegador navegue normalmente
+            if (clickedPill.tagName === 'A' && clickedPill.getAttribute('href')) return;
+
+            // Buscar el contenedor segmentado
+            const container = clickedPill.closest('[data-segmented]');
+            if (!container) return;
+
+            // Evitar re-ejecución si la pastilla ya está seleccionada actualmente
+            if (clickedPill.getAttribute('aria-selected') === 'true' || clickedPill.classList.contains('segmented-pill-active')) {
+                return;
+            }
+
+            const pills = container.querySelectorAll('.segmented-pill');
+            if (pills.length <= 1) return;
+
+            // 1. Actualizar estilos visuales (activar la seleccionada, inactivar las demás)
+            pills.forEach(function(pill) {
+                pill.classList.remove('segmented-pill-active');
+                pill.classList.add('segmented-pill-inactive');
+                pill.setAttribute('aria-selected', 'false');
+            });
+
+            clickedPill.classList.remove('segmented-pill-inactive');
+            clickedPill.classList.add('segmented-pill-active');
+            clickedPill.setAttribute('aria-selected', 'true');
+
+            // 2. Si el contenedor tiene un input hidden de formulario, actualizar su valor
+            const hiddenInput = container.querySelector('input[type="hidden"]');
+            const pillValue = clickedPill.getAttribute('data-value') || clickedPill.textContent.trim();
+            if (hiddenInput) {
+                hiddenInput.value = pillValue;
+            }
+
+            // 3. Notificar el cambio mediante el evento estándar 'petly:change'
+            container.dispatchEvent(new CustomEvent('petly:change', {
+                bubbles: true,
+                detail: {
+                    value: pillValue,
+                    text: clickedPill.textContent.trim(),
+                    pill: clickedPill
+                }
+            }));
+        });
+    }
+</script>

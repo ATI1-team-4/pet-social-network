@@ -7,10 +7,11 @@
     <meta name="description" content="Petly - Red social para amantes de los animales y mascotas responsables.">
     <title>{% block title %}Petly - Red social para mascotas{% endblock %}</title>
 
-    <!-- Tipografía Inter desde Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Ícono oficial de la ventana y pestaña del navegador (favicon 3D) -->
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/logo.png' %}">
+
+    <!-- Tipografía autohospedada localmente (100% offline) definida en styles.css -->
 
     <!-- Tailwind CSS (incluye estilos base del sistema) compilado mediante django-tailwind -->
     {% tailwind_css %}

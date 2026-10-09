@@ -1,0 +1,39 @@
+{% comment %}
+Componente de migas de pan (breadcrumbs) reutilizable para la navegación interna de la aplicación según la guía de diseño (reto 11).
+
+Parámetros:
+- current_label: (Requerido) Texto de la página actual activa (último nivel no interactivo, marcado con aria-current="page")
+- parent_label: (Opcional) Texto del nivel intermedio
+- parent_url: (Opcional) URL hacia el nivel intermedio
+- home_label: (Opcional) Texto de inicio (predeterminado: "Inicio")
+- home_url: (Opcional) URL hacia la raíz de navegación (predeterminado: url 'pets:pet_select')
+- class: (Opcional) Clases CSS complementarias para el contenedor <nav>
+
+Ejemplos de uso:
+1. Dos niveles (Inicio › Mi perfil):
+   {% translate "Mi perfil" as current_text %}
+   {% include 'components/breadcrumbs.html' with current_label=current_text %}
+
+2. Tres niveles (Inicio › Buscar pareja › Mascotas interesadas):
+   {% url 'pets:match_feed' as feed_url %}
+   {% translate "Buscar pareja" as parent_text %}
+   {% translate "Mascotas interesadas" as current_text %}
+   {% include 'components/breadcrumbs.html' with parent_label=parent_text parent_url=feed_url current_label=current_text %}
+{% endcomment %}
+{% load i18n %}
+{% url 'pets:pet_select' as default_home_url %}
+<nav aria-label="{% translate 'Migas de pan' %}" class="flex items-center gap-1.5 text-xs text-neutral-500 mb-4 sm:mb-6 overflow-x-auto whitespace-nowrap py-1 {{ class|default:'' }}">
+    <a href="{{ home_url|default:default_home_url }}" class="hover:text-petly-coral transition-colors no-underline text-neutral-500 font-medium">
+        {{ home_label|default:_("Inicio") }}
+    </a>
+    {% if parent_label and parent_url %}
+        <span class="text-neutral-400 select-none">&rsaquo;</span>
+        <a href="{{ parent_url }}" class="hover:text-petly-coral transition-colors no-underline text-neutral-500 font-medium">
+            {{ parent_label }}
+        </a>
+    {% endif %}
+    <span class="text-neutral-400 select-none">&rsaquo;</span>
+    <span class="text-petly-coral font-semibold truncate" aria-current="page">
+        {{ current_label }}
+    </span>
+</nav>

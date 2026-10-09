@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block body_class %}min-h-screen flex flex-col bg-petly-surface text-neutral-800 antialiased{% endblock %}
+
+{% block layout %}
+    <!-- Barra de navegación pública -->
+    {% include 'components/navbar_public.html' %}
+
+    <!-- Contenido principal de la vista pública -->
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Pie de página global -->
+    {% include 'components/footer.html' %}
+{% endblock %}

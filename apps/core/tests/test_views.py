@@ -26,4 +26,13 @@ class HomeViewTests(TestCase):
     def test_home_page_contains_brand_title(self):
         """Verifica que el contenido de la página contenga el nombre Petly."""
         response = self.client.get(reverse('core:home'))
-        self.assertContains(response, 'Bienvenido a Petly')
+        self.assertContains(response, 'Petly')
+
+    def test_home_page_authenticated_redirects_to_pet_select(self):
+        """Verifica que un usuario autenticado que ingrese al inicio sea redirigido a seleccionar mascota."""
+        from django.contrib.auth import get_user_model
+
+        user = get_user_model().objects.get(username='edwyn')
+        self.client.force_login(user)
+        response = self.client.get(reverse('core:home'))
+        self.assertRedirects(response, reverse('pets:pet_select'))

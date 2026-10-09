@@ -1,0 +1,965 @@
+{% extends 'layouts/app.html' %}
+{% load i18n static %}
+
+{% block title %}
+    {% if is_new %}
+        {% translate "Registrar mascota" %} | Petly
+    {% else %}
+        {% translate "Gestión de perfil de mascota" %} - {{ active_pet.name|default:"Toby" }} | Petly
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-6">
+
+    <!-- Mensajes flash del sistema si existen -->
+    {% include 'components/messages.html' %}
+
+    <!-- Miga de pan de navegación oficial -->
+    {% url 'pets:pet_management' as pets_list_url %}
+    {% translate "Mis mascotas" as parent_bc %}
+    {% if is_new %}
+        {% translate "Registrar mascota" as current_bc %}
+    {% else %}
+        {% translate "Gestión de perfil" as current_bc %}
+    {% endif %}
+    {% include 'components/breadcrumbs.html' with parent_label=parent_bc parent_url=pets_list_url current_label=current_bc %}
+
+    <!-- Fila informativa de registro móvil -->
+    <div class="lg:hidden flex items-center justify-between text-xs px-1">
+        <span class="text-caption font-bold text-neutral-500 uppercase tracking-wider">
+            {% translate "Ficha de registro" %}
+        </span>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-petly-blue text-neutral-800">
+            {% if is_new %}
+                {% translate "Nuevo ingreso" %}
+            {% else %}
+                ID #{{ active_pet.id|default:"1234" }}
+            {% endif %}
+        </span>
+    </div>
+
+    <!-- Cabecera principal para escritorio (reto 11, página 10 escritorio) -->
+    <div class="hidden lg:flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0 shadow-xs">
+                {% include 'components/icon.html' with name="paw" class="w-5 h-5" %}
+            </div>
+            <div class="flex items-center gap-3">
+                <h1 class="title-h3 text-neutral-900 font-bold">
+                    {% translate "Gestión de perfil de mascota" %}
+                </h1>
+                {% if not is_new and active_pet %}
+                    <span class="text-petly-coral font-bold text-lg">
+                        {{ active_pet.name }}
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-petly-ice text-neutral-700 border border-petly-blue/80">
+                        ID #{{ active_pet.id }}
+                    </span>
+                {% elif is_new %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        {% translate "Nueva mascota" %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de pestañas para alternar entre mascotas del tutor o registrar nueva (escritorio y móvil) -->
+    <div class="bg-petly-ice/60 border border-neutral-300/70 rounded-2xl p-1.5 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+        <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 max-w-full">
+            {% for pet in pets %}
+                <a href="{% url 'pets:pet_management' %}?pet={{ pet.name|lower }}"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all select-none no-underline shrink-0 {% if not is_new and active_pet.id == pet.id %}bg-white text-neutral-900 shadow-xs border border-neutral-300/80{% else %}text-neutral-600 hover:text-neutral-900 hover:bg-white/60{% endif %}">
+                    <span class="w-2.5 h-2.5 rounded-full {% if pet.is_active %}bg-petly-coral{% else %}bg-neutral-400{% endif %}"></span>
+                    <span>{{ pet.tab_label|default:pet.name }}</span>
+                    {% if pet.is_active %}
+                        <span class="bg-petly-coral text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full leading-tight">
+                            {% translate "Activo" %}
+                        </span>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+
+        <a href="{% url 'pets:pet_management' %}?new=true"
+           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all select-none no-underline shrink-0 {% if is_new %}bg-white text-petly-coral shadow-xs border border-petly-coral/60 font-bold{% else %}text-neutral-700 hover:text-petly-coral hover:bg-white/60{% endif %}">
+            {% include 'components/icon.html' with name="plus-circle" class="w-4 h-4 text-petly-coral" %}
+            <span>{% translate "Registrar nueva mascota" %}</span>
+        </a>
+    </div>
+
+    <!-- Formulario unificado de gestión de mascota -->
+    <form method="post" action="{% url 'pets:pet_management' %}" id="pet-management-form" class="space-y-6 w-full">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="form-action" value="save">
+        <input type="hidden" name="pet_id" id="form-pet-id" value="{{ active_pet.id|default:'' }}">
+        <input type="hidden" name="species" id="input-species" value="{{ active_pet.species|default:'perro' }}">
+        <input type="hidden" name="gender" id="input-gender" value="{{ active_pet.gender|default:'macho' }}">
+        <input type="hidden" name="certificate" id="input-certificate" value="{{ active_pet.certificate|default:'fci' }}">
+        <input type="hidden" name="profile_color" id="input-profile-color" value="{{ active_pet.profile_color|default:'coral' }}">
+        <input type="hidden" name="temperaments" id="input-temperaments" value="{% for t in active_pet.temperaments %}{{ t }}{% if not forloop.last %},{% endif %}{% endfor %}">
+
+        <!-- Input de archivo oculto para la fotografía -->
+        <input type="file" id="pet-photo-input" name="photo" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+
+        <div class="flex flex-col w-full lg:grid lg:grid-cols-12 gap-6 items-stretch lg:items-start">
+
+            <!-- ========================================== -->
+            <!-- COLUMNA IZQUIERDA: Foto, Color y Objetivos -->
+            <!-- ========================================== -->
+            <div class="contents lg:block lg:col-span-4 lg:space-y-6">
+
+                <!-- TARJETA 1: Fotografía y Resumen -->
+                <div class="card-petly order-1 w-full p-6 bg-white border border-neutral-300/80 text-center flex flex-col items-center">
+                    <!-- Contenedor del avatar circular oficial con insignia de cámara -->
+                    <div class="relative w-36 h-36 sm:w-40 sm:h-40 mb-4 cursor-pointer" onclick="triggerPhotoUpload()" title="{% translate 'Subir nueva foto' %}">
+                        <div class="w-full h-full rounded-full border-4 border-white shadow-md overflow-hidden bg-petly-ice flex items-center justify-center relative group">
+                            <img id="pet-avatar-img"
+                                 src="{% if active_pet.photo_url %}{{ active_pet.photo_url }}{% else %}{% static 'images/pets/Toby.png' %}{% endif %}"
+                                 alt="{{ active_pet.name|default:'Mascota' }}"
+                                 class="w-full h-full object-cover select-none">
+                            <div class="absolute inset-0 bg-neutral-900/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold">
+                                {% translate "Cambiar foto" %}
+                            </div>
+                        </div>
+                        <!-- Insignia de cámara en la esquina inferior derecha (visible y accesible siempre) -->
+                        <button type="button" class="avatar-badge-camera z-10" aria-label="{% translate 'Subir nueva foto' %}">
+                            {% include 'components/icon.html' with name="camera" class="w-3.5 h-3.5 text-white" %}
+                        </button>
+                    </div>
+
+                    <!-- Botón móvil para cambiar foto (visible solo en teléfonos) -->
+                    <div class="lg:hidden mb-4">
+                        {% include 'components/button.html' with text=_("Cambiar foto") variant="secondary" icon="camera-plus" icon_class="w-4 h-4 text-neutral-800" type="button" onclick="triggerPhotoUpload()" class="text-xs px-4 py-2 shadow-xs" %}
+                    </div>
+
+                    <!-- Datos rápidos de la mascota (escritorio) -->
+                    <div class="hidden lg:block w-full">
+                        <h2 id="summary-pet-name" class="title-h4 text-neutral-900 font-bold mb-1">
+                            {{ active_pet.name|default:_("Nueva mascota") }}
+                        </h2>
+                        <p id="summary-pet-breed-age" class="text-caption text-neutral-500 mb-4">
+                            {{ active_pet.breed|default:_("Raza por definir") }} • {{ active_pet.age_text|default:_("Edad por definir") }}
+                        </p>
+
+                        <div class="space-y-2 w-full">
+                            {% include 'components/button.html' with text=_("Subir o cambiar foto") variant="secondary" icon="file-up" icon_class="w-4 h-4 text-neutral-800" type="button" onclick="triggerPhotoUpload()" class="w-full text-xs py-2.5 font-semibold justify-center" %}
+                            {% include 'components/button.html' with text=_("Eliminar foto") variant="outline" icon="trash" icon_class="w-3.5 h-3.5 text-rose-500" type="button" onclick="openModal('modal-delete-photo')" class="w-full text-xs py-1.5 text-rose-500 hover:text-rose-700 border-transparent hover:border-rose-200 justify-center" %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TARJETA 2: Color de Perfil -->
+                <div class="card-petly order-4 w-full p-6 bg-white border border-neutral-300/80">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0">
+                                {% include 'components/icon.html' with name="palette" class="w-4 h-4" %}
+                            </div>
+                            <h2 class="text-sm font-bold text-neutral-900">
+                                {% translate "Color de perfil" %}
+                            </h2>
+                        </div>
+                        <span id="label-color-name" class="text-xs font-bold text-petly-coral capitalize">
+                            {{ active_pet.profile_color|default:"coral" }}
+                        </span>
+                    </div>
+                    <p class="text-caption text-neutral-500 mb-4 leading-relaxed">
+                        {% translate "Este color personalizará la tarjeta de descubrimiento y destacados de tu mascota en el buscador de parejas." %}
+                    </p>
+
+                    <!-- Paleta de 4 muestras circulares interactivas con checkmark activo -->
+                    <div class="flex items-center justify-between pt-1">
+                        <!-- Muestra: Coral -->
+                        <button type="button"
+                                data-color="coral"
+                                data-color-name="{% translate 'Coral' %}"
+                                onclick="selectProfileColor('coral', 'Coral')"
+                                class="color-swatch relative w-12 h-12 rounded-full bg-[#FA7D82] flex items-center justify-center transition-all cursor-pointer shadow-xs {% if active_pet.profile_color == 'coral' or not active_pet.profile_color %}ring-3 ring-offset-2 ring-[#FA7D82]{% endif %}"
+                                aria-label="{% translate 'Color coral' %}">
+                            <span class="color-check {% if active_pet.profile_color != 'coral' and active_pet.profile_color %}hidden{% endif %} text-white">
+                                {% include 'components/icon.html' with name="check" class="w-5 h-5 text-white" %}
+                            </span>
+                        </button>
+
+                        <!-- Muestra: Lila -->
+                        <button type="button"
+                                data-color="lilac"
+                                data-color-name="{% translate 'Lila' %}"
+                                onclick="selectProfileColor('lilac', 'Lila')"
+                                class="color-swatch relative w-12 h-12 rounded-full bg-[#E9D5FF] flex items-center justify-center transition-all cursor-pointer shadow-xs {% if active_pet.profile_color == 'lilac' %}ring-3 ring-offset-2 ring-[#C084FC]{% endif %}"
+                                aria-label="{% translate 'Color lila' %}">
+                            <span class="color-check {% if active_pet.profile_color != 'lilac' %}hidden{% endif %} text-purple-800">
+                                {% include 'components/icon.html' with name="check" class="w-5 h-5 text-purple-800" %}
+                            </span>
+                        </button>
+
+                        <!-- Muestra: Verde Menta -->
+                        <button type="button"
+                                data-color="mint"
+                                data-color-name="{% translate 'Menta' %}"
+                                onclick="selectProfileColor('mint', 'Menta')"
+                                class="color-swatch relative w-12 h-12 rounded-full bg-[#8FFFB4] flex items-center justify-center transition-all cursor-pointer shadow-xs {% if active_pet.profile_color == 'mint' %}ring-3 ring-offset-2 ring-[#34D399]{% endif %}"
+                                aria-label="{% translate 'Color verde menta' %}">
+                            <span class="color-check {% if active_pet.profile_color != 'mint' %}hidden{% endif %} text-emerald-900">
+                                {% include 'components/icon.html' with name="check" class="w-5 h-5 text-emerald-900" %}
+                            </span>
+                        </button>
+
+                        <!-- Muestra: Melocotón -->
+                        <button type="button"
+                                data-color="peach"
+                                data-color-name="{% translate 'Melocotón' %}"
+                                onclick="selectProfileColor('peach', 'Melocotón')"
+                                class="color-swatch relative w-12 h-12 rounded-full bg-[#FFDAD9] flex items-center justify-center transition-all cursor-pointer shadow-xs {% if active_pet.profile_color == 'peach' %}ring-3 ring-offset-2 ring-[#FB7185]{% endif %}"
+                                aria-label="{% translate 'Color melocotón' %}">
+                            <span class="color-check {% if active_pet.profile_color != 'peach' %}hidden{% endif %} text-rose-700">
+                                {% include 'components/icon.html' with name="check" class="w-5 h-5 text-rose-700" %}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TARJETA 3: Objetivos en PetMatch -->
+                <div class="card-petly order-5 w-full p-6 bg-white border border-neutral-300/80">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                            {% include 'components/icon.html' with name="sliders" class="w-4 h-4" %}
+                        </div>
+                        <h2 class="text-sm font-bold text-neutral-900">
+                            {% translate "Objetivos en PetMatch" %}
+                        </h2>
+                    </div>
+
+                    <div class="space-y-4 pt-1">
+                        <!-- Toggle 1: Buscando Pareja -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-neutral-800">
+                                {% translate "Buscando pareja" %}
+                            </span>
+                            {% include 'components/toggle.html' with id="toggle-matching" name="is_matching" checked=active_pet.is_matching|default:True %}
+                        </div>
+
+                        <!-- Toggle 2: Buscando Socializar -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-neutral-800">
+                                {% translate "Buscando socializar" %}
+                            </span>
+                            {% include 'components/toggle.html' with id="toggle-socializing" name="is_socializing" checked=active_pet.is_socializing|default:True %}
+                        </div>
+
+                        <!-- Toggle 3: En Adopción -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-neutral-800">
+                                {% translate "En adopción" %}
+                            </span>
+                            {% include 'components/toggle.html' with id="toggle-adoption" name="is_adoption" checked=active_pet.is_adoption|default:False %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- COLUMNA DERECHA: Datos Básicos y Temperamento  -->
+            <!-- ============================================== -->
+            <div class="contents lg:block lg:col-span-8 lg:space-y-6">
+
+                <!-- TARJETA 4: Datos básicos de la mascota -->
+                <div class="card-petly order-2 w-full p-6 sm:p-8 bg-white border border-neutral-300/80">
+                    <div class="flex items-center gap-2 mb-6">
+                        <div class="w-7 h-7 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0">
+                            {% include 'components/icon.html' with name="paw" class="w-4 h-4" %}
+                        </div>
+                        <h2 class="title-h4 text-neutral-900 font-bold">
+                            {% translate "Datos básicos de la mascota" %}
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+                        <!-- Campo: Nombre de la mascota -->
+                        <div>
+                            {% translate "Nombre de la mascota" as name_label %}
+                            {% translate "Ej. Toby" as name_ph %}
+                            {% include 'components/input.html' with name="name" id="pet-name-input" label=name_label value=active_pet.name|default:'' required=True icon="id-card" placeholder=name_ph attrs='oninput="updatePetNamePreview(this.value)"' %}
+                        </div>
+
+                        <!-- Campo: Especie (Selector de 3 botones según prototipo) -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-neutral-700">
+                                {% translate "Especie" %}
+                            </label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button"
+                                        data-species="perro"
+                                        onclick="selectSpecies('perro')"
+                                        class="species-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.species == 'perro' or not active_pet.species %}bg-petly-coral text-white shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                    {% include 'components/icon.html' with name="dog" class="w-3.5 h-3.5" %}
+                                    <span>{% translate "Perro" %}</span>
+                                </button>
+                                <button type="button"
+                                        data-species="gato"
+                                        onclick="selectSpecies('gato')"
+                                        class="species-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.species == 'gato' %}bg-petly-coral text-white shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                    {% include 'components/icon.html' with name="paw" class="w-3.5 h-3.5" %}
+                                    <span>{% translate "Gato" %}</span>
+                                </button>
+                                <button type="button"
+                                        data-species="otro"
+                                        onclick="selectSpecies('otro')"
+                                        class="species-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.species == 'otro' %}bg-petly-coral text-white shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                    {% include 'components/icon.html' with name="sparkles" class="w-3.5 h-3.5" %}
+                                    <span>{% translate "Otro" %}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Campo: Género biológico (Selector de 2 botones según prototipo) -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-neutral-700">
+                                {% translate "Género biológico" %}
+                            </label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button"
+                                        data-gender="macho"
+                                        onclick="selectGender('macho')"
+                                        class="gender-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.gender == 'macho' or not active_pet.gender %}bg-petly-coral text-white shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                    {% include 'components/icon.html' with name="male" class="w-3.5 h-3.5" %}
+                                    <span>{% translate "Macho" %}</span>
+                                </button>
+                                <button type="button"
+                                        data-gender="hembra"
+                                        onclick="selectGender('hembra')"
+                                        class="gender-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.gender == 'hembra' %}bg-petly-coral text-white shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                    {% include 'components/icon.html' with name="female" class="w-3.5 h-3.5" %}
+                                    <span>{% translate "Hembra" %}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Campo: Raza -->
+                        <div>
+                            {% translate "Raza" as breed_label %}
+                            {% translate "Ej. Bulldog Francés" as breed_ph %}
+                            {% include 'components/input.html' with name="breed" id="pet-breed-input" label=breed_label value=active_pet.breed|default:'' required=True icon="award" placeholder=breed_ph attrs='oninput="updatePetBreedPreview(this.value)"' %}
+                        </div>
+
+                        <!-- Campo: Fecha de nacimiento con insignia de edad cumplida -->
+                        <div class="flex flex-col gap-1.5">
+                            <div class="flex items-center justify-between">
+                                <label for="pet-birthdate-input" class="text-xs font-semibold text-neutral-700">
+                                    {% translate "Fecha de nacimiento" %}
+                                </label>
+                                <span id="age-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F8EE] text-[#065F46] border border-[#A8F0C6]">
+                                    {{ active_pet.age_completed|default:_("3 años cumplidos") }}
+                                </span>
+                            </div>
+                            {% include 'components/input.html' with name="birth_date" id="pet-birthdate-input" value=active_pet.birth_date|default:'04/15/2022' icon="calendar" placeholder="MM/DD/YYYY" %}
+                        </div>
+
+                        <!-- Campo: Pedigrí y certificado -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-neutral-700">
+                                {% translate "Pedigrí y certificado" %}
+                            </label>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button"
+                                        data-cert="fci"
+                                        onclick="selectCertificate('fci')"
+                                        class="cert-btn flex items-center gap-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.certificate == 'fci' or not active_pet.certificate %}bg-[#A8F0C6] text-[#064E3B] border border-emerald-300 shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                    <span class="cert-check {% if active_pet.certificate != 'fci' and active_pet.certificate %}hidden{% endif %}">
+                                        {% include 'components/icon.html' with name="check-circle" class="w-3.5 h-3.5 text-emerald-800" %}
+                                    </span>
+                                    <span>{% translate "Certificado FCI / con pedigrí" %}</span>
+                                </button>
+                                <button type="button"
+                                        data-cert="tramite"
+                                        onclick="selectCertificate('tramite')"
+                                        class="cert-btn flex items-center gap-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.certificate == 'tramite' %}bg-[#A8F0C6] text-[#064E3B] border border-emerald-300 shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                    <span class="cert-check {% if active_pet.certificate != 'tramite' %}hidden{% endif %}">
+                                        {% include 'components/icon.html' with name="check-circle" class="w-3.5 h-3.5 text-emerald-800" %}
+                                    </span>
+                                    <span>{% translate "En trámite" %}</span>
+                                </button>
+                                <button type="button"
+                                        data-cert="sin_pedigri"
+                                        onclick="selectCertificate('sin_pedigri')"
+                                        class="cert-btn flex items-center gap-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.certificate == 'sin_pedigri' %}bg-[#A8F0C6] text-[#064E3B] border border-emerald-300 shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                    <span class="cert-check {% if active_pet.certificate != 'sin_pedigri' %}hidden{% endif %}">
+                                        {% include 'components/icon.html' with name="check-circle" class="w-3.5 h-3.5 text-emerald-800" %}
+                                    </span>
+                                    <span>{% translate "Sin pedigrí" %}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- TARJETA 5: Temperamento y personalidad -->
+                <div class="card-petly order-3 w-full p-6 sm:p-8 bg-white border border-neutral-300/80">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-7 h-7 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                            {% include 'components/icon.html' with name="smile" class="w-4 h-4" %}
+                        </div>
+                        <h2 class="title-h4 text-neutral-900 font-bold">
+                            {% translate "Temperamento y personalidad" %}
+                        </h2>
+                    </div>
+                    <p class="text-caption text-neutral-500 mb-4">
+                        {% translate "Selecciona los rasgos que mejor definen a tu compañero para encontrar afinidades:" %}
+                    </p>
+
+                    <!-- Lista de chips de temperamento interactivos -->
+                    <div class="flex flex-wrap gap-2 mb-6" id="temperament-chips-container">
+                        {% for trait in "Juguetón,Sociable,Cariñoso,Tranquilo,Protector,Curioso,Energético"|make_list|slice:":1" %}
+                        {# Se generan los tags en base a la lista predeterminada oficial #}
+                        {% endfor %}
+                        {% with official_traits="Juguetón,Sociable,Cariñoso,Tranquilo,Protector,Curioso,Energético" %}
+                            <button type="button" onclick="toggleTemperament('Juguetón')" data-trait="Juguetón" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Juguetón' in active_pet.temperaments or not active_pet %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                <span>{% translate "Juguetón" %}</span>
+                                <span class="trait-icon font-bold">{% if 'Juguetón' in active_pet.temperaments or not active_pet %}✓{% else %}+{% endif %}</span>
+                            </button>
+                            <button type="button" onclick="toggleTemperament('Sociable')" data-trait="Sociable" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Sociable' in active_pet.temperaments or not active_pet %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                <span>{% translate "Sociable" %}</span>
+                                <span class="trait-icon font-bold">{% if 'Sociable' in active_pet.temperaments or not active_pet %}✓{% else %}+{% endif %}</span>
+                            </button>
+                            <button type="button" onclick="toggleTemperament('Cariñoso')" data-trait="Cariñoso" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Cariñoso' in active_pet.temperaments or not active_pet %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                <span>{% translate "Cariñoso" %}</span>
+                                <span class="trait-icon font-bold">{% if 'Cariñoso' in active_pet.temperaments or not active_pet %}✓{% else %}+{% endif %}</span>
+                            </button>
+                            <button type="button" onclick="toggleTemperament('Tranquilo')" data-trait="Tranquilo" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Tranquilo' in active_pet.temperaments %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                <span>{% translate "Tranquilo" %}</span>
+                                <span class="trait-icon font-bold">{% if 'Tranquilo' in active_pet.temperaments %}✓{% else %}+{% endif %}</span>
+                            </button>
+                            <button type="button" onclick="toggleTemperament('Protector')" data-trait="Protector" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Protector' in active_pet.temperaments %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                <span>{% translate "Protector" %}</span>
+                                <span class="trait-icon font-bold">{% if 'Protector' in active_pet.temperaments %}✓{% else %}+{% endif %}</span>
+                            </button>
+                            <button type="button" onclick="toggleTemperament('Curioso')" data-trait="Curioso" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Curioso' in active_pet.temperaments %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                <span>{% translate "Curioso" %}</span>
+                                <span class="trait-icon font-bold">{% if 'Curioso' in active_pet.temperaments %}✓{% else %}+{% endif %}</span>
+                            </button>
+                            <button type="button" onclick="toggleTemperament('Energético')" data-trait="Energético" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Energético' in active_pet.temperaments %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
+                                <span>{% translate "Energético" %}</span>
+                                <span class="trait-icon font-bold">{% if 'Energético' in active_pet.temperaments %}✓{% else %}+{% endif %}</span>
+                            </button>
+                        {% endwith %}
+                    </div>
+
+                    <!-- Campo: Descripción y biografía con contador dinámico en tiempo real -->
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between">
+                            <label for="pet-description-input" class="text-xs font-semibold text-neutral-700">
+                                {% translate "Descripción y biografía" %}
+                            </label>
+                            <span id="char-counter" class="text-caption text-neutral-500 font-medium">
+                                106 / 250 {% translate "caracteres" %}
+                            </span>
+                        </div>
+                        <textarea id="pet-description-input"
+                                  name="description"
+                                  rows="3"
+                                  maxlength="250"
+                                  oninput="updateCharCount(this)"
+                                  class="textarea-petly text-sm leading-relaxed"
+                                  placeholder="{% translate 'Describe su personalidad, gustos y hábitos...' %}">{{ active_pet.description|default:_("Adora correr en el parque, jugar con pelotas y dormir siestas al sol. Muy amigable con otros perros.") }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Barra de acciones inferiores para escritorio y móvil -->
+                <div class="order-6 flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-3 pb-6 mb-6 sm:mb-0">
+                    {% translate "Descartar cambios" as discard_label %}
+                    {% include 'components/button.html' with text=discard_label type="button" variant="soft" onclick="openModal('modal-discard')" class="w-full sm:w-auto text-xs font-semibold py-2.5 px-4" %}
+
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        {% translate "Vista previa" as preview_label %}
+                        {% include 'components/button.html' with text=preview_label type="button" variant="outline" onclick="openPreviewModal()" icon="eye" class="flex-1 sm:flex-initial text-xs px-5 py-2.5 bg-white shadow-xs" %}
+                        {% translate "Guardar cambios" as save_label %}
+                        {% include 'components/button.html' with text=save_label type="submit" variant="primary" icon="check" icon_class="w-4 h-4 text-white" class="flex-1 sm:flex-initial text-xs px-7 py-2.5 font-bold shadow-md" %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- ========================================== -->
+<!-- MODALES Y DIÁLOGOS DE CONFIRMACIÓN EN VIVO -->
+<!-- ========================================== -->
+
+<!-- Modal: Descartar Cambios -->
+{% include 'components/confirmation_modal.html' with id="modal-discard" variant="danger" icon="trash" title=_("¿Deseas descartar los cambios?") text=_("Se perderán todas las modificaciones no guardadas en el perfil de la mascota.") confirm_text=_("Descartar cambios") cancel_text=_("Seguir editando") onconfirm="window.location.reload()" %}
+
+<!-- Modal: Eliminar Foto de Perfil -->
+{% include 'components/confirmation_modal.html' with id="modal-delete-photo" variant="danger" icon="trash" title=_("¿Eliminar la foto de perfil?") text=_("La mascota volverá a mostrar la ilustración predeterminada de Petly.") confirm_text=_("Eliminar foto") cancel_text=_("Mantener foto") onconfirm="removePetPhoto()" %}
+
+<!-- Modal: Vista Previa de Tarjeta de Descubrimiento (Pet Discovery Preview) -->
+<div id="modal-pet-preview" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-2 sm:p-4 overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-preview-title">
+    <div class="fixed inset-0 bg-neutral-900/60 backdrop-blur-xs transition-opacity duration-200 cursor-pointer" onclick="closeModal('modal-pet-preview')" aria-hidden="true"></div>
+    <div class="relative w-full max-w-sm sm:max-w-md bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-neutral-300 z-10 flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden text-left">
+
+        <!-- Cabecera del modal (fija en la parte superior) -->
+        <div class="flex items-center justify-between px-3.5 py-2.5 sm:px-5 sm:py-3 border-b border-neutral-200 bg-white shrink-0">
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-7 h-7 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0">
+                    {% include 'components/icon.html' with name="eye" class="w-3.5 h-3.5" %}
+                </div>
+                <div class="min-w-0">
+                    <h3 id="modal-preview-title" class="text-xs font-bold tracking-wider uppercase text-neutral-800 leading-tight truncate">
+                        {% translate "Vista previa en buscador de parejas" %}
+                    </h3>
+                    <p class="text-[10px] sm:text-[11px] text-neutral-500 truncate">
+                        {% translate "Así verán otros tutores la tarjeta de tu mascota en buscar pareja" %}
+                    </p>
+                </div>
+            </div>
+    
+        </div>
+
+        <!-- Cuerpo del modal con scroll interno fluido optimizado -->
+        <div class="flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-4 space-y-3 [scrollbar-width:thin]">
+            <!-- Tarjeta de descubrimiento oficial de Buscar Pareja -->
+            <div id="preview-card-container"
+                 class="relative w-full bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-md border-2 text-left"
+                 style="border-color: #FA7D82; box-shadow: 0 8px 24px rgba(250, 125, 130, 0.15);">
+
+                <!-- Barra superior del color de perfil -->
+                <div id="modal-preview-top-bar" class="h-2 w-full transition-colors duration-200" style="background-color: #FA7D82;"></div>
+
+                <!-- FOTOGRAFÍA PRINCIPAL (proporcional y responsiva) -->
+                <div class="relative w-full h-44 sm:h-56 bg-neutral-900 overflow-hidden">
+                    <img id="modal-preview-avatar"
+                         src="{% if active_pet.photo_url %}{{ active_pet.photo_url }}{% else %}{% static 'images/pets/Toby.png' %}{% endif %}"
+                         alt=""
+                         class="w-full h-full object-cover select-none transition-transform duration-500">
+
+                    <!-- Rayas indicadoras de historias superiores -->
+                    <div class="absolute top-2.5 inset-x-3 sm:top-3 sm:inset-x-4 flex items-center gap-1.5 z-20">
+                        <div class="flex-1 h-1 rounded-full bg-white/90 shadow-xs"></div>
+                        <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
+                        <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
+                        <div class="flex-1 h-1 rounded-full bg-white/40 shadow-xs"></div>
+                    </div>
+
+                    <!-- Insignia de compatibilidad en la esquina superior izquierda -->
+                    <div class="absolute top-6 left-3 sm:top-7 sm:left-4 z-20">
+                        <span class="badge-compat text-xs py-0.5 px-2.5 sm:py-1 sm:px-3 shadow-md">
+                            {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-emerald-900" %}
+                            <span>98% {% translate "compatible" %}</span>
+                        </span>
+                    </div>
+
+                    <!-- Insignia de propósito en la esquina superior derecha -->
+                    <div class="absolute top-6 right-3 sm:top-7 sm:right-4 z-20">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur-xs text-neutral-800 shadow-md">
+                            <span id="modal-preview-purpose-dot" class="w-2 h-2 rounded-full" style="background-color: #FA7D82;"></span>
+                            <span id="modal-preview-purpose-text">{% translate "Cruza y socialización" %}</span>
+                        </span>
+                    </div>
+
+                    <!-- Degradado inferior para legibilidad del texto sobre la foto -->
+                    <div class="absolute inset-x-0 bottom-0 h-28 sm:h-32 bg-gradient-to-t from-neutral-950/90 via-neutral-950/40 to-transparent pointer-events-none z-10"></div>
+
+                    <!-- Overlay de información sobre la foto -->
+                    <div class="absolute inset-x-3.5 bottom-2.5 sm:inset-x-4 sm:bottom-3 z-20 flex items-end justify-between gap-3 text-white">
+                        <div>
+                            <div class="flex items-center gap-1.5 sm:gap-2">
+                                <h2 id="modal-preview-name" class="title-h3 sm:title-h2 text-white font-bold tracking-tight drop-shadow-md">
+                                    {{ active_pet.name|default:"Toby" }}
+                                </h2>
+                                <span id="modal-preview-gender-symbol" class="text-base sm:text-lg font-bold drop-shadow-md" style="color: #FA7D82;">
+                                    {{ active_pet.gender_symbol|default:"♂" }}
+                                </span>
+                                <span id="modal-preview-age-badge" class="text-[11px] sm:text-xs font-semibold bg-white/20 backdrop-blur-xs px-2 py-0.5 rounded-full drop-shadow-xs">
+                                    {{ active_pet.age_text|default:"3 años" }}
+                                </span>
+                            </div>
+                            <p id="modal-preview-breed-line" class="text-xs text-neutral-200 font-medium drop-shadow-xs mt-0.5">
+                                {{ active_pet.breed|default:"Bulldog Francés" }} • {{ active_pet.species_label|default:"Perro" }}
+                            </p>
+                        </div>
+
+                        <div class="shrink-0">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-medium bg-black/50 backdrop-blur-md text-white border border-white/20">
+                                {% include 'components/icon.html' with name="location" class="w-3 h-3 text-white" %}
+                                <span>{% translate "Tu mascota" %}</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CUERPO DETALLADO DE LA MASCOTA -->
+                <div id="modal-preview-card-body" class="p-3.5 sm:p-4 space-y-3" style="background: linear-gradient(180deg, #ffffff 65%, rgba(250, 125, 130, 0.12) 100%);">
+
+                    <!-- Personalidad y Temperamento -->
+                    <div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase text-neutral-400 mb-1.5 block">
+                            {% translate "Personalidad y temperamento" %}
+                        </span>
+                        <div id="modal-preview-traits" class="flex flex-wrap gap-1.5">
+                            <span class="badge-tag text-xs font-medium py-0.5 px-2.5">Juguetón</span>
+                            <span class="badge-tag text-xs font-medium py-0.5 px-2.5">Sociable</span>
+                            <span class="badge-tag text-xs font-medium py-0.5 px-2.5">Cariñoso</span>
+                        </div>
+                    </div>
+
+                    <!-- Fila de métricas clave (3 cajas redondeadas) -->
+                    <div id="modal-preview-metrics-box" class="grid grid-cols-3 gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-2xl border text-center" style="border-color: rgba(250, 125, 130, 0.3); background-color: rgba(250, 125, 130, 0.05);">
+                        <div class="flex flex-col">
+                            <span class="text-[9px] sm:text-[10px] font-semibold text-neutral-500 uppercase">
+                                {% translate "Fecha de nacimiento" %}
+                            </span>
+                            <span id="modal-preview-birthdate" class="text-xs font-bold text-neutral-900 mt-0.5 truncate">
+                                {{ active_pet.birth_date|default:"04/15/2022" }}
+                            </span>
+                        </div>
+                        <div class="flex flex-col border-x border-neutral-300/60 px-1">
+                            <span class="text-[9px] sm:text-[10px] font-semibold text-neutral-500 uppercase">
+                                {% translate "Especie / género" %}
+                            </span>
+                            <span id="modal-preview-species-gender" class="text-xs font-bold text-neutral-900 mt-0.5 truncate">
+                                {{ active_pet.species_label|default:"Perro" }} • {{ active_pet.gender_label|default:"Macho" }}
+                            </span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[9px] sm:text-[10px] font-semibold text-neutral-500 uppercase">
+                                {% translate "Certificación" %}
+                            </span>
+                            <span id="modal-preview-certificate" class="text-xs font-bold text-neutral-900 mt-0.5 truncate">
+                                {{ active_pet.certificate_label|default:"Certificado FCI" }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Biografía: Sobre la mascota -->
+                    <div>
+                        <h3 class="text-xs font-bold text-neutral-900 mb-0.5">
+                            {% translate "Sobre" %} <span id="modal-preview-about-name">{{ active_pet.name|default:"Toby" }}</span>
+                        </h3>
+                        <p id="modal-preview-desc" class="text-xs text-neutral-600 leading-relaxed italic">
+                            "{{ active_pet.description|default:'Adora correr en el parque, jugar con pelotas y dormir siestas al sol.' }}"
+                        </p>
+                    </div>
+
+                    <!-- Bloque de tutor responsable -->
+                    <div class="pt-2 border-t border-neutral-200/80 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <div id="modal-preview-tutor-avatar" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-xs shrink-0" style="background-color: #FA7D82;">
+                                <span id="modal-preview-tutor-letter">TO</span>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-neutral-900 block leading-tight">
+                                    {% translate "Tú (tutor verificado)" %}
+                                </span>
+                                <span class="text-[10px] sm:text-[11px] text-neutral-500">
+                                    {% translate "Perfil oficial en PetMatch" %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[11px] sm:text-xs font-semibold shrink-0">
+                            <span>★</span>
+                            <span>5.0</span>
+                            <span class="text-neutral-500 font-normal">({% translate "Tu perfil" %})</span>
+                        </div>
+                    </div>
+
+                    <!-- Simulación de botones de acción Buscar Pareja -->
+                    <div class="pt-2 border-t border-neutral-200/80 flex items-center justify-between gap-2">
+                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white border border-neutral-200 shadow-xs flex items-center justify-center text-neutral-400 select-none shrink-0">
+                            {% include 'components/icon.html' with name="close" class="w-4 h-4 text-neutral-400" %}
+                        </div>
+                        <div id="modal-preview-btn-like"
+                             class="flex-1 py-2 px-3 rounded-full text-white text-xs sm:text-sm font-bold shadow-md inline-flex items-center justify-center gap-1.5 select-none"
+                             style="background-color: #FA7D82;">
+                            {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-white" %}
+                            <span class="truncate">{% translate "Mostrar interés en" %} <span id="modal-preview-btn-name">{{ active_pet.name|default:"Toby" }}</span></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Pie de modal (fijo con botón de cierre accesible) -->
+        <div class="px-3.5 py-2 sm:px-5 sm:py-2.5 border-t border-neutral-200 bg-neutral-50/90 shrink-0">
+            {% translate "Cerrar vista previa" as close_preview_label %}
+            {% include 'components/button.html' with text=close_preview_label type="button" variant="outline" onclick="closeModal('modal-pet-preview')" class="text-xs w-full py-2 sm:py-2.5 font-bold shadow-xs cursor-pointer justify-center bg-white hover:bg-neutral-100" %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Configuración reactiva del perfil de mascota
+    const COLOR_HEX_MAP = {
+        coral: '#FA7D82',
+        lilac: '#E9D5FF',
+        mint: '#8FFFB4',
+        peach: '#FFDAD9'
+    };
+
+    // Selección de especie
+    function selectSpecies(species) {
+        document.getElementById('input-species').value = species;
+        document.querySelectorAll('.species-btn').forEach(btn => {
+            const isSelected = btn.getAttribute('data-species') === species;
+            btn.className = isSelected
+                ? 'species-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none bg-petly-coral text-white shadow-xs'
+                : 'species-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60';
+        });
+    }
+
+    // Selección de género biológico
+    function selectGender(gender) {
+        document.getElementById('input-gender').value = gender;
+        document.querySelectorAll('.gender-btn').forEach(btn => {
+            const isSelected = btn.getAttribute('data-gender') === gender;
+            btn.className = isSelected
+                ? 'gender-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none bg-petly-coral text-white shadow-xs'
+                : 'gender-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60';
+        });
+    }
+
+    // Selección de certificado
+    function selectCertificate(cert) {
+        document.getElementById('input-certificate').value = cert;
+        document.querySelectorAll('.cert-btn').forEach(btn => {
+            const isSelected = btn.getAttribute('data-cert') === cert;
+            const checkIcon = btn.querySelector('.cert-check');
+            if (isSelected) {
+                btn.className = 'cert-btn flex items-center gap-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none bg-[#A8F0C6] text-[#064E3B] border border-emerald-300 shadow-xs';
+                if (checkIcon) checkIcon.classList.remove('hidden');
+            } else {
+                btn.className = 'cert-btn flex items-center gap-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60';
+                if (checkIcon) checkIcon.classList.add('hidden');
+            }
+        });
+    }
+
+    // Selección de color de perfil
+    function selectProfileColor(colorKey, displayName) {
+        document.getElementById('input-profile-color').value = colorKey;
+        const label = document.getElementById('label-color-name');
+        if (label) {
+            label.textContent = displayName;
+        }
+
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            const isMatch = swatch.getAttribute('data-color') === colorKey;
+            const check = swatch.querySelector('.color-check');
+            if (isMatch) {
+                swatch.classList.add('ring-3', 'ring-offset-2');
+                if (colorKey === 'coral') swatch.classList.add('ring-[#FA7D82]');
+                if (colorKey === 'lilac') swatch.classList.add('ring-[#C084FC]');
+                if (colorKey === 'mint') swatch.classList.add('ring-[#34D399]');
+                if (colorKey === 'peach') swatch.classList.add('ring-[#FB7185]');
+                if (check) check.classList.remove('hidden');
+            } else {
+                swatch.classList.remove('ring-3', 'ring-offset-2', 'ring-[#FA7D82]', 'ring-[#C084FC]', 'ring-[#34D399]', 'ring-[#FB7185]');
+                if (check) check.classList.add('hidden');
+            }
+        });
+    }
+
+    // Alternar rasgos de temperamento
+    function toggleTemperament(trait) {
+        const input = document.getElementById('input-temperaments');
+        let traits = input.value ? input.value.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+        const index = traits.indexOf(trait);
+        if (index > -1) {
+            traits.splice(index, 1);
+        } else {
+            traits.push(trait);
+        }
+        input.value = traits.join(',');
+
+        // Actualizar visual del botón
+        const btn = document.querySelector(`.trait-chip[data-trait="${trait}"]`);
+        if (btn) {
+            const isActive = traits.includes(trait);
+            const iconSpan = btn.querySelector('.trait-icon');
+            if (isActive) {
+                btn.className = 'trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs';
+                if (iconSpan) iconSpan.textContent = '✓';
+            } else {
+                btn.className = 'trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60';
+                if (iconSpan) iconSpan.textContent = '+';
+            }
+        }
+    }
+
+    // Contador de caracteres de biografía en tiempo real
+    function updateCharCount(textarea) {
+        const counter = document.getElementById('char-counter');
+        if (counter) {
+            counter.textContent = `${textarea.value.length} / 250 {% translate 'caracteres' %}`;
+        }
+    }
+
+    // Actualizaciones de vista previa reactivas
+    function updatePetNamePreview(name) {
+        const cleanName = name.trim() || '{% translate "Nueva mascota" %}';
+        const summary = document.getElementById('summary-pet-name');
+        if (summary) summary.textContent = cleanName;
+    }
+
+    function updatePetBreedPreview(breed) {
+        const cleanBreed = breed.trim() || '{% translate "Raza por definir" %}';
+        const summary = document.getElementById('summary-pet-breed-age');
+        if (summary) {
+            summary.textContent = `${cleanBreed} • {{ active_pet.age_text|default:_("3 años") }}`;
+        }
+    }
+
+    // Carga interactiva de fotografía con FileReader
+    function triggerPhotoUpload() {
+        document.getElementById('pet-photo-input').click();
+    }
+
+    function handlePhotoUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('pet-avatar-img');
+                if (img) img.src = e.target.result;
+                const modalImg = document.getElementById('modal-preview-avatar');
+                if (modalImg) modalImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function removePetPhoto() {
+        const img = document.getElementById('pet-avatar-img');
+        if (img) img.src = "{% static 'images/pets/Toby.png' %}";
+        closeModal('modal-delete-photo');
+    }
+
+    // Abrir modal de vista previa dinámico con estructura de Buscar Pareja
+    function openPreviewModal() {
+        const nameInput = document.getElementById('pet-name-input');
+        const name = (nameInput && nameInput.value.trim()) || '{{ active_pet.name|default:"Toby" }}';
+        const breedInput = document.getElementById('pet-breed-input');
+        const breed = (breedInput && breedInput.value.trim()) || '{{ active_pet.breed|default:"Bulldog Francés" }}';
+        const descInput = document.getElementById('pet-description-input');
+        const desc = (descInput && descInput.value.trim()) || '{{ active_pet.description|default:"Sin descripción" }}';
+        const color = document.getElementById('input-profile-color').value || 'coral';
+        const species = document.getElementById('input-species').value || 'perro';
+        const gender = document.getElementById('input-gender').value || 'macho';
+        const birthInput = document.getElementById('pet-birthdate-input');
+        const birth = (birthInput && birthInput.value.trim()) || '{{ active_pet.birth_date|default:"04/15/2022" }}';
+        const certificate = document.getElementById('input-certificate').value || 'fci';
+        const toggleMatching = document.getElementById('toggle-matching');
+        const toggleSocializing = document.getElementById('toggle-socializing');
+        const matching = toggleMatching ? toggleMatching.checked : true;
+        const socializing = toggleSocializing ? toggleSocializing.checked : true;
+
+        // Foto actual (usar la del avatar interactivo si se cambió o subió)
+        const currentAvatar = document.getElementById('pet-avatar-img');
+        const modalAvatar = document.getElementById('modal-preview-avatar');
+        if (currentAvatar && modalAvatar) {
+            modalAvatar.src = currentAvatar.src;
+        }
+
+        // Textos del nombre
+        const nameElem = document.getElementById('modal-preview-name');
+        if (nameElem) nameElem.textContent = name;
+        const aboutName = document.getElementById('modal-preview-about-name');
+        if (aboutName) aboutName.textContent = name;
+        const btnName = document.getElementById('modal-preview-btn-name');
+        if (btnName) btnName.textContent = name;
+
+        // Iniciales para el avatar del tutor
+        const tutorLetter = document.getElementById('modal-preview-tutor-letter');
+        if (tutorLetter) {
+            tutorLetter.textContent = (name.substring(0, 2) || 'TO').toUpperCase();
+        }
+
+        // Género y símbolo
+        const isMale = (gender === 'macho');
+        const genderSym = document.getElementById('modal-preview-gender-symbol');
+        if (genderSym) genderSym.textContent = isMale ? '♂' : '♀';
+
+        // Especie y Raza
+        const speciesLabel = species === 'gato' ? '{% translate "Gato" %}' : (species === 'otro' ? '{% translate "Otro" %}' : '{% translate "Perro" %}');
+        const genderLabel = isMale ? '{% translate "Macho" %}' : '{% translate "Hembra" %}';
+        const breedLine = document.getElementById('modal-preview-breed-line');
+        if (breedLine) breedLine.textContent = `${breed} • ${speciesLabel}`;
+
+        const speciesGender = document.getElementById('modal-preview-species-gender');
+        if (speciesGender) speciesGender.textContent = `${speciesLabel} • ${genderLabel}`;
+
+        const birthElem = document.getElementById('modal-preview-birthdate');
+        if (birthElem) birthElem.textContent = birth;
+
+        // Certificado
+        const certMap = {
+            'fci': '{% translate "Certificado FCI" %}',
+            'tramite': '{% translate "En trámite" %}',
+            'sin_pedigri': '{% translate "Sin pedigrí" %}'
+        };
+        const certElem = document.getElementById('modal-preview-certificate');
+        if (certElem) certElem.textContent = certMap[certificate] || '{% translate "Certificado FCI" %}';
+
+        // Propósito
+        let purposeText = '{% translate "Cruza y socialización" %}';
+        if (matching && !socializing) purposeText = '{% translate "Cruza responsable" %}';
+        else if (!matching && socializing) purposeText = '{% translate "Socialización" %}';
+        else if (!matching && !socializing) purposeText = '{% translate "Perfil registrado" %}';
+        const purposeElem = document.getElementById('modal-preview-purpose-text');
+        if (purposeElem) purposeElem.textContent = purposeText;
+
+        // Descripción
+        const descElem = document.getElementById('modal-preview-desc');
+        if (descElem) descElem.textContent = `"${desc}"`;
+
+        // Color de perfil seleccionado
+        const hex = COLOR_HEX_MAP[color] || '#FA7D82';
+        const container = document.getElementById('preview-card-container');
+        if (container) {
+            container.style.borderColor = hex;
+            container.style.boxShadow = `0 14px 40px ${hex}38`;
+        }
+        const topBar = document.getElementById('modal-preview-top-bar');
+        if (topBar) topBar.style.backgroundColor = hex;
+        const purposeDot = document.getElementById('modal-preview-purpose-dot');
+        if (purposeDot) purposeDot.style.backgroundColor = hex;
+        if (genderSym) genderSym.style.color = hex;
+        const tutorAvatar = document.getElementById('modal-preview-tutor-avatar');
+        if (tutorAvatar) tutorAvatar.style.backgroundColor = hex;
+        const btnLike = document.getElementById('modal-preview-btn-like');
+        if (btnLike) btnLike.style.backgroundColor = hex;
+        const cardBody = document.getElementById('modal-preview-card-body');
+        if (cardBody) cardBody.style.background = `linear-gradient(180deg, #ffffff 65%, ${hex}18 100%)`;
+        const metricsBox = document.getElementById('modal-preview-metrics-box');
+        if (metricsBox) {
+            metricsBox.style.borderColor = `${hex}40`;
+            metricsBox.style.backgroundColor = `${hex}0c`;
+        }
+
+        // Refrescar traits en vista previa
+        const traitsVal = document.getElementById('input-temperaments').value;
+        const traits = traitsVal ? traitsVal.split(',').map(t => t.trim()).filter(Boolean) : ['Juguetón', 'Sociable', 'Cariñoso'];
+        const traitsContainer = document.getElementById('modal-preview-traits');
+        if (traitsContainer) {
+            traitsContainer.innerHTML = traits.map(t => `<span class="badge-tag text-xs font-medium py-1 px-3">${t}</span>`).join('');
+        }
+
+        openModal('modal-pet-preview');
+    }
+
+    // Inicializar contador al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+        const textarea = document.getElementById('pet-description-input');
+        if (textarea) updateCharCount(textarea);
+    });
+</script>
+{% endblock %}

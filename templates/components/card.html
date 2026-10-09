@@ -1,0 +1,19 @@
+{% comment %}
+Componente de tarjeta base reutilizable según guía de estilos del prototipo.
+Parámetros:
+- title: Título opcional de la tarjeta
+- subtitle: Subtítulo opcional
+- class: Clases CSS complementarias
+{% endcomment %}
+
+<div class="card-petly w-full {{ class|default:'' }}">
+    {% if title %}
+        <div class="mb-4">
+            <h3 class="title-h4 text-neutral-800">{{ title }}</h3>
+            {% if subtitle %}
+                <p class="text-caption text-neutral-500 mt-1">{{ subtitle }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+    {{ slot|default:'' }}
+</div>

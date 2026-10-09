@@ -1,0 +1,67 @@
+{% load i18n static %}
+<details data-petly-dropdown class="relative inline-block text-left group shrink-0" id="lang-dropdown{% if id_suffix %}-{{ id_suffix }}{% endif %}">
+    {% get_current_language as CURRENT_LANGUAGE %}
+    {% get_available_languages as AVAILABLE_LANGUAGES %}
+
+    <!-- Botón activador vía <summary> nativo (sin dependencias ni lógica en scripts globales) -->
+    <summary class="list-none [&::-webkit-details-marker]:hidden h-8 pl-2.5 pr-2.5 sm:pl-3 sm:pr-3 text-xs font-semibold text-neutral-800 bg-white hover:bg-neutral-50 hover:border-neutral-400 border border-neutral-300 rounded-full cursor-pointer transition-all duration-150 inline-flex items-center gap-1.5 shadow-2xs focus:outline-none focus:ring-2 focus:ring-petly-coral/30 select-none"
+             aria-label="{% translate 'Seleccionar idioma' %}">
+        <span class="text-neutral-500 flex items-center justify-center pointer-events-none">
+            {% include 'components/icon.html' with name="globe" class="w-3.5 h-3.5" %}
+        </span>
+        <span class="font-bold pointer-events-none">{{ CURRENT_LANGUAGE|upper }}</span>
+        <span class="text-neutral-400 flex items-center justify-center transition-transform duration-200 pointer-events-none group-open:rotate-180">
+            {% include 'components/icon.html' with name="chevron-down" class="w-3 h-3" %}
+        </span>
+    </summary>
+
+    <!-- Menú flotante estilizado con ancho acotado (evita que Chrome expanda la ventana en mobile) -->
+    <div class="absolute right-0 top-full mt-1.5 w-40 bg-white rounded-2xl shadow-lg border border-neutral-200/80 py-1.5 z-50 focus:outline-none"
+         role="menu">
+        <form action="{% url 'set_language' %}" method="post" class="m-0 p-0">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ request.path }}">
+            <div class="flex flex-col py-0.5">
+                {% for lang_code, lang_name in AVAILABLE_LANGUAGES %}
+                    <button type="submit"
+                            name="language"
+                            value="{{ lang_code }}"
+                            role="menuitem"
+                            class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors {% if lang_code == CURRENT_LANGUAGE %}font-bold text-petly-coral bg-petly-coral-light/20 cursor-default{% else %}font-medium text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer{% endif %}"
+                            {% if lang_code == CURRENT_LANGUAGE %}aria-current="true"{% endif %}>
+                        <span class="inline-flex items-center gap-2 pointer-events-none">
+                            <span class="text-[11px] uppercase tracking-wider text-neutral-400 font-mono font-bold">{{ lang_code }}</span>
+                            <span>{{ lang_name }}</span>
+                        </span>
+                        {% if lang_code == CURRENT_LANGUAGE %}
+                            <span class="pointer-events-none">
+                                {% include 'components/icon.html' with name="check" class="w-3.5 h-3.5 text-petly-coral shrink-0" %}
+                            </span>
+                        {% endif %}
+                    </button>
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+</details>
+
+<!-- Cerrar menú si el usuario pulsa fuera (lógica encapsulada y autocontenida en el componente) -->
+<script>
+    if (!window._petlyLangDropdownInit) {
+        window._petlyLangDropdownInit = true;
+        document.addEventListener('click', (e) => {
+            document.querySelectorAll('details[data-petly-dropdown]').forEach((dropdown) => {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.removeAttribute('open');
+                }
+            });
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('details[data-petly-dropdown]').forEach((dropdown) => {
+                    dropdown.removeAttribute('open');
+                });
+            }
+        });
+    }
+</script>
