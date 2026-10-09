@@ -62,3 +62,45 @@ class PetsViewsTests(TestCase):
         response = self.client.post(url, {'selected_pet_id': '5678'})
         self.assertRedirects(response, reverse('pets:match_feed'))
         self.assertEqual(self.client.session.get('active_pet_id'), '5678')
+
+    def test_match_feed_view_context_and_content(self):
+        """Verifica que el feed de cruza cargue candidatos, color de perfil y enlaces."""
+        url = reverse('pets:match_feed')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('active_pet', response.context)
+        self.assertIn('candidates', response.context)
+        self.assertIn('candidates_json', response.context)
+        self.assertIn('interested_sidebar', response.context)
+
+        # Verifica candidatos oficiales y enlaces de navegación requeridos
+        self.assertContains(response, 'Bella')
+        self.assertContains(response, 'Pastor Australiano')
+        self.assertContains(response, reverse('pets:pet_select'))
+        self.assertContains(response, reverse('pets:match_interested'))
+
+        # Verifica que al consultar con ?pet=luna se aplique su color de perfil
+        url_luna = reverse('pets:match_feed') + '?pet=luna'
+        response_luna = self.client.get(url_luna)
+        self.assertEqual(response_luna.status_code, 200)
+        self.assertEqual(response_luna.context['active_pet']['name'], 'Luna')
+        self.assertContains(response_luna, response_luna.context['active_pet']['profile_color_hex'])
+
+    def test_match_interested_view_context_and_content(self):
+        """Verifica que la bandeja de interesados cargue pretendientes, citas y enlaces."""
+        url = reverse('pets:match_interested')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('featured_suitor', response.context)
+        self.assertIn('secondary_suitors', response.context)
+        self.assertIn('confirmed_dates', response.context)
+
+        # Verifica pretendiente destacado (Kira) y secundarias (Chloe, Maya)
+        self.assertContains(response, 'Kira')
+        self.assertContains(response, 'Pomerania Mini')
+        self.assertContains(response, 'Chloe')
+        self.assertContains(response, 'Maya')
+
+        # Verifica citas confirmadas y enlace de retorno al feed
+        self.assertContains(response, 'Citas Confirmadas')
+        self.assertContains(response, reverse('pets:match_feed'))
