@@ -561,15 +561,19 @@ body {
   box-shadow: 0 0 0 3px rgba(250, 125, 130, 0.2);
 }
 
-/* Entradas de fecha (type="date"): estilo y apertura interactiva sin iconos nativos duplicados */
+/* Entradas de fecha (type="date") y hora (type="time"): estilo y apertura interactiva sin iconos nativos duplicados */
 .input-petly[type="date"],
-input[type="date"].input-petly {
+.input-petly[type="time"],
+input[type="date"].input-petly,
+input[type="time"].input-petly {
   cursor: pointer;
   position: relative;
 }
 
 .input-petly[type="date"]::-webkit-calendar-picker-indicator,
-input[type="date"].input-petly::-webkit-calendar-picker-indicator {
+.input-petly[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"].input-petly::-webkit-calendar-picker-indicator,
+input[type="time"].input-petly::-webkit-calendar-picker-indicator {
   position: absolute;
   top: 0;
   left: 0;
@@ -578,6 +582,14 @@ input[type="date"].input-petly::-webkit-calendar-picker-indicator {
   width: 100%;
   height: 100%;
   opacity: 0;
+  cursor: pointer;
+}
+
+/* Selectores desplegables redondeados Petly */
+select.input-petly {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   cursor: pointer;
 }
 

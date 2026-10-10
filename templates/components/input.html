@@ -65,29 +65,37 @@ Ejemplos de uso rápido:
             {% if onchange %}onchange="{{ onchange }}"{% endif %}
             {% if onblur %}onblur="{{ onblur }}"{% endif %}
             {% if onfocus %}onfocus="{{ onfocus }}"{% endif %}
-            {% if onclick %}onclick="{{ onclick }}"{% elif type == 'date' %}onclick="if ('showPicker' in this) { try { this.showPicker(); } catch(e) {} }"{% endif %}
+            {% if onclick %}onclick="{{ onclick }}"{% elif type == 'date' or type == 'time' %}onclick="if ('showPicker' in this) { try { this.showPicker(); } catch(e) {} }"{% endif %}
             {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
-            class="{% if prefix_slot %}flex-1 w-full bg-transparent border-0 px-4 py-2 text-xs sm:text-sm text-neutral-800 placeholder-neutral-500 focus:outline-none focus:ring-0{% else %}input-petly {% if icon or icon_start or type == 'date' and not icon_end %}has-icon pl-11{% endif %} {% if icon_end %}has-icon-end pr-11{% endif %} {% if type == 'date' %}cursor-pointer{% endif %} {% if error %}border-petly-coral ring-1 ring-petly-coral/30{% endif %}{% endif %} {{ input_class|default:'' }}"
+            class="{% if prefix_slot %}flex-1 w-full bg-transparent border-0 px-4 py-2 text-xs sm:text-sm text-neutral-800 placeholder-neutral-500 focus:outline-none focus:ring-0{% else %}input-petly {% if icon or icon_start or type == 'date' or type == 'time' and not icon_end %}has-icon pl-11{% endif %} {% if icon_end %}has-icon-end pr-11{% endif %} {% if type == 'date' or type == 'time' %}cursor-pointer{% endif %} {% if error %}border-petly-coral ring-1 ring-petly-coral/30{% endif %}{% endif %} {{ input_class|default:'' }}"
             {{ attrs|default:'' }}
         >
 
         {% if not prefix_slot %}
-            {% if icon or icon_start or type == 'date' and not icon_end %}
-                {% with final_left_icon=icon_start|default:icon|default:'calendar' %}
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none flex items-center justify-center z-10">
-                    {% include 'components/icon.html' with name=final_left_icon class="w-4 h-4" %}
-                </span>
-                {% endwith %}
+            {% if icon or icon_start or type == 'date' or type == 'time' and not icon_end %}
+                {% if type == 'time' %}
+                    {% with final_left_icon=icon_start|default:icon|default:'clock' %}
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none flex items-center justify-center z-10">
+                        {% include 'components/icon.html' with name=final_left_icon class=icon_class|default:'w-4 h-4' %}
+                    </span>
+                    {% endwith %}
+                {% else %}
+                    {% with final_left_icon=icon_start|default:icon|default:'calendar' %}
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none flex items-center justify-center z-10">
+                        {% include 'components/icon.html' with name=final_left_icon class=icon_class|default:'w-4 h-4' %}
+                    </span>
+                    {% endwith %}
+                {% endif %}
             {% endif %}
         {% endif %}
 
-        {% if type == 'date' and not icon_end %}
+        {% if type == 'date' and not icon_end or type == 'time' and not icon_end %}
             <span class="date-overlay-mask" aria-hidden="true"></span>
         {% endif %}
 
         {% if icon_end %}
             {% if icon_end_onclick %}
-                {% include 'components/button.html' with variant="custom" icon=icon_end icon_end="" icon_class="w-4 h-4" onclick=icon_end_onclick aria_label=icon_end_aria_label|default:'Acción' attrs='tabindex="-1"' class="absolute right-4 top-1/2 -translate-y-1/2 pr-1 text-neutral-400 hover:text-neutral-600 cursor-pointer flex items-center justify-center focus:outline-none transition-colors z-10" %}
+                {% include 'components/button.html' with type="button" id="" name="" variant="custom" icon=icon_end icon_end="" icon_class="w-4 h-4" onclick=icon_end_onclick aria_label=icon_end_aria_label|default:'Acción' attrs='tabindex="-1"' class="absolute right-4 top-1/2 -translate-y-1/2 pr-1 text-neutral-400 hover:text-neutral-600 cursor-pointer flex items-center justify-center focus:outline-none transition-colors z-10" %}
             {% else %}
                 <span class="absolute right-4 top-1/2 -translate-y-1/2 pr-1 text-neutral-400 flex items-center justify-center pointer-events-none z-10">
                     {% include 'components/icon.html' with name=icon_end class="w-4 h-4" %}
