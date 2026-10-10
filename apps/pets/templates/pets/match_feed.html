@@ -102,8 +102,7 @@
                  Aplica dinámicamente el ancho amplio proporcional a la columna y el acento del tutor activo
             -->
             <div id="discovery-card"
-                 class="relative w-full max-w-2xl lg:max-w-none bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border border-neutral-200/80 mb-8 lg:mb-0"
-                 style="box-shadow: 0 16px 40px -8px {{ active_pet.profile_color_hex|default:'#FA7D82' }}26;">
+                 class="relative w-full max-w-2xl lg:max-w-none bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border border-neutral-200/80 mb-8 lg:mb-0 shadow-pet-discovery">
 
                 <!-- SECCIÓN 1: FOTOGRAFÍA PRINCIPAL CON GRADIENTE E INFORMACIÓN -->
                 <div class="relative w-full h-80 sm:h-96 md:h-[480px] lg:h-[500px] bg-neutral-100 overflow-hidden">
@@ -138,7 +137,7 @@
                                 <h2 id="card-name" class="title-h2 text-white font-bold tracking-tight drop-shadow-md">
                                     {{ current_candidate.name }}
                                 </h2>
-                                <span id="card-gender-symbol" class="text-lg font-bold drop-shadow-md" style="color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
+                                <span id="card-gender-symbol" class="text-lg font-bold drop-shadow-md text-pet-accent">
                                     {{ current_candidate.gender_symbol }}
                                 </span>
                                 <span id="card-age" class="text-xs font-semibold bg-white/20 backdrop-blur-xs px-2.5 py-0.5 rounded-full drop-shadow-xs">
@@ -153,7 +152,7 @@
                         <!-- Insignia de propósito en móvil y ubicación sobre la foto -->
                         <div class="shrink-0 flex flex-col items-end gap-1.5">
                             <span id="card-purpose-badge" class="sm:hidden inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/95 text-neutral-800 shadow-md">
-                                <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};"></span>
+                                <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-pet-accent"></span>
                                 <span id="card-purpose-text">{{ current_candidate.purpose }}</span>
                             </span>
                             <span id="card-location" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-black/40 backdrop-blur-md text-white border border-white/20">
@@ -222,7 +221,7 @@
                     <!-- Bloque de tutores responsables (tarjeta redondeada limpia como en UI Figma) -->
                     <div class="p-3.5 rounded-2xl bg-[#F4F6F9] border border-slate-100 flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-xs shrink-0" style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-xs shrink-0 bg-pet-accent">
                                 <span id="card-tutor-avatar">{{ current_candidate.tutors.avatar_letter|default:"SC" }}</span>
                             </div>
                             <div>
@@ -252,9 +251,7 @@
 
                     <!-- Botón primario central: Mostrar Interés (♥) -->
                     {% blocktranslate with name=current_candidate.name asvar like_btn_text %}Mostrar interés en {{ name }}{% endblocktranslate %}
-                    {% with like_style='style="background-color: '|add:active_pet.profile_color_hex|default:'#FA7D82'|add:'; box-shadow: 0 10px 24px -4px '|add:active_pet.profile_color_hex|default:'#FA7D82'|add:'66;"' %}
-                    {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-white" onclick="handleLikeCandidate()" attrs=like_style class="select-none flex-1 py-3.5 px-6 rounded-full font-bold text-white shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
-                    {% endwith %}
+                    {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-white" onclick="handleLikeCandidate()" class="btn-pet-dynamic-like select-none flex-1 py-3.5 px-6 rounded-full font-bold text-white shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
 
                     <!-- Botón secundario: Información o reporte con bandera -->
                     {% translate 'Detalles del candidato' as aria_candidate_details %}
@@ -273,9 +270,7 @@
                     <!-- Botón Circular Me Interesa (♥) -->
                     <div class="flex flex-col items-center gap-1.5">
                         {% translate 'Interesado' as aria_like_mobile %}
-                        {% with like_mobile_style='style="background-color: '|add:active_pet.profile_color_hex|default:'#FA7D82'|add:'; box-shadow: 0 10px 25px '|add:active_pet.profile_color_hex|default:'#FA7D82'|add:'66;"' %}
-                        {% include 'components/button.html' with id="btn-like-mobile" variant="custom" icon="heart-filled" icon_class="w-7 h-7 text-white" onclick="handleLikeCandidate()" aria_label=aria_like_mobile attrs=like_mobile_style class="w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-white flex items-center justify-center cursor-pointer" %}
-                        {% endwith %}
+                        {% include 'components/button.html' with id="btn-like-mobile" variant="custom" icon="heart-filled" icon_class="w-7 h-7 text-white" onclick="handleLikeCandidate()" aria_label=aria_like_mobile class="btn-pet-dynamic-like w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-white flex items-center justify-center cursor-pointer" %}
                         <span class="text-xs font-semibold text-neutral-700">{% translate "Interesado" %}</span>
                     </div>
                 </div>
@@ -290,8 +285,7 @@
         <div class="hidden lg:block lg:col-span-4 sticky top-24 space-y-4">
 
             <!-- Tarjeta: Pretendientes interesados en Toby -->
-            <div class="card-petly p-5 sm:p-6 bg-white shadow-md space-y-4 border border-neutral-200/80 rounded-3xl"
-                 style="box-shadow: 0 10px 30px -10px {{ active_pet.profile_color_hex|default:'#FA7D82' }}22;">
+            <div class="card-petly p-5 sm:p-6 bg-white space-y-4 border border-neutral-200/80 rounded-3xl shadow-pet-sidebar">
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
                         {% include 'components/icon.html' with name="heart" class="w-4 h-4 text-neutral-700" %}
@@ -300,8 +294,7 @@
                         </h2>
                     </div>
                     <!-- Badge '3 nuevas' en una sola línea sin desbordamiento -->
-                    <span class="inline-flex items-center justify-center whitespace-nowrap shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                          style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}22; color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
+                    <span class="inline-flex items-center justify-center whitespace-nowrap shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold badge-pet-accent">
                         {{ interested_count }} {% translate "nuevas" %}
                     </span>
                 </div>
@@ -324,9 +317,7 @@
                                 </div>
                             </div>
                             {% translate 'Responder con match' as aria_quick_match %}
-                            {% with qmatch_onclick="quickMatchWith('"|add:suitor.name|add:"', '"|add:suitor.photo_url|add:"')" qmatch_style='style="background-color: '|add:active_pet.profile_color_hex|default:'#FA7D82'|add:'22; color: '|add:active_pet.profile_color_hex|default:'#FA7D82'|add:';"' %}
-                            {% include 'components/button.html' with variant="custom" icon="heart-filled" icon_class="w-4 h-4" onclick=qmatch_onclick title=aria_quick_match attrs=qmatch_style class="w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer" %}
-                            {% endwith %}
+                            {% include 'components/button.html' with variant="custom" icon="heart-filled" icon_class="w-4 h-4" onclick="handleSidebarQuickMatch(this)" data_name=suitor.name data_photo=suitor.photo_url title=aria_quick_match class="btn-pet-quick-match w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer" %}
                         </div>
                     {% endfor %}
                 </div>
@@ -342,8 +333,7 @@
             </div>
 
             <!-- Tarjeta de consejos de bienestar animal -->
-            <div class="p-4 rounded-2xl bg-white border shadow-xs text-xs space-y-1.5"
-                 style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}33;">
+            <div class="p-4 rounded-2xl bg-white border border-pet-accent-light shadow-xs text-xs space-y-1.5">
                 <div class="flex items-center gap-1.5 text-emerald-800 font-bold">
                     {% include 'components/icon.html' with name="award" class="w-4 h-4 text-emerald-600" %}
                     <span>{% translate "Normas de cruza responsable" %}</span>
@@ -491,8 +481,18 @@
         }
     }
 
+    // Color de acento reactivo de la mascota activa
+    const activePetColor = '{{ active_pet.profile_color_hex|default:"#FA7D82" }}';
+    document.documentElement.style.setProperty('--pet-color', activePetColor);
+
     // Dataset reactivo de candidatos oficiales según el prototipo
-    const CANDIDATES = {{ candidates_json|safe }};
+    const candidatesRaw = '{{ candidates_json|escapejs }}';
+    let CANDIDATES = [];
+    try {
+        CANDIDATES = JSON.parse(candidatesRaw);
+    } catch (e) {
+        CANDIDATES = [];
+    }
     let currentCandidateIndex = 0;
 
     // Actualiza dinámicamente la tarjeta con el candidato en el índice dado
@@ -610,6 +610,11 @@
     }
 
     // Match rápido desde la barra lateral de interesados
+    function handleSidebarQuickMatch(button) {
+        if (!button) return;
+        quickMatchWith(button.getAttribute('data-name'), button.getAttribute('data-photo'));
+    }
+
     function quickMatchWith(name, photoUrl) {
         const matchName = document.getElementById('match-candidate-name');
         if (matchName) matchName.textContent = name;

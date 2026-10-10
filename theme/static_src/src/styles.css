@@ -48,6 +48,7 @@
   --color-petly-coral: #fa7d82;
   --color-petly-coral-dark: #a53b42;
   --color-petly-coral-light: #ffdad9;
+  --color-petly-peach: #ffdad9;
   --color-petly-lilac: #f5d0ff;
   --color-petly-purple: #74567e;
   --color-petly-mint: #8fffb4;
@@ -61,6 +62,9 @@
   --color-brand-500: #fa7d82;
   --color-brand-600: #d95e63;
   --color-brand-700: #a53b42;
+
+  /* Color dinámico de mascota activa disponible en utilidades Tailwind */
+  --color-pet-accent: var(--pet-color);
 }
 
 /* Utilidades personalizadas de dimensionamiento de marca (24px / 1.5rem) */
@@ -77,6 +81,13 @@
   --color-brand-hover: #a53b42;
   --color-brand-light: #ffdad9;
   --color-brand-border: #fca8ab;
+
+  /* Tokens dinámicos de acento de mascota activa derivados de la paleta */
+  --pet-color: var(--color-petly-coral);
+  --pet-color-light: color-mix(in srgb, var(--pet-color) 25%, transparent);
+  --pet-color-badge: color-mix(in srgb, var(--pet-color) 14%, transparent);
+  --pet-color-shadow: color-mix(in srgb, var(--pet-color) 40%, transparent);
+  --pet-color-glow: color-mix(in srgb, var(--pet-color) 18%, transparent);
 
   --color-bg-app: #f9f9ff;
   --color-bg-card: #ffffff;
@@ -605,6 +616,35 @@ input[type="password"]::-ms-clear {
 }
 .color-check.hidden {
   display: none !important;
+}
+
+/* Utilidades dinámicas para acentos temáticos de la mascota activa */
+.text-pet-accent {
+  color: var(--pet-color) !important;
+}
+.bg-pet-accent {
+  background-color: var(--pet-color) !important;
+}
+.border-pet-accent-light {
+  border-color: var(--pet-color-light) !important;
+}
+.badge-pet-accent {
+  background-color: var(--pet-color-badge) !important;
+  color: var(--pet-color) !important;
+}
+.shadow-pet-discovery {
+  box-shadow: 0 16px 40px -8px var(--pet-color-glow) !important;
+}
+.shadow-pet-sidebar {
+  box-shadow: 0 10px 30px -10px var(--pet-color-glow) !important;
+}
+.btn-pet-dynamic-like {
+  background-color: var(--pet-color) !important;
+  box-shadow: 0 10px 24px -4px var(--pet-color-shadow) !important;
+}
+.btn-pet-quick-match {
+  background-color: var(--pet-color-badge) !important;
+  color: var(--pet-color) !important;
 }
 
 .textarea-petly {

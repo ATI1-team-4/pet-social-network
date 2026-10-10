@@ -45,6 +45,8 @@ Ejemplos de uso rápido:
        {% if role %}role="{{ role }}"{% endif %}
        {% if aria_selected %}aria-selected="{{ aria_selected }}"{% endif %}
        {% if data_value %}data-value="{{ data_value }}"{% endif %}
+       {% if data_name %}data-name="{{ data_name }}"{% endif %}
+       {% if data_photo %}data-photo="{{ data_photo }}"{% endif %}
        {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
        class="no-underline select-none {% if variant == 'custom' or variant == 'none' or variant == 'unstyled' %}{% elif variant == 'secondary' %}btn-petly-secondary{% elif variant == 'soft' %}btn-petly-soft{% elif variant == 'lilac' %}btn-petly-lilac{% elif variant == 'outline' %}btn-petly-outline{% elif variant == 'danger' %}btn-petly-danger{% elif variant == 'segmented-active' %}segmented-pill segmented-pill-active{% elif variant == 'segmented-inactive' or variant == 'segmented' %}segmented-pill segmented-pill-inactive{% elif variant == 'fab-like' %}fab-petly-like{% elif variant == 'fab-dismiss' %}fab-petly-dismiss{% elif variant == 'fab-add' %}fab-petly-add{% else %}btn-petly-primary{% endif %} {{ class|default:'' }}"
        {{ attrs|default:'' }}>
@@ -83,6 +85,8 @@ Ejemplos de uso rápido:
             {% if role %}role="{{ role }}"{% endif %}
             {% if aria_selected %}aria-selected="{{ aria_selected }}"{% endif %}
             {% if data_value %}data-value="{{ data_value }}"{% endif %}
+            {% if data_name %}data-name="{{ data_name }}"{% endif %}
+            {% if data_photo %}data-photo="{{ data_photo }}"{% endif %}
             {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
             class="select-none {% if variant == 'custom' or variant == 'none' or variant == 'unstyled' %}{% elif variant == 'secondary' %}btn-petly-secondary{% elif variant == 'soft' %}btn-petly-soft{% elif variant == 'lilac' %}btn-petly-lilac{% elif variant == 'outline' %}btn-petly-outline{% elif variant == 'danger' %}btn-petly-danger{% elif variant == 'segmented-active' %}segmented-pill segmented-pill-active{% elif variant == 'segmented-inactive' or variant == 'segmented' %}segmented-pill segmented-pill-inactive{% elif variant == 'fab-like' %}fab-petly-like{% elif variant == 'fab-dismiss' %}fab-petly-dismiss{% elif variant == 'fab-add' %}fab-petly-add{% else %}btn-petly-primary{% endif %} {{ class|default:'' }}"
             {{ attrs|default:'' }}>
