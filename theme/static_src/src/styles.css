@@ -550,6 +550,63 @@ body {
   box-shadow: 0 0 0 3px rgba(250, 125, 130, 0.2);
 }
 
+/* Entradas de fecha (type="date"): estilo y apertura interactiva sin iconos nativos duplicados */
+.input-petly[type="date"],
+input[type="date"].input-petly {
+  cursor: pointer;
+  position: relative;
+}
+
+.input-petly[type="date"]::-webkit-calendar-picker-indicator,
+input[type="date"].input-petly::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Máscara para cubrir el selector nativo en navegadores como Firefox */
+.date-overlay-mask {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  bottom: 2px;
+  width: 2.75rem;
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+  background-color: var(--color-petly-ice);
+  pointer-events: none;
+  z-index: 10;
+  transition: background-color 0.15s ease;
+}
+
+.input-petly:hover ~ .date-overlay-mask {
+  background-color: #dfe8fc;
+}
+
+.input-petly:focus ~ .date-overlay-mask {
+  background-color: var(--color-neutral-0);
+}
+
+/* Ocultar selector nativo de contraseñas de Edge/IE para evitar iconos duplicados */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* Visibilidad estricta de checkmark en muestras de color */
+.color-check {
+  display: inline-flex;
+}
+.color-check.hidden {
+  display: none !important;
+}
+
 .textarea-petly {
   width: 100%;
   border-radius: 1.25rem;
@@ -655,7 +712,7 @@ body {
   color: var(--color-neutral-700);
 }
 .segmented-pill-inactive:hover {
-  background-color: var(--color-neutral-200);
+  background-color: var(--color-petly-blue);
   color: var(--color-neutral-900);
 }
 

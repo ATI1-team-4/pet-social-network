@@ -1,53 +1,80 @@
 {% comment %}
-Componente de botón reutilizable según guía de estilos del prototipo (reto 11, página 4).
-Permite renderizar botones interactivos <button> o enlaces <a> con soporte de eventos y accesibilidad.
+Componente de botón / enlace reutilizable del sistema Petly.
+Renderiza un <button> o <a> interactivo según la presencia del parámetro 'href'.
 
-Parámetros:
-- text: Texto del botón en sentence case (opcional para botones de tipo FAB)
-- text_id: Identificador id para el elemento <span> interior que contiene el texto (útil para actualizaciones dinámicas con JavaScript)
-- variant: 'primary' (coral) | 'secondary' (azul/gris) | 'soft' (coral claro) | 'lilac' (morado suave) | 'outline' (borde neutral) | 'danger' (rojo) | 'segmented-active' | 'segmented-inactive' | 'fab-like' (circular corazón) | 'fab-dismiss' (circular cerrar) | 'fab-add' (circular más) (predeterminado: 'primary')
-- href: Enlace opcional (si se define, renderiza <a> con estilo de botón, sino <button>)
-- type: 'button' | 'submit' | 'reset' (predeterminado: 'button')
-- onclick: Código o función JavaScript a ejecutar al hacer clic (ej. "openModal('id')")
-- id: Identificador único del elemento (opcional)
-- name: Nombre del campo si se envía en formularios (opcional)
-- value: Valor asociado si se envía en formularios (opcional)
-- form_id: Identificador de formulario vinculado si está fuera de la etiqueta <form> (opcional)
-- disabled: Booleano para deshabilitar el botón (opcional)
-- role: Rol de accesibilidad (ej. 'tab') (opcional)
-- aria_selected: Estado de selección (ej. 'true' | 'false') (opcional)
-- data_value: Valor asociado a data-value para controles interactivos (opcional)
-- icon: Nombre del ícono SVG opcional (ej. 'paw', 'heart', 'plus', 'trash', 'calendar', 'eye', 'check', 'close')
-- icon_class: Clases CSS personalizadas para el ícono SVG (opcional)
-- aria_label: Etiqueta descriptiva para lectores de pantalla (recomendada si no hay texto visible)
-- class: Clases CSS complementarias para estilos adicionales o espaciado
-- attrs: Atributos HTML adicionales personalizados (ej. 'style="..." data-id="..."')
+Parámetros principales:
+- text: Texto visible del botón (opcional si es botón de solo ícono / FAB).
+- variant: 'primary' (predeterminado) | 'secondary' | 'soft' | 'lilac' | 'outline' | 'danger' | 'custom' (sin estilos base, usa class)
+- href: URL de destino. Si se define, renderiza una etiqueta <a>; si no, renderiza <button>.
+- type: 'button' (predeterminado) | 'submit' | 'reset'.
+- icon: Nombre del ícono SVG inicial (ej. 'paw', 'heart', 'calendar', 'plus', 'close', 'sliders').
+- icon_end: Nombre del ícono SVG final (opcional).
+- arrow_end: Booleano (True | False) para renderizar una flecha derecha (→) al final.
+- onclick: Función o código JS al hacer clic (ej. "openModal('id')").
+- class: Clases CSS de Tailwind adicionales para diseño, espaciado o tamaño.
+
+Parámetros adicionales / Formularios / Accesibilidad:
+- id: Identificador único HTML (opcional).
+- name: Nombre del campo en formulario (opcional).
+- value: Valor del botón en formulario (opcional).
+- form_id: ID del formulario asociado si el botón está fuera del <form> (opcional).
+- title: Tooltip nativo al pasar el cursor (opcional).
+- aria_label: Texto accesible para lectores de pantalla si no hay texto visible.
+- disabled: Booleano para deshabilitar el botón (opcional).
+- role: Rol ARIA (ej. 'tab').
+- aria_selected: Estado ARIA ('true' | 'false').
+- data_value: Atributo data-value para controles interactivos.
+- attrs: Atributos HTML extra personalizados (ej. 'data-id="123"').
+
+Ejemplos de uso rápido:
+  1. Botón básico de acción:
+     {% include 'components/button.html' with text="Guardar cambios" type="submit" variant="primary" %}
+
+  2. Botón con ícono y evento:
+     {% include 'components/button.html' with text="Filtrar" icon="sliders" onclick="openModal('filtros')" %}
+
+  3. Enlace con estilo de botón:
+     {% include 'components/button.html' with text="Ir al perfil" href="/perfil/" variant="outline" %}
 {% endcomment %}
 
 {% if href %}
     <a href="{{ href }}"
        {% if id %}id="{{ id }}"{% endif %}
+       {% if title %}title="{{ title }}"{% endif %}
        {% if onclick %}onclick="{{ onclick }}"{% endif %}
        {% if role %}role="{{ role }}"{% endif %}
        {% if aria_selected %}aria-selected="{{ aria_selected }}"{% endif %}
        {% if data_value %}data-value="{{ data_value }}"{% endif %}
        {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
-       class="no-underline select-none {% if variant == 'secondary' %}btn-petly-secondary{% elif variant == 'soft' %}btn-petly-soft{% elif variant == 'lilac' %}btn-petly-lilac{% elif variant == 'outline' %}btn-petly-outline{% elif variant == 'danger' %}btn-petly-danger{% elif variant == 'segmented-active' %}segmented-pill segmented-pill-active{% elif variant == 'segmented-inactive' or variant == 'segmented' %}segmented-pill segmented-pill-inactive{% elif variant == 'fab-like' %}fab-petly-like{% elif variant == 'fab-dismiss' %}fab-petly-dismiss{% elif variant == 'fab-add' %}fab-petly-add{% else %}btn-petly-primary{% endif %} {{ class|default:'' }}"
+       class="no-underline select-none {% if variant == 'custom' or variant == 'none' or variant == 'unstyled' %}{% elif variant == 'secondary' %}btn-petly-secondary{% elif variant == 'soft' %}btn-petly-soft{% elif variant == 'lilac' %}btn-petly-lilac{% elif variant == 'outline' %}btn-petly-outline{% elif variant == 'danger' %}btn-petly-danger{% elif variant == 'segmented-active' %}segmented-pill segmented-pill-active{% elif variant == 'segmented-inactive' or variant == 'segmented' %}segmented-pill segmented-pill-inactive{% elif variant == 'fab-like' %}fab-petly-like{% elif variant == 'fab-dismiss' %}fab-petly-dismiss{% elif variant == 'fab-add' %}fab-petly-add{% else %}btn-petly-primary{% endif %} {{ class|default:'' }}"
        {{ attrs|default:'' }}>
-        {% if icon %}
-            <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name=icon class=icon_class|default:'w-4 h-4' %}</span>
-        {% elif variant == 'fab-like' and not text %}
-            <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="heart-filled" class="w-6 h-6" %}</span>
-        {% elif variant == 'fab-dismiss' and not text %}
-            <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="close" class="w-6 h-6" %}</span>
-        {% elif variant == 'fab-add' and not text %}
-            <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="plus" class="w-6 h-6" %}</span>
+        {% if slot %}
+            {{ slot|safe }}
+        {% else %}
+            {% if icon %}
+                <span class="items-center justify-center shrink-0 {% if 'hidden' in icon_wrapper_class %}hidden{% else %}inline-flex{% endif %} {{ icon_wrapper_class|default:'' }}">{% include 'components/icon.html' with name=icon class=icon_class|default:'w-4 h-4' %}</span>
+            {% elif variant == 'fab-like' and not text %}
+                <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="heart-filled" class="w-6 h-6" %}</span>
+            {% elif variant == 'fab-dismiss' and not text %}
+                <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="close" class="w-6 h-6" %}</span>
+            {% elif variant == 'fab-add' and not text %}
+                <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="plus" class="w-6 h-6" %}</span>
+            {% endif %}
+            {% if text %}<span {% if text_id %}id="{{ text_id }}"{% endif %}>{{ text }}</span>{% endif %}
+            {% if text_end %}
+                <span class="{{ text_end_class|default:'' }}" {% if text_end_id %}id="{{ text_end_id }}"{% endif %}>{{ text_end }}</span>
+            {% endif %}
+            {% if icon_end %}
+                <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name=icon_end class=icon_end_class|default:'w-4 h-4' %}</span>
+            {% elif arrow_end %}
+                <span aria-hidden="true">&rarr;</span>
+            {% endif %}
         {% endif %}
-        {% if text %}<span {% if text_id %}id="{{ text_id }}"{% endif %}>{{ text }}</span>{% endif %}
     </a>
 {% else %}
     <button type="{{ type|default:'button' }}"
             {% if id %}id="{{ id }}"{% endif %}
+            {% if title %}title="{{ title }}"{% endif %}
             {% if onclick %}onclick="{{ onclick }}"{% endif %}
             {% if form_id %}form="{{ form_id }}"{% endif %}
             {% if name %}name="{{ name }}"{% endif %}
@@ -57,17 +84,29 @@ Parámetros:
             {% if aria_selected %}aria-selected="{{ aria_selected }}"{% endif %}
             {% if data_value %}data-value="{{ data_value }}"{% endif %}
             {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
-            class="select-none {% if variant == 'secondary' %}btn-petly-secondary{% elif variant == 'soft' %}btn-petly-soft{% elif variant == 'lilac' %}btn-petly-lilac{% elif variant == 'outline' %}btn-petly-outline{% elif variant == 'danger' %}btn-petly-danger{% elif variant == 'segmented-active' %}segmented-pill segmented-pill-active{% elif variant == 'segmented-inactive' or variant == 'segmented' %}segmented-pill segmented-pill-inactive{% elif variant == 'fab-like' %}fab-petly-like{% elif variant == 'fab-dismiss' %}fab-petly-dismiss{% elif variant == 'fab-add' %}fab-petly-add{% else %}btn-petly-primary{% endif %} {{ class|default:'' }}"
+            class="select-none {% if variant == 'custom' or variant == 'none' or variant == 'unstyled' %}{% elif variant == 'secondary' %}btn-petly-secondary{% elif variant == 'soft' %}btn-petly-soft{% elif variant == 'lilac' %}btn-petly-lilac{% elif variant == 'outline' %}btn-petly-outline{% elif variant == 'danger' %}btn-petly-danger{% elif variant == 'segmented-active' %}segmented-pill segmented-pill-active{% elif variant == 'segmented-inactive' or variant == 'segmented' %}segmented-pill segmented-pill-inactive{% elif variant == 'fab-like' %}fab-petly-like{% elif variant == 'fab-dismiss' %}fab-petly-dismiss{% elif variant == 'fab-add' %}fab-petly-add{% else %}btn-petly-primary{% endif %} {{ class|default:'' }}"
             {{ attrs|default:'' }}>
-        {% if icon %}
-            <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name=icon class=icon_class|default:'w-4 h-4' %}</span>
-        {% elif variant == 'fab-like' and not text %}
-            <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="heart-filled" class="w-6 h-6" %}</span>
-        {% elif variant == 'fab-dismiss' and not text %}
-            <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="close" class="w-6 h-6" %}</span>
-        {% elif variant == 'fab-add' and not text %}
-            <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="plus" class="w-6 h-6" %}</span>
+        {% if slot %}
+            {{ slot|safe }}
+        {% else %}
+            {% if icon %}
+                <span class="items-center justify-center shrink-0 {% if 'hidden' in icon_wrapper_class %}hidden{% else %}inline-flex{% endif %} {{ icon_wrapper_class|default:'' }}">{% include 'components/icon.html' with name=icon class=icon_class|default:'w-4 h-4' %}</span>
+            {% elif variant == 'fab-like' and not text %}
+                <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="heart-filled" class="w-6 h-6" %}</span>
+            {% elif variant == 'fab-dismiss' and not text %}
+                <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="close" class="w-6 h-6" %}</span>
+            {% elif variant == 'fab-add' and not text %}
+                <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="plus" class="w-6 h-6" %}</span>
+            {% endif %}
+            {% if text %}<span {% if text_id %}id="{{ text_id }}"{% endif %}>{{ text }}</span>{% endif %}
+            {% if text_end %}
+                <span class="{{ text_end_class|default:'' }}" {% if text_end_id %}id="{{ text_end_id }}"{% endif %}>{{ text_end }}</span>
+            {% endif %}
+            {% if icon_end %}
+                <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name=icon_end class=icon_end_class|default:'w-4 h-4' %}</span>
+            {% elif arrow_end %}
+                <span aria-hidden="true">&rarr;</span>
+            {% endif %}
         {% endif %}
-        {% if text %}<span {% if text_id %}id="{{ text_id }}"{% endif %}>{{ text }}</span>{% endif %}
     </button>
 {% endif %}
