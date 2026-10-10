@@ -177,11 +177,8 @@
 
                         <!-- Botón de envío en sentence case -->
                         <div class="pt-3">
-                            <button type="submit"
-                                    class="btn-petly-primary w-full py-3 text-sm font-semibold rounded-full justify-center shadow-xs inline-flex items-center gap-2">
-                                <span>{% translate "Registrarme y empezar" %}</span>
-                                <span aria-hidden="true">&rarr;</span>
-                            </button>
+                            {% translate "Registrarme y empezar" as txt_register_submit %}
+                            {% include 'components/button.html' with text=txt_register_submit type="submit" variant="primary" arrow_end=True class="w-full py-3 text-sm font-semibold rounded-full justify-center shadow-xs inline-flex items-center gap-2" %}
                         </div>
                     </form>
                 </div>

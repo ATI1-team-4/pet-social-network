@@ -167,30 +167,21 @@
                                         <span>{% translate "A 1.8 km de ti • Los Teques" %}</span>
                                     </div>
                                 </div>
-                                <button type="button" aria-label="{% translate 'Más información' %}"
-                                        class="w-7 h-7 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-white cursor-pointer hover:bg-white/30 transition-colors shadow-xs"
-                                        title="{% translate 'Más información' %}">
-                                    {% include 'components/icon.html' with name="info" class="w-4 h-4 text-white" %}
-                                </button>
+                                {% translate 'Más información' as aria_more_info %}
+                                {% include 'components/button.html' with variant="custom" icon="info" icon_class="w-4 h-4 text-white" aria_label=aria_more_info title=aria_more_info class="w-7 h-7 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-white cursor-pointer hover:bg-white/30 transition-colors shadow-xs" %}
                             </div>
                         </div>
 
                         <!-- Botones circulares flotantes de interacción (✕, ★, ♥ con colores oficiales) -->
                         <div class="flex items-center justify-center gap-4 py-2">
-                            <button type="button" aria-label="{% translate 'Descartar' %}"
-                                    class="w-11 h-11 rounded-full bg-[#E5EEFF] hover:bg-[#d6e4ff] flex items-center justify-center shadow-xs transition-transform hover:scale-105 cursor-pointer">
-                                {% include 'components/icon.html' with name="close" class="w-4 h-4 text-neutral-700" %}
-                            </button>
+                            {% translate 'Descartar' as aria_discard %}
+                            {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4 text-neutral-700" aria_label=aria_discard class="w-11 h-11 rounded-full bg-[#E5EEFF] hover:bg-[#d6e4ff] flex items-center justify-center shadow-xs transition-transform hover:scale-105 cursor-pointer" %}
 
-                            <button type="button" aria-label="{% translate 'Guardar en favoritos' %}"
-                                    class="w-11 h-11 rounded-full bg-[#F3E8FF] hover:bg-[#ebd5ff] flex items-center justify-center shadow-xs transition-transform hover:scale-105 cursor-pointer">
-                                {% include 'components/icon.html' with name="star" class="w-4 h-4 text-purple-700" %}
-                            </button>
+                            {% translate 'Guardar en favoritos' as aria_fav %}
+                            {% include 'components/button.html' with variant="custom" icon="star" icon_class="w-4 h-4 text-purple-700" aria_label=aria_fav class="w-11 h-11 rounded-full bg-[#F3E8FF] hover:bg-[#ebd5ff] flex items-center justify-center shadow-xs transition-transform hover:scale-105 cursor-pointer" %}
 
-                            <button type="button" aria-label="{% translate 'Me interesa' %}"
-                                    class="w-12 h-12 rounded-full bg-[#FF8085] hover:bg-[#ff6e73] shadow-md flex items-center justify-center transition-transform hover:scale-105 cursor-pointer">
-                                {% include 'components/icon.html' with name="heart-filled" class="w-5 h-5 text-[#801418]" %}
-                            </button>
+                            {% translate 'Me interesa' as aria_interest %}
+                            {% include 'components/button.html' with variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-[#801418]" aria_label=aria_interest class="w-12 h-12 rounded-full bg-[#FF8085] hover:bg-[#ff6e73] shadow-md flex items-center justify-center transition-transform hover:scale-105 cursor-pointer" %}
                         </div>
 
                         <!-- Etiquetas de características oficiales -->
