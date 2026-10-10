@@ -66,18 +66,17 @@
     <!-- Barra de filtros horizontales y ordenación interactiva -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
         <div class="flex items-center gap-2 overflow-x-auto py-1" id="filter-pills-bar">
-            <button type="button" data-filter="all" onclick="filterSuitors('all', this)" class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-[#A53B42] text-white shadow-xs whitespace-nowrap cursor-pointer transition-all">
-                {% translate "Todos" %} ({{ interested_count }})
-            </button>
-            <button type="button" data-filter="breeding" onclick="filterSuitors('breeding', this)" class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all">
-                {% translate "Cruza responsable / pedigrí" %} (2)
-            </button>
-            <button type="button" data-filter="social" onclick="filterSuitors('social', this)" class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all">
-                {% translate "Citas de socialización" %} (1)
-            </button>
-            <button type="button" data-filter="near" onclick="filterSuitors('near', this)" class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all">
-                {% translate "Cerca de ti (< 5 km)" %}
-            </button>
+            {% blocktranslate with count=interested_count asvar f_all_label %}Todos ({{ count }}){% endblocktranslate %}
+            {% include 'components/button.html' with text=f_all_label variant="custom" onclick="filterSuitors('all', this)" attrs='data-filter="all"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-[#A53B42] text-white shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
+
+            {% translate "Cruza responsable / pedigrí (2)" as f_breeding_label %}
+            {% include 'components/button.html' with text=f_breeding_label variant="custom" onclick="filterSuitors('breeding', this)" attrs='data-filter="breeding"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
+
+            {% translate "Citas de socialización (1)" as f_social_label %}
+            {% include 'components/button.html' with text=f_social_label variant="custom" onclick="filterSuitors('social', this)" attrs='data-filter="social"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
+
+            {% translate "Cerca de ti (< 5 km)" as f_near_label %}
+            {% include 'components/button.html' with text=f_near_label variant="custom" onclick="filterSuitors('near', this)" attrs='data-filter="near"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
         </div>
 
         <div class="flex items-center gap-2 text-xs text-neutral-600 shrink-0">
@@ -170,27 +169,15 @@
                         <div class="pt-2 flex flex-wrap items-center justify-between gap-2.5">
                             <div class="flex items-center gap-2 w-full sm:w-auto">
                                 {% translate "Concertar encuentro" as meeting_label %}
-                                <button type="button"
-                                        onclick="openMeetingModal('{{ featured_suitor.name }}', '{{ featured_suitor.photo_url }}')"
-                                        class="btn-petly-primary flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold shadow-md inline-flex items-center justify-center gap-1.5">
-                                    {% include 'components/icon.html' with name="calendar" class="w-4 h-4 text-white" %}
-                                    <span>{{ meeting_label }}</span>
-                                </button>
+                                {% include 'components/button.html' with text=meeting_label variant="primary" icon="calendar" icon_class="w-4 h-4 text-white" onclick="openMeetingModal('"|add:featured_suitor.name|add:"', '"|add:featured_suitor.photo_url|add:"')" class="flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold shadow-md inline-flex items-center justify-center gap-1.5" %}
                                 {% translate "Enviar mensaje" as msg_label %}
-                                <button type="button"
-                                        onclick="openMessageModal('{{ featured_suitor.name }}', 'Mariana Ríos')"
-                                        class="btn-petly-lilac flex-1 sm:flex-initial text-xs px-4 py-2.5 font-semibold inline-flex items-center justify-center gap-1.5 shadow-xs">
-                                    {% include 'components/icon.html' with name="message-square" class="w-4 h-4 text-purple-800" %}
-                                    <span>{{ msg_label }}</span>
-                                </button>
+                                {% include 'components/button.html' with text=msg_label variant="lilac" icon="message-square" icon_class="w-4 h-4 text-purple-800" onclick="openMessageModal('"|add:featured_suitor.name|add:"', 'Mariana Ríos')" class="flex-1 sm:flex-initial text-xs px-4 py-2.5 font-semibold inline-flex items-center justify-center gap-1.5 shadow-xs" %}
                             </div>
 
-                            <button type="button"
-                                    onclick="dismissSuitor('{{ featured_suitor.name }}')"
-                                    class="text-xs font-semibold text-neutral-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1 py-1 cursor-pointer">
-                                <span>{% translate "Negar interés" %}</span>
-                                <span>✕</span>
-                            </button>
+                            {% translate "Negar interés" as dismiss_label %}
+                            {% with dismiss_onclick="dismissSuitor('"|add:featured_suitor.name|add:"')" %}
+                            {% include 'components/button.html' with text=dismiss_label text_end="✕" text_end_class="font-bold text-[11px]" variant="custom" onclick=dismiss_onclick class="text-xs font-semibold text-neutral-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1 py-1 cursor-pointer" %}
+                            {% endwith %}
                         </div>
                     </div>
                 </div>
@@ -230,24 +217,12 @@
 
                     <!-- Botones de acción secundarios -->
                     <div class="flex items-center gap-2 self-end sm:self-center">
-                        <button type="button"
-                                onclick="openMeetingModal('{{ suitor.name }}', '{{ suitor.photo_url }}')"
-                                class="btn-petly-primary text-xs px-4 py-2 font-bold shadow-xs inline-flex items-center gap-1.5">
-                            {% include 'components/icon.html' with name="calendar" class="w-3.5 h-3.5 text-white" %}
-                            <span>{% translate "Agendar cita" %}</span>
-                        </button>
-                        <button type="button"
-                                onclick="openMessageModal('{{ suitor.name }}', 'Tutor de {{ suitor.name }}')"
-                                class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-600 hover:text-petly-coral hover:border-petly-coral/50 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
-                                title="{% translate 'Enviar mensaje' %}">
-                            {% include 'components/icon.html' with name="message-square" class="w-3.5 h-3.5" %}
-                        </button>
-                        <button type="button"
-                                onclick="dismissSuitor('{{ suitor.name }}')"
-                                class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
-                                title="{% translate 'Descartar solicitud' %}">
-                            {% include 'components/icon.html' with name="trash" class="w-3.5 h-3.5" %}
-                        </button>
+                        {% translate "Agendar cita" as schedule_label %}
+                        {% include 'components/button.html' with text=schedule_label variant="primary" icon="calendar" icon_class="w-3.5 h-3.5 text-white" onclick="openMeetingModal('"|add:suitor.name|add:"', '"|add:suitor.photo_url|add:"')" class="text-xs px-4 py-2 font-bold shadow-xs inline-flex items-center gap-1.5" %}
+                        {% translate "Enviar mensaje" as send_msg_title %}
+                        {% include 'components/button.html' with variant="outline" icon="message-square" icon_class="w-3.5 h-3.5" title=send_msg_title aria_label=send_msg_title onclick="openMessageModal('"|add:suitor.name|add:"', 'Tutor de "|add:suitor.name|add:"')" class="w-8 h-8 rounded-full p-0 flex items-center justify-center border-neutral-300 text-neutral-600 hover:text-petly-coral hover:border-petly-coral/50 shadow-xs cursor-pointer" %}
+                        {% translate "Descartar solicitud" as dismiss_title %}
+                        {% include 'components/button.html' with variant="outline" icon="trash" icon_class="w-3.5 h-3.5" title=dismiss_title aria_label=dismiss_title onclick="dismissSuitor('"|add:suitor.name|add:"')" class="w-8 h-8 rounded-full p-0 flex items-center justify-center border-neutral-300 text-neutral-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 shadow-xs cursor-pointer" %}
                     </div>
                 </div>
             {% endfor %}
@@ -309,9 +284,10 @@
                                 <span class="font-bold text-neutral-800">
                                     🕒 {{ date.time }}
                                 </span>
-                                <button type="button" onclick="alert('Detalles de cita: {{ date.title }}\nLugar: {{ date.location }}\nHora: {{ date.time }}')" class="font-bold text-petly-coral hover:underline cursor-pointer">
-                                    {% translate "Ver detalles" %}
-                                </button>
+                                {% translate "Ver detalles" as view_details_label %}
+                                {% with alert_onclick="alert('Detalles de cita: "|add:date.title|add:"\\nLugar: "|add:date.location|add:"\\nHora: "|add:date.time|add:"')" %}
+                                {% include 'components/button.html' with text=view_details_label variant="custom" onclick=alert_onclick class="font-bold text-petly-coral hover:underline cursor-pointer" %}
+                                {% endwith %}
                             </div>
                         </div>
                     {% endfor %}
@@ -347,9 +323,8 @@
 <div id="modal-schedule-meeting" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-meeting-title">
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-schedule-meeting')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        <button type="button" onclick="closeModal('modal-schedule-meeting')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none" aria-label="{% translate 'Cerrar' %}">
-            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
-        </button>
+        {% translate 'Cerrar' as aria_close_meeting %}
+        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4" onclick="closeModal('modal-schedule-meeting')" aria_label=aria_close_meeting class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none cursor-pointer" %}
 
         <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center">
@@ -367,8 +342,8 @@
 
         <form onsubmit="handleConfirmMeeting(event)" class="space-y-3.5 text-xs">
             <div>
-                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Fecha propuesta" %}</label>
-                <input type="date" value="2026-10-18" class="input-petly text-xs" required>
+                {% translate "Fecha propuesta" as meeting_date_label %}
+                {% include 'components/input.html' with type="date" label=meeting_date_label value="2026-10-18" icon="calendar" input_class="text-xs" required=True %}
             </div>
 
             <div>
@@ -399,9 +374,8 @@
 <div id="modal-send-message" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-msg-title">
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-send-message')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        <button type="button" onclick="closeModal('modal-send-message')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none" aria-label="{% translate 'Cerrar' %}">
-            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
-        </button>
+        {% translate 'Cerrar' as aria_close_msg %}
+        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4" onclick="closeModal('modal-send-message')" aria_label=aria_close_msg class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none cursor-pointer" %}
 
         <div class="flex items-center gap-3 mb-3">
             <div class="w-10 h-10 rounded-full bg-petly-lilac text-petly-purple flex items-center justify-center">
