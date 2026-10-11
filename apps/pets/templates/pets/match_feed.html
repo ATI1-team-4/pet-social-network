@@ -253,9 +253,9 @@
                     {% blocktranslate with name=current_candidate.name asvar like_btn_text %}Mostrar interés en {{ name }}{% endblocktranslate %}
                     {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-white" onclick="handleLikeCandidate()" class="btn-pet-dynamic-like select-none flex-1 py-3.5 px-6 rounded-full font-bold text-white shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
 
-                    <!-- Botón secundario: Información o reporte con bandera -->
-                    {% translate 'Detalles del candidato' as aria_candidate_details %}
-                    {% include 'components/button.html' with variant="custom" icon="flag" icon_class="w-5 h-5 text-neutral-600" onclick="openCandidateInfoModal()" title=aria_candidate_details aria_label=aria_candidate_details class="w-12 h-12 rounded-full bg-white border border-neutral-200/90 text-neutral-600 hover:text-neutral-900 hover:border-neutral-300 shadow-xs hover:shadow-md active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer" %}
+                    <!-- Botón secundario: Reporte de candidato con bandera -->
+                    {% translate 'Reportar candidato' as aria_report_cand %}
+                    {% include 'components/button.html' with variant="custom" icon="flag" icon_class="w-5 h-5 text-neutral-600 hover:text-rose-600" onclick="openCandidateReportModal()" title=aria_report_cand aria_label=aria_report_cand class="w-12 h-12 rounded-full bg-white border border-neutral-200/90 text-neutral-600 hover:text-rose-600 hover:border-rose-300 shadow-xs hover:shadow-md active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer" %}
                 </div>
 
                 <!-- Versión Teléfono Móvil: Botones Circulares de Acción oficiales -->
@@ -625,9 +625,11 @@
         openModal('modal-match-success');
     }
 
-    function openCandidateInfoModal() {
+    function openCandidateReportModal() {
         const c = CANDIDATES[currentCandidateIndex % CANDIDATES.length];
-        alert(`${c.name} (${c.breed})\n${c.description}`);
+        if (confirm(`{% translate "¿Deseas reportar el perfil de" %} ${c.name} {% translate "por contenido o comportamiento inapropiado?" %}`)) {
+            alert(`{% translate "El reporte ha sido enviado al equipo de administración para su revisión." %}`);
+        }
     }
 </script>
 {% endblock %}

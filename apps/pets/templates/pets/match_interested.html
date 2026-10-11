@@ -323,9 +323,6 @@
 <div id="modal-schedule-meeting" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-meeting-title">
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-schedule-meeting')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        {% translate 'Cerrar' as aria_close_meeting %}
-        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4" onclick="closeModal('modal-schedule-meeting')" aria_label=aria_close_meeting class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none cursor-pointer" %}
-
         <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center">
                 {% include 'components/icon.html' with name="calendar" class="w-5 h-5" %}
@@ -347,17 +344,25 @@
             </div>
 
             <div>
-                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Hora estimada" %}</label>
-                <input type="time" value="10:30" class="input-petly text-xs" required>
+                {% translate "Hora estimada" as meeting_time_label %}
+                {% include 'components/input.html' with type="time" label=meeting_time_label value="10:30" icon="clock" input_class="text-xs" required=True %}
             </div>
 
             <div>
                 <label class="font-semibold text-neutral-700 block mb-1">{% translate "Lugar de encuentro canino verificado" %}</label>
-                <select class="input-petly text-xs">
-                    <option>{% translate "Parque España (Zona canina verificada)" %}</option>
-                    <option>{% translate "Parque del Este (Área de recreación canina)" %}</option>
-                    <option>{% translate "Parque Vizcaya (Espacio cercado)" %}</option>
-                </select>
+                <div class="relative flex items-center">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none flex items-center justify-center z-10">
+                        {% include 'components/icon.html' with name="location" class="w-4 h-4" %}
+                    </span>
+                    <select class="input-petly has-icon pl-11 pr-10 text-xs cursor-pointer">
+                        <option>{% translate "Parque España (Zona canina verificada)" %}</option>
+                        <option>{% translate "Parque del Este (Área de recreación canina)" %}</option>
+                        <option>{% translate "Parque Vizcaya (Espacio cercado)" %}</option>
+                    </select>
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none flex items-center justify-center z-10">
+                        {% include 'components/icon.html' with name="chevron-down" class="w-4 h-4" %}
+                    </span>
+                </div>
             </div>
 
             <div class="pt-3 flex justify-end gap-2">
@@ -374,9 +379,6 @@
 <div id="modal-send-message" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-msg-title">
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-send-message')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        {% translate 'Cerrar' as aria_close_msg %}
-        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4" onclick="closeModal('modal-send-message')" aria_label=aria_close_msg class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none cursor-pointer" %}
-
         <div class="flex items-center gap-3 mb-3">
             <div class="w-10 h-10 rounded-full bg-petly-lilac text-petly-purple flex items-center justify-center">
                 {% include 'components/icon.html' with name="message-square" class="w-5 h-5" %}
