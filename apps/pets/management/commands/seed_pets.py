@@ -235,10 +235,11 @@ class Command(BaseCommand):
 
         created_pets = {}
         for spec in pets_spec:
+            pet_defaults = {**spec, 'photo': None}
             pet, created = Pet.objects.update_or_create(
                 owner=spec['owner'],
                 name=spec['name'],
-                defaults=spec,
+                defaults=pet_defaults,
             )
             created_pets[spec['name']] = pet
 
