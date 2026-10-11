@@ -37,3 +37,19 @@ class InternationalizationTests(TestCase):
         self.assertContains(response_en, 'Find a match')
         self.assertContains(response_en, 'Interested')
         self.assertContains(response_en, 'Terms of service')
+
+    def test_pet_management_english_translations_and_sentence_case(self):
+        """Verifica que pet_management traduzca al inglés en sentence case (incluyendo botón y modal de eliminar)."""
+        self.client.post(
+            reverse('set_language'),
+            {'language': 'en', 'next': reverse('pets:pet_management')},
+            headers={'host': 'localhost'},
+        )
+        response_en = self.client.get(reverse('pets:pet_management'), headers={'host': 'localhost'})
+        self.assertEqual(response_en.status_code, 200)
+        self.assertContains(response_en, 'Delete pet')
+        self.assertContains(response_en, 'Discard changes')
+        self.assertContains(response_en, 'Preview')
+        self.assertContains(response_en, 'Save changes')
+        self.assertContains(response_en, 'Keep pet')
+        self.assertContains(response_en, 'Delete permanently')

@@ -287,7 +287,7 @@
                             </label>
                             {% translate "Macho" as g_macho %}
                             {% translate "Hembra" as g_hembra %}
-                            {% include 'components/segmented.html' with name="gender" input_id="input-gender" text_1=g_macho value_1="macho" icon_1="male" text_2=g_hembra value_2="hembra" icon_2="female" active_value=active_pet.gender|default:"macho" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center" %}
+                            {% include 'components/segmented.html' with name="gender" input_id="input-gender" text_1=g_macho value_1="M" icon_1="male" text_2=g_hembra value_2="H" icon_2="female" active_value=active_pet.gender|default:"M" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center" %}
                         </div>
 
                         <!-- Campo: Raza -->
@@ -413,8 +413,15 @@
 
                 <!-- Barra de acciones inferiores para escritorio y móvil -->
                 <div class="order-6 flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-3 pb-6 mb-6 sm:mb-0">
-                    {% translate "Descartar cambios" as discard_label %}
-                    {% include 'components/button.html' with text=discard_label type="button" variant="soft" onclick="openModal('modal-discard')" class="w-full sm:w-auto text-xs font-semibold py-2.5 px-4" %}
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        {% translate "Descartar cambios" as discard_label %}
+                        {% include 'components/button.html' with text=discard_label type="button" variant="soft" onclick="openModal('modal-discard')" class="w-full sm:w-auto text-xs font-semibold py-2.5 px-4" %}
+
+                        {% if not is_new and active_pet %}
+                            {% translate "Eliminar mascota" as delete_pet_label %}
+                            {% include 'components/button.html' with text=delete_pet_label type="button" variant="outline" icon="trash" icon_class="w-3.5 h-3.5 text-rose-500" onclick="openModal('modal-delete-pet')" class="w-full sm:w-auto text-xs font-semibold py-2.5 px-4 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 justify-center cursor-pointer" %}
+                        {% endif %}
+                    </div>
 
                     <div class="flex items-center gap-3 w-full sm:w-auto">
                         {% translate "Vista previa" as preview_label %}
@@ -438,6 +445,18 @@
 
 <!-- Modal: Eliminar Foto de Perfil -->
 {% include 'components/confirmation_modal.html' with id="modal-delete-photo" variant="danger" icon="trash" title=_("¿Eliminar la foto de perfil?") text=_("La mascota volverá a mostrar la ilustración predeterminada de Petly.") confirm_text=_("Eliminar foto") cancel_text=_("Mantener foto") onconfirm="removePetPhoto()" %}
+
+<!-- Modal: Eliminar Perfil de Mascota -->
+{% if not is_new and active_pet %}
+<form id="delete-pet-form" method="post" action="{% url 'pets:pet_delete' active_pet.id %}" class="hidden">
+    {% csrf_token %}
+</form>
+{% blocktranslate with name=active_pet.name asvar del_pet_title %}¿Eliminar el perfil de {{ name }}?{% endblocktranslate %}
+{% translate "Esta acción es definitiva. Se eliminarán los datos de la mascota junto con su historial de emparejamientos y solicitudes en la plataforma." as del_pet_desc %}
+{% translate "Eliminar definitivamente" as del_pet_confirm %}
+{% translate "Mantener mascota" as del_pet_cancel %}
+{% include 'components/confirmation_modal.html' with id="modal-delete-pet" variant="danger" icon="trash" title=del_pet_title text=del_pet_desc confirm_text=del_pet_confirm cancel_text=del_pet_cancel onconfirm="deletePetProfile()" %}
+{% endif %}
 
 <!-- Modal: Vista Previa de Tarjeta de Descubrimiento (Pet Discovery Preview) -->
 <div id="modal-pet-preview" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-2 sm:p-4 overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-preview-title">
@@ -786,6 +805,20 @@
         closeModal('modal-delete-photo');
     }
 
+    function deletePetProfile() {
+        const deleteForm = document.getElementById('delete-pet-form');
+        if (deleteForm) {
+            deleteForm.submit();
+            return;
+        }
+        const form = document.getElementById('pet-management-form');
+        const actionInput = document.getElementById('form-action');
+        if (form && actionInput) {
+            actionInput.value = 'delete';
+            form.submit();
+        }
+    }
+
     // Abrir modal de vista previa dinámico con estructura de Buscar Pareja
     function openPreviewModal() {
         const nameInput = document.getElementById('pet-name-input');
@@ -796,7 +829,7 @@
         const desc = (descInput && descInput.value.trim()) || '{{ active_pet.description|default:"Sin descripción" }}';
         const color = document.getElementById('input-profile-color').value || 'coral';
         const species = document.getElementById('input-species').value || 'perro';
-        const gender = document.getElementById('input-gender').value || 'macho';
+        const gender = document.getElementById('input-gender').value || 'M';
         const birthInput = document.getElementById('pet-birthdate-input');
         const birth = (birthInput && birthInput.value.trim()) || '{{ active_pet.birth_date|default:"04/15/2022" }}';
         const certificate = document.getElementById('input-certificate').value || 'fci';
@@ -827,7 +860,7 @@
         }
 
         // Género y símbolo
-        const isMale = (gender === 'macho');
+        const isMale = (gender === 'M' || gender === 'macho');
         const genderSym = document.getElementById('modal-preview-gender-symbol');
         if (genderSym) genderSym.textContent = isMale ? '♂' : '♀';
 

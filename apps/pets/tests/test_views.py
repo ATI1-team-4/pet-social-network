@@ -76,6 +76,35 @@ class PetsViewsTests(TestCase):
         response_del = self.client.post(url, {'action': 'delete', 'name': 'Toby'})
         self.assertRedirects(response_del, url)
 
+    def test_pet_delete_view(self):
+        """Verifica la eliminación de mascotas mediante la vista dedicada pet_delete_view."""
+        from datetime import date
+
+        from apps.pets.models import Pet, PetSpecies
+
+        species_dog, _ = PetSpecies.objects.get_or_create(
+            slug='perro',
+            defaults={'name': 'Perro', 'icon_name': 'dog'},
+        )
+        pet = Pet.objects.create(
+            owner=self.user,
+            name='Max',
+            species=species_dog,
+            breed='Labrador',
+            birth_date=date(2023, 1, 1),
+            purpose=Pet.Purpose.BOTH,
+        )
+        url = reverse('pets:pet_delete', kwargs={'pet_id': str(pet.id)})
+
+        # Rechazar solicitudes GET (require_POST)
+        response_get = self.client.get(url)
+        self.assertEqual(response_get.status_code, 405)
+
+        # Aceptar POST y eliminar
+        response_post = self.client.post(url)
+        self.assertRedirects(response_post, reverse('pets:pet_management'))
+        self.assertFalse(Pet.objects.filter(id=pet.id).exists())
+
     def test_pet_select_post_updates_session(self):
         """Verifica que la selección de mascota guarde en sesión y redirija al feed de cruza."""
         url = reverse('pets:pet_select')

@@ -8,7 +8,8 @@ from apps.core.models import TimeStampedModel
 class UserProfile(TimeStampedModel):
     """
     Perfil extendido para tutores y administradores de Petly.
-    Almacena información complementaria como documento de identidad y teléfono.
+    Almacena información complementaria como documento de identidad, teléfono,
+    ubicación geográfica, reputación y afinidades del tutor.
     """
 
     user = models.OneToOneField(
@@ -47,6 +48,78 @@ class UserProfile(TimeStampedModel):
         verbose_name=_('Biografía'),
         help_text=_('Presentación o notas sobre el tutor.'),
     )
+    city = models.CharField(
+        max_length=100,
+        default='Caracas',
+        blank=True,
+        verbose_name=_('Ciudad'),
+        help_text=_('Ciudad o localidad de residencia del tutor.'),
+    )
+    latitude = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name=_('Latitud'),
+        help_text=_('Coordenada geográfica de latitud.'),
+    )
+    longitude = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name=_('Longitud'),
+        help_text=_('Coordenada geográfica de longitud.'),
+    )
+    birth_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_('Fecha de nacimiento'),
+        help_text=_('Fecha de nacimiento del tutor.'),
+    )
+    gender = models.CharField(
+        max_length=1,
+        choices=[
+            ('M', _('Masculino')),
+            ('F', _('Femenino')),
+            ('O', _('Otro')),
+        ],
+        blank=True,
+        verbose_name=_('Género'),
+        help_text=_('Género o identidad del tutor.'),
+    )
+    rating = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        default=5.00,
+        verbose_name=_('Calificación'),
+        help_text=_('Puntuación promedio del tutor (1.00 a 5.00).'),
+    )
+    completed_meetings_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_('Citas completadas'),
+        help_text=_('Total de citas de socialización o cruza concretadas.'),
+    )
+    favorite_color = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name=_('Color favorito'),
+        help_text=_('Color preferido para personalización de perfil.'),
+    )
+    favorite_book = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name=_('Libro favorito'),
+        help_text=_('Libro favorito para afinidad cultural.'),
+    )
+    favorite_music = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name=_('Música favorita'),
+        help_text=_('Género o banda favorita.'),
+    )
+    favorite_videogame = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name=_('Videojuego favorito'),
+        help_text=_('Videojuego preferido.'),
+    )
 
     class Meta:
         verbose_name = _('Perfil de usuario')
@@ -63,3 +136,65 @@ class UserProfile(TimeStampedModel):
         full_name = self.user.get_full_name()
         identifier = full_name if full_name else self.user.username
         return f'Perfil de {identifier}'
+
+
+class UserReport(TimeStampedModel):
+    """
+    Reportes emitidos por tutores sobre otros usuarios o mascotas
+    por conductas, fotos o contenido inapropiado dentro del feed y solicitudes.
+    """
+
+    class ReportStatus(models.TextChoices):
+        PENDING = 'pending', _('Pendiente')
+        REVIEWED = 'reviewed', _('Revisado')
+        ACTION_TAKEN = 'action_taken', _('Acción tomada')
+        DISMISSED = 'dismissed', _('Descartado')
+
+    reported_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='reports_filed',
+        verbose_name=_('Reportado por'),
+        help_text=_('Usuario tutor que emitió la denuncia.'),
+    )
+    reported_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='reports_received',
+        verbose_name=_('Usuario reportado'),
+        help_text=_('Usuario denunciado.'),
+    )
+    reported_pet = models.ForeignKey(
+        'pets.Pet',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reports',
+        verbose_name=_('Mascota reportada'),
+        help_text=_('Mascota específica sobre la que recae el reporte, si aplica.'),
+    )
+    reason = models.TextField(
+        verbose_name=_('Motivo del reporte'),
+        help_text=_('Explicación detallada de la falta o incidente.'),
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=ReportStatus.choices,
+        default=ReportStatus.PENDING,
+        verbose_name=_('Estado de revisión'),
+    )
+    admin_notes = models.TextField(
+        blank=True,
+        verbose_name=_('Notas del administrador'),
+        help_text=_('Observaciones internas de moderación.'),
+    )
+
+    class Meta:
+        verbose_name = _('Reporte de usuario')
+        verbose_name_plural = _('Reportes de usuarios')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return (
+            f'Reporte #{self.pk} contra {self.reported_user.username} ({self.get_status_display()})'
+        )

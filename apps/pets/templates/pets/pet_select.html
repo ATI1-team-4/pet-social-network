@@ -184,7 +184,7 @@
                                     <h2 class="title-h5 text-neutral-900 font-bold leading-tight">
                                         {{ pet.name }}
                                     </h2>
-                                    <span class="text-xs font-bold {% if pet.gender == 'macho' %}text-sky-600{% else %}text-petly-coral{% endif %}">
+                                    <span class="text-xs font-bold {% if pet.is_macho or pet.gender == 'M' or pet.gender == 'macho' %}text-sky-600{% else %}text-petly-coral{% endif %}">
                                         {{ pet.gender_symbol }}
                                     </span>
                                 </div>

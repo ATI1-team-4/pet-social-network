@@ -4,6 +4,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
+
+from apps.pets.models import Pet
 
 # Perfiles de mascotas de referencia según prototipo oficial (reto 11, páginas 10 y 11)
 DEFAULT_PETS = [
@@ -78,10 +81,16 @@ def pet_management_view(request):
         pet_name = request.POST.get('name', 'Mascota')
         pet_id = request.POST.get('pet_id', '1234')
         if action == 'delete':
+            if pet_id and pet_id.isdigit():
+                Pet.objects.filter(owner=request.user, id=int(pet_id)).delete()
+            else:
+                Pet.objects.filter(owner=request.user, name=pet_name).delete()
+
             messages.success(
                 request,
                 _('La mascota %(name)s ha sido eliminada exitosamente.') % {'name': pet_name},
             )
+            return redirect('pets:pet_management')
         else:
             profile_color = request.POST.get('profile_color', 'coral')
             color_hex_map = {
@@ -104,10 +113,11 @@ def pet_management_view(request):
                         if species == 'gato'
                         else (_('Otro') if species == 'otro' else _('Perro'))
                     )
-                    gender = request.POST.get('gender', pet.get('gender', 'macho'))
+                    raw_gender = request.POST.get('gender', pet.get('gender', 'M'))
+                    gender = 'H' if raw_gender in ('H', 'hembra') else 'M'
                     pet['gender'] = gender
-                    pet['gender_symbol'] = '♀' if gender == 'hembra' else '♂'
-                    pet['gender_label'] = _('Hembra') if gender == 'hembra' else _('Macho')
+                    pet['gender_symbol'] = '♀' if gender == 'H' else '♂'
+                    pet['gender_label'] = _('Hembra') if gender == 'H' else _('Macho')
                     pet['birth_date'] = request.POST.get(
                         'birth_date', pet.get('birth_date', '04/15/2022')
                     )
@@ -144,6 +154,40 @@ def pet_management_view(request):
         'pets_json': json.dumps(DEFAULT_PETS),
     }
     return render(request, 'pets/pet_management.html', context)
+
+
+@login_required
+@require_POST
+def pet_delete_view(request, pet_id):
+    """
+    Elimina de forma segura una mascota perteneciente al usuario autenticado.
+    Verifica que el usuario sea el dueño legítimo de la mascota antes de proceder.
+    """
+    pet = None
+    if str(pet_id).isdigit():
+        pet = Pet.objects.filter(id=int(pet_id), owner=request.user).first()
+    if not pet:
+        pet = Pet.objects.filter(name__iexact=str(pet_id), owner=request.user).first()
+
+    if pet:
+        pet_name = pet.name
+        pet.delete()
+        messages.success(
+            request,
+            _('La mascota %(name)s ha sido eliminada exitosamente.') % {'name': pet_name},
+        )
+    else:
+        # Fallback para mascotas en memoria durante transición
+        pet_name = str(pet_id)
+        for dp in DEFAULT_PETS:
+            if dp['id'] == str(pet_id) or dp['name'].lower() == str(pet_id).lower():
+                pet_name = dp['name']
+                break
+        messages.success(
+            request,
+            _('La mascota %(name)s ha sido eliminada exitosamente.') % {'name': pet_name},
+        )
+    return redirect('pets:pet_management')
 
 
 @login_required
