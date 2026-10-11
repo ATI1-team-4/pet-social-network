@@ -123,16 +123,11 @@
                         </div>
                         <!-- Insignia de cámara en la esquina inferior derecha (visible y accesible siempre) -->
                         {% translate 'Subir nueva foto' as aria_subir_foto %}
-                        {% include 'components/button.html' with variant="custom" icon="camera" icon_class="w-3.5 h-3.5 text-white" aria_label=aria_subir_foto onclick="triggerPhotoUpload()" class="avatar-badge-camera z-10" %}
+                        {% include 'components/button.html' with variant="custom" icon="camera" icon_class="w-4 h-4 sm:w-4.5 sm:h-4.5 text-white" aria_label=aria_subir_foto onclick="triggerPhotoUpload()" class="avatar-badge-camera-lg z-10" %}
                     </div>
 
-                    <!-- Botón móvil para cambiar foto (visible solo en teléfonos) -->
-                    <div class="lg:hidden mb-4">
-                        {% include 'components/button.html' with text=_("Cambiar foto") variant="secondary" icon="camera-plus" icon_class="w-4 h-4 text-neutral-800" type="button" onclick="triggerPhotoUpload()" class="text-xs px-4 py-2 shadow-xs" %}
-                    </div>
-
-                    <!-- Datos rápidos de la mascota (escritorio) -->
-                    <div class="hidden lg:block w-full">
+                    <!-- Datos rápidos de la mascota y acciones de foto (visibles en móvil y escritorio) -->
+                    <div class="w-full">
                         <h2 id="summary-pet-name" class="title-h4 text-neutral-900 font-bold mb-1">
                             {{ active_pet.name|default:_("Nueva mascota") }}
                         </h2>

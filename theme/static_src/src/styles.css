@@ -798,6 +798,37 @@ input[type="password"]::-ms-clear {
   transform: scale(1.1);
 }
 
+/* Insignia para avatares medianos y grandes (ej. perfil de mascota en gestión) */
+.avatar-badge-camera-lg {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background-color: var(--color-petly-coral);
+  color: var(--color-neutral-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+  border: 3px solid var(--color-neutral-0);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.avatar-badge-camera-lg:hover {
+  transform: scale(1.1);
+}
+
+@media (min-width: 640px) {
+  .avatar-badge-camera-lg {
+    bottom: 0.625rem;
+    right: 0.625rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
 .stat-pill-petly {
   display: flex;
   align-items: center;
