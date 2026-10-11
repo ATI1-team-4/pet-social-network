@@ -14,26 +14,32 @@
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
             <!-- Bloque de información basica del dueño de mascotas -->
             <div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3 sm:gap-5 min-w-0 flex-1">
-                <div class="relative shrink-0">
-                    <img src="{% static 'images/auth/register_showcase.jpg' %}"
-                         alt="Sofía Hernández Morales"
-                         class="w-20 h-20 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-white shadow-sm ring-2 ring-neutral-100">
-                    {% translate "Cambiar foto de perfil" as change_avatar_label %}
-                    {% include 'components/button.html' with icon="camera" icon_class="w-3.5 h-3.5 text-white" variant="custom" class="avatar-badge-camera cursor-pointer" title=change_avatar_label aria_label=change_avatar_label %}
+                {% translate "Cambiar foto de perfil" as change_avatar_label %}
+                <div class="relative shrink-0 w-20 h-20 sm:w-20 sm:h-20 cursor-pointer" onclick="document.getElementById('user-avatar-input').click()" title="{{ change_avatar_label }}">
+                    <div class="w-full h-full rounded-full border-2 border-white shadow-sm ring-2 ring-neutral-100 overflow-hidden bg-neutral-100 flex items-center justify-center relative group">
+                        <img id="user-avatar-preview"
+                             src="{% if request.user.profile.has_avatar %}{{ request.user.profile.avatar_url }}{% else %}{% static 'images/avatars/default_user.svg' %}{% endif %}"
+                             alt="{{ request.user.get_full_name|default:request.user.username }}"
+                             class="w-full h-full object-cover select-none">
+                        <div class="absolute inset-0 bg-neutral-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] sm:text-xs font-semibold text-center px-1">
+                            {% translate "Cambiar foto" %}
+                        </div>
+                    </div>
+                    {% include 'components/button.html' with icon="camera" icon_class="w-3.5 h-3.5 text-white" variant="custom" class="avatar-badge-camera cursor-pointer z-10" title=change_avatar_label aria_label=change_avatar_label onclick="document.getElementById('user-avatar-input').click()" %}
                 </div>
 
                 <div class="min-w-0">
                     <h1 class="title-h3 text-neutral-900 font-bold mb-1 break-words">
-                        Sofía Hernández Morales
+                        {{ request.user.get_full_name|default:request.user.username }}
                     </h1>
                     <div class="flex items-center justify-center sm:justify-start gap-3 sm:gap-4 flex-wrap text-xs text-neutral-500">
                         <span class="inline-flex items-center gap-1.5">
                             {% include 'components/icon.html' with name="mail" class="w-3.5 h-3.5 text-neutral-400" %}
-                            <span class="truncate">sofia.tutor@ejemplo.com</span>
+                            <span class="truncate">{{ request.user.email|default:"usuario@ejemplo.com" }}</span>
                         </span>
                         <span class="inline-flex items-center gap-1.5">
                             {% include 'components/icon.html' with name="calendar" class="w-3.5 h-3.5 text-neutral-400" %}
-                            <span>{% translate "Miembro desde feb. 2026" %}</span>
+                            <span>{% translate "Miembro activo" %}</span>
                         </span>
                     </div>
                 </div>
@@ -94,7 +100,7 @@
                 <!-- Mascota 1: Toby -->
                 <div class="card-petly w-full min-w-0 p-3.5 sm:p-4 bg-white border border-neutral-200 rounded-2xl shadow-sm hover:border-petly-coral/40 hover:shadow-md transition-all group">
                     <div class="flex items-center gap-3">
-                        <img src="{% static 'images/auth/login_showcase.jpg' %}"
+                        <img src="{% static 'images/pets/default_avatar.svg' %}"
                              alt="Toby"
                              class="w-12 h-12 rounded-full object-cover shrink-0 border border-neutral-200 shadow-2xs">
                         <div class="min-w-0 flex-1">
@@ -121,9 +127,10 @@
                 <!-- Mascota 2: Luna -->
                 <div class="card-petly w-full min-w-0 p-3.5 sm:p-4 bg-white border border-neutral-200 rounded-2xl shadow-sm hover:border-petly-coral/40 hover:shadow-md transition-all group">
                     <div class="flex items-center gap-3">
-                        <img src="{% static 'images/auth/reset_showcase.jpg' %}"
+                        <img src="{% static 'images/pets/default_avatar.svg' %}"
                              alt="Luna"
                              class="w-12 h-12 rounded-full object-cover shrink-0 border border-neutral-200 shadow-2xs">
+
                         <div class="min-w-0 flex-1">
                             <h3 class="text-sm font-bold text-neutral-900 group-hover:text-petly-coral transition-colors">
                                 Luna
@@ -166,8 +173,11 @@
                 </div>
 
                 <!-- Formulario -->
-                <form method="post" action="{% url 'accounts:profile' %}" class="space-y-4 sm:space-y-5">
+                <form method="post" action="{% url 'accounts:profile_save' %}" enctype="multipart/form-data" class="space-y-4 sm:space-y-5">
                     {% csrf_token %}
+                    <!-- Input de archivo oculto para el avatar del tutor -->
+                    <input type="file" id="user-avatar-input" name="avatar" accept="image/*" class="hidden" onchange="previewUserAvatar(event)">
+                    <input type="hidden" name="remove_avatar" id="remove-avatar-flag" value="false">
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5 min-w-0">
                         <!-- Nombre Completo -->
@@ -175,7 +185,7 @@
                             <label for="profile-full-name" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Nombre completo" %}
                             </label>
-                            {% include 'components/input.html' with name="full_name" id="profile-full-name" value="Sofía Hernández Morales" placeholder="Sofía Hernández Morales" icon="user" %}
+                            {% include 'components/input.html' with name="full_name" id="profile-full-name" value=request.user.get_full_name placeholder=request.user.username icon="user" %}
                         </div>
 
                         <!-- Correo Electrónico -->
@@ -183,7 +193,7 @@
                             <label for="profile-email" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Correo electrónico" %}
                             </label>
-                            {% include 'components/input.html' with name="email" id="profile-email" type="email" value="sofia.tutor@ejemplo.com" placeholder="sofia.tutor@ejemplo.com" icon="mail" %}
+                            {% include 'components/input.html' with name="email" id="profile-email" type="email" value=request.user.email placeholder="correo@ejemplo.com" icon="mail" %}
                         </div>
 
                         <!-- Teléfono de Contacto -->
@@ -191,7 +201,7 @@
                             <label for="profile-phone" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Teléfono de contacto" %}
                             </label>
-                            {% include 'components/input.html' with name="phone" id="profile-phone" type="tel" value="+58 424 123 4567" placeholder="+58 424 123 4567" icon="phone" %}
+                            {% include 'components/input.html' with name="phone" id="profile-phone" type="tel" value=request.user.profile.phone_number placeholder="+58 424 123 4567" icon="phone" %}
                         </div>
 
                         <!-- Ciudad / Región -->
@@ -199,7 +209,7 @@
                             <label for="profile-city" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Ciudad / región" %}
                             </label>
-                            {% include 'components/input.html' with name="city" id="profile-city" value="Los Teques, Miranda" placeholder="Los Teques, Miranda" icon="location" %}
+                            {% include 'components/input.html' with name="city" id="profile-city" value=request.user.profile.city placeholder="Caracas, Venezuela" icon="location" %}
                         </div>
 
                         <!-- Fecha de Cumpleaños -->
@@ -207,7 +217,7 @@
                             <label for="profile-birth-date" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Fecha de cumpleaños" %}
                             </label>
-                            {% include 'components/input.html' with name="birth_date" id="profile-birth-date" type="date" value="1990-05-10" icon="calendar" %}
+                            {% include 'components/input.html' with name="birth_date" id="profile-birth-date" type="date" value=request.user.profile.birth_date|date:"Y-m-d" icon="calendar" %}
                         </div>
 
                         <!-- Selector de Género -->
@@ -216,7 +226,7 @@
                             {% translate "Masculino" as txt_masculino %}
                             {% translate "Femenino" as txt_femenino %}
                             {% translate "Otro" as txt_otro %}
-                            {% include 'components/segmented.html' with id="gender-segmented-control" name="gender" input_id="gender-input" text_1=txt_masculino value_1="Masculino" text_2=txt_femenino value_2="Femenino" text_3=txt_otro value_3="Otro" active_value="Femenino" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center text-center" %}
+                            {% include 'components/segmented.html' with id="gender-segmented-control" name="gender" input_id="gender-input" text_1=txt_masculino value_1="Masculino" text_2=txt_femenino value_2="Femenino" text_3=txt_otro value_3="Otro" active_value=request.user.profile.gender_label|default:"Otro" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center text-center" %}
                         </div>
 
                         <!-- Color Favorito -->
@@ -224,7 +234,7 @@
                             <label for="profile-favorite-color" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Color favorito" %}
                             </label>
-                            {% include 'components/input.html' with name="favorite_color" id="profile-favorite-color" value="Rosado" placeholder="Rosado" icon="palette" %}
+                            {% include 'components/input.html' with name="favorite_color" id="profile-favorite-color" value=request.user.profile.favorite_color placeholder="Azul, Coral..." icon="palette" %}
                         </div>
 
                         <!-- Libro Favorito -->
@@ -232,7 +242,7 @@
                             <label for="profile-favorite-book" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Libro favorito" %}
                             </label>
-                            {% include 'components/input.html' with name="favorite_book" id="profile-favorite-book" placeholder="Escribe tu libro favorito" %}
+                            {% include 'components/input.html' with name="favorite_book" id="profile-favorite-book" value=request.user.profile.favorite_book placeholder="Escribe tu libro favorito" %}
                         </div>
 
                         <!-- Música Favorita -->
@@ -240,7 +250,7 @@
                             <label for="profile-favorite-music" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Música favorita" %}
                             </label>
-                            {% include 'components/input.html' with name="favorite_music" id="profile-favorite-music" value="Pop" placeholder="Pop" %}
+                            {% include 'components/input.html' with name="favorite_music" id="profile-favorite-music" value=request.user.profile.favorite_music placeholder="Rock, Pop, Clásica..." %}
                         </div>
 
                         <!-- Videojuego Favorito -->
@@ -248,7 +258,7 @@
                             <label for="profile-favorite-game" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Videojuego favorito" %}
                             </label>
-                            {% include 'components/input.html' with name="favorite_game" id="profile-favorite-game" placeholder="Escribe tu videojuego favorito" %}
+                            {% include 'components/input.html' with name="favorite_game" id="profile-favorite-game" value=request.user.profile.favorite_videogame placeholder="Escribe tu videojuego favorito" %}
                         </div>
                     </div>
 
@@ -261,7 +271,7 @@
                                   name="bio"
                                   rows="3"
                                   placeholder="{% translate 'Escribe una breve descripción sobre ti y tus mascotas...' %}"
-                                  class="textarea-petly">Me gusta escuchar música y pasar el día con mis mascotas. Salgo a caminar todas las tardes con Toby y Luna.</textarea>
+                                  class="textarea-petly">{% translate "Me gusta pasar el día con mis mascotas y salir a pasear." %}</textarea>
                         <span class="text-caption text-neutral-400">
                             {% translate "Comparte un poco sobre tu rutina o lo que te gusta hacer con tus mascotas." %}
                         </span>
@@ -285,3 +295,20 @@
 </div>
 
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewUserAvatar(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('user-avatar-preview');
+                if (preview) preview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+{% endblock %}
+

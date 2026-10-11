@@ -176,7 +176,7 @@
 
                             {% translate "Negar interés" as dismiss_label %}
                             {% with dismiss_onclick="dismissSuitor('"|add:featured_suitor.name|add:"')" %}
-                            {% include 'components/button.html' with text=dismiss_label text_end="✕" text_end_class="font-bold text-[11px]" variant="custom" onclick=dismiss_onclick class="text-xs font-semibold text-neutral-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1 py-1 cursor-pointer" %}
+                            {% include 'components/button.html' with text=dismiss_label icon_end="close" icon_end_class="w-3.5 h-3.5 text-neutral-400 group-hover:text-rose-600" variant="custom" onclick=dismiss_onclick class="text-xs font-semibold text-neutral-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1.5 py-1 cursor-pointer" %}
                             {% endwith %}
                         </div>
                     </div>
@@ -323,7 +323,9 @@
 <div id="modal-schedule-meeting" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-meeting-title">
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-schedule-meeting')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        <div class="flex items-center gap-3 mb-4">
+        {% translate 'Cerrar' as aria_close_meeting %}
+        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4 text-neutral-400 hover:text-neutral-700" onclick="closeModal('modal-schedule-meeting')" aria_label=aria_close_meeting class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-neutral-100 transition-colors select-none cursor-pointer" %}
+        <div class="flex items-center gap-3 mb-4 pr-8">
             <div class="w-10 h-10 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center">
                 {% include 'components/icon.html' with name="calendar" class="w-5 h-5" %}
             </div>
@@ -379,7 +381,9 @@
 <div id="modal-send-message" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-msg-title">
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-send-message')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        <div class="flex items-center gap-3 mb-3">
+        {% translate 'Cerrar' as aria_close_msg %}
+        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4 text-neutral-400 hover:text-neutral-700" onclick="closeModal('modal-send-message')" aria_label=aria_close_msg class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-neutral-100 transition-colors select-none cursor-pointer" %}
+        <div class="flex items-center gap-3 mb-3 pr-8">
             <div class="w-10 h-10 rounded-full bg-petly-lilac text-petly-purple flex items-center justify-center">
                 {% include 'components/icon.html' with name="message-square" class="w-5 h-5" %}
             </div>

@@ -1,9 +1,16 @@
 import json
+from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
+
+from apps.pets.models import Pet, PetSpecies
 
 # Perfiles de mascotas de referencia según prototipo oficial (reto 11, páginas 10 y 11)
 DEFAULT_PETS = [
@@ -30,7 +37,7 @@ DEFAULT_PETS = [
         'is_matching': True,
         'is_socializing': True,
         'is_adoption': False,
-        'photo_url': '/static/images/pets/Toby.png',
+        'photo_url': '/static/images/pets/default_avatar.svg',
         'is_active': True,
         'status_label': 'Activo',
         'tab_label': 'Toby',
@@ -58,7 +65,7 @@ DEFAULT_PETS = [
         'is_matching': True,
         'is_socializing': False,
         'is_adoption': False,
-        'photo_url': '/static/images/pets/Luna.png',
+        'photo_url': '/static/images/pets/default_avatar.svg',
         'is_active': False,
         'status_label': 'Inactiva',
         'tab_label': 'Luna (Golden Retriever)',
@@ -67,83 +74,250 @@ DEFAULT_PETS = [
 
 
 @login_required
+@require_POST
+def pet_save_view(request):
+    """
+    Guarda o actualiza la información del perfil de una mascota.
+    Procesa atributos de color, especie, sexo, temperamentos, biografía y
+    la fotografía subida por el usuario almacenándola en media/pets/.
+    Redirige a la pantalla de gestión con mensaje flash de éxito.
+    """
+    pet_name = request.POST.get('name', 'Mascota').strip()
+    pet_id = request.POST.get('pet_id', '').strip()
+
+    profile_color = request.POST.get('profile_color', 'coral')
+    color_hex_map = {
+        'coral': '#FA7D82',
+        'lilac': '#E9D5FF',
+        'mint': '#8FFFB4',
+        'peach': '#FFDAD9',
+    }
+    color_hex = color_hex_map.get(profile_color, '#FA7D82')
+
+    species_slug = request.POST.get('species', 'perro').strip().lower()
+    raw_gender = request.POST.get('gender', 'M')
+    gender = Pet.Gender.HEMBRA if raw_gender in ('H', 'hembra') else Pet.Gender.MACHO
+
+    uploaded_photo = request.FILES.get('photo')
+    remove_photo = request.POST.get('remove_photo') == 'true'
+
+    birth_date_val = None
+    birth_date_str = request.POST.get('birth_date', '').strip()
+    if birth_date_str:
+        for fmt in ('%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y'):
+            try:
+                birth_date_val = datetime.strptime(birth_date_str, fmt).date()
+                break
+            except ValueError:
+                pass
+    if not birth_date_val:
+        birth_date_val = timezone.now().date()
+
+    # Buscar mascota en base de datos si existe
+    db_pet = None
+    if pet_id.isdigit():
+        db_pet = Pet.objects.filter(id=int(pet_id), owner=request.user).first()
+    if not db_pet:
+        db_pet = Pet.objects.filter(name__iexact=pet_name, owner=request.user).first()
+
+    if db_pet:
+        db_pet.name = pet_name
+        db_pet.breed = request.POST.get('breed', db_pet.breed)
+        species_obj, _sp_created = PetSpecies.objects.get_or_create(
+            slug=species_slug,
+            defaults={'name': species_slug.capitalize(), 'icon_name': 'dog'},
+        )
+        db_pet.species = species_obj
+        db_pet.gender = gender
+        db_pet.birth_date = birth_date_val
+        db_pet.description = request.POST.get('description', db_pet.description)
+        db_pet.profile_color = profile_color
+        db_pet.temperaments = request.POST.get('temperaments', db_pet.temperaments)
+
+        if remove_photo and db_pet.photo:
+            db_pet.photo.delete(save=False)
+            db_pet.photo = None
+
+        if uploaded_photo:
+            db_pet.photo = uploaded_photo
+
+        db_pet.save()
+        final_photo_url = db_pet.photo_url
+        pet_id = str(db_pet.id)
+    elif uploaded_photo:
+        # Si se subió foto y aún no existe en BD, crear el registro oficial en BD
+        species_obj, _sp_created = PetSpecies.objects.get_or_create(
+            slug=species_slug,
+            defaults={'name': species_slug.capitalize(), 'icon_name': 'dog'},
+        )
+        db_pet = Pet.objects.create(
+            owner=request.user,
+            name=pet_name,
+            species=species_obj,
+            breed=request.POST.get('breed', 'Mestizo'),
+            gender=gender,
+            birth_date=birth_date_val,
+            profile_color=profile_color,
+            description=request.POST.get('description', ''),
+        )
+        db_pet.photo = uploaded_photo
+        db_pet.save()
+        final_photo_url = db_pet.photo_url
+        pet_id = str(db_pet.id)
+
+    else:
+        final_photo_url = '/static/images/pets/default_avatar.svg' if remove_photo else None
+
+    # Actualizar la mascota en DEFAULT_PETS en memoria para consistencia
+    for pet in DEFAULT_PETS:
+        if pet['id'] == pet_id or (not pet_id and pet['name'] == pet_name):
+            pet['name'] = pet_name
+            pet['breed'] = request.POST.get('breed', pet['breed'])
+            pet['species'] = species_slug
+            pet['species_label'] = (
+                _('Gato')
+                if species_slug == 'gato'
+                else (_('Otro') if species_slug == 'otro' else _('Perro'))
+            )
+            pet['gender'] = 'hembra' if gender == Pet.Gender.HEMBRA else 'macho'
+            pet['gender_symbol'] = '♀' if gender == Pet.Gender.HEMBRA else '♂'
+            pet['gender_label'] = _('Hembra') if gender == Pet.Gender.HEMBRA else _('Macho')
+            pet['birth_date'] = request.POST.get('birth_date', pet.get('birth_date', '04/15/2022'))
+            pet['description'] = request.POST.get('description', pet.get('description', ''))
+            pet['profile_color'] = profile_color
+            pet['profile_color_hex'] = color_hex
+            if final_photo_url:
+                pet['photo_url'] = final_photo_url
+            temperaments_str = request.POST.get('temperaments', '')
+            if temperaments_str:
+                pet['temperaments'] = [t.strip() for t in temperaments_str.split(',') if t.strip()]
+            break
+
+    messages.success(
+        request, _('Los datos de %(name)s se guardaron exitosamente.') % {'name': pet_name}
+    )
+    return redirect('pets:pet_management')
+
+
+@login_required
 def pet_management_view(request):
     """
-    Renderiza la pantalla oficial de Gestión de Perfiles de Mascotas (reto 11, página 10).
-    Permite alternar pestañas entre las mascotas del tutor, editar datos y marcas,
-    o limpiar el formulario para registrar una nueva mascota.
+    Renderiza la pantalla oficial de Gestión de perfiles de mascotas.
+    Permite alternar pestañas entre las mascotas del tutor, visualizar datos y marcas,
+    o desplegar el formulario para registrar una nueva mascota.
     """
-    if request.method == 'POST':
-        action = request.POST.get('action', 'save')
-        pet_name = request.POST.get('name', 'Mascota')
-        pet_id = request.POST.get('pet_id', '1234')
-        if action == 'delete':
-            messages.success(
-                request,
-                _('La mascota %(name)s ha sido eliminada exitosamente.') % {'name': pet_name},
-            )
-        else:
-            profile_color = request.POST.get('profile_color', 'coral')
-            color_hex_map = {
-                'coral': '#FA7D82',
-                'lilac': '#E9D5FF',
-                'mint': '#8FFFB4',
-                'peach': '#FFDAD9',
-            }
-            color_hex = color_hex_map.get(profile_color, '#FA7D82')
-
-            # Actualizar la mascota en DEFAULT_PETS en memoria
-            for pet in DEFAULT_PETS:
-                if pet['id'] == pet_id or (not pet_id and pet['name'] == pet_name):
-                    pet['name'] = request.POST.get('name', pet['name'])
-                    pet['breed'] = request.POST.get('breed', pet['breed'])
-                    species = request.POST.get('species', pet.get('species', 'perro'))
-                    pet['species'] = species
-                    pet['species_label'] = (
-                        _('Gato')
-                        if species == 'gato'
-                        else (_('Otro') if species == 'otro' else _('Perro'))
-                    )
-                    gender = request.POST.get('gender', pet.get('gender', 'macho'))
-                    pet['gender'] = gender
-                    pet['gender_symbol'] = '♀' if gender == 'hembra' else '♂'
-                    pet['gender_label'] = _('Hembra') if gender == 'hembra' else _('Macho')
-                    pet['birth_date'] = request.POST.get(
-                        'birth_date', pet.get('birth_date', '04/15/2022')
-                    )
-                    pet['description'] = request.POST.get('description', pet.get('description', ''))
-                    pet['profile_color'] = profile_color
-                    pet['profile_color_hex'] = color_hex
-                    temperaments_str = request.POST.get('temperaments', '')
-                    if temperaments_str:
-                        pet['temperaments'] = [
-                            t.strip() for t in temperaments_str.split(',') if t.strip()
-                        ]
-                    break
-
-            messages.success(
-                request, _('Los datos de %(name)s se guardaron exitosamente.') % {'name': pet_name}
-            )
-        return redirect('pets:pet_management')
-
-    # Determinar mascota activa inicial por parámetro de consulta
     pet_param = request.GET.get('pet', '').strip().lower()
     is_new = request.GET.get('new', '').strip().lower() == 'true'
 
+    user_pets = list(Pet.objects.filter(owner=request.user).order_by('id'))
+    if user_pets:
+        pets_list = []
+        for p in user_pets:
+            pets_list.append(
+                {
+                    'id': str(p.id),
+                    'name': p.name,
+                    'species': p.species.slug if p.species else 'perro',
+                    'species_label': str(p.species_label),
+                    'gender': 'hembra' if p.is_hembra else 'macho',
+                    'gender_label': str(p.gender_label),
+                    'gender_symbol': p.gender_symbol,
+                    'breed': p.breed,
+                    'birth_date': p.birth_date.strftime('%m/%d/%Y')
+                    if p.birth_date
+                    else '04/15/2022',
+                    'birth_date_iso': p.birth_date.isoformat() if p.birth_date else '2022-04-15',
+                    'age_years': p.age_years,
+                    'age_text': str(p.age_text),
+                    'age_completed': f'{p.age_years} años cumplidos',
+                    'certificate': 'fci',
+                    'certificate_label': str(p.certificate_type or 'Certificado FCI / con pedigrí'),
+                    'temperaments': [t.strip() for t in p.temperaments.split(',') if t.strip()]
+                    if p.temperaments
+                    else ['Juguetón'],
+                    'description': p.description,
+                    'profile_color': p.profile_color,
+                    'profile_color_hex': {
+                        'coral': '#FA7D82',
+                        'lilac': '#E9D5FF',
+                        'mint': '#8FFFB4',
+                        'peach': '#FFDAD9',
+                    }.get(p.profile_color, '#FA7D82'),
+                    'is_matching': p.is_active_for_match,
+                    'is_socializing': True,
+                    'is_adoption': False,
+                    'photo_url': p.photo_url,
+                    'is_active': p.is_active_for_match,
+                    'status_label': 'Activo' if p.is_active_for_match else 'Inactiva',
+                    'tab_label': p.name,
+                }
+            )
+    else:
+        pets_list = DEFAULT_PETS
+
     active_pet = None
-    if not is_new:
-        if pet_param in ('luna', '5678'):
-            active_pet = DEFAULT_PETS[1]
+    if not is_new and pets_list:
+        if pet_param:
+            active_pet = next(
+                (p for p in pets_list if p['name'].lower() == pet_param or p['id'] == pet_param),
+                pets_list[0],
+            )
         else:
-            active_pet = DEFAULT_PETS[0]
+            active_pet = pets_list[0]
 
     context = {
-        'pets': DEFAULT_PETS,
+        'pets': pets_list,
         'active_pet': active_pet,
         'is_new': is_new,
-        'pets_json': json.dumps(DEFAULT_PETS),
+        'pets_json': json.dumps(pets_list, cls=DjangoJSONEncoder),
     }
     return render(request, 'pets/pet_management.html', context)
+
+
+@login_required
+@require_POST
+def pet_delete_view(request, pet_id):
+    """
+    Elimina de forma segura una mascota perteneciente al usuario autenticado.
+    Verifica que el usuario sea el dueño legítimo de la mascota antes de proceder.
+    """
+    pet = None
+    if str(pet_id).isdigit():
+        pet = Pet.objects.filter(id=int(pet_id), owner=request.user).first()
+    if not pet:
+        pet = Pet.objects.filter(name__iexact=str(pet_id), owner=request.user).first()
+
+    if pet:
+        pet_name = pet.name
+        pet.delete()
+        messages.success(
+            request,
+            _('La mascota %(name)s ha sido eliminada exitosamente.') % {'name': pet_name},
+        )
+    else:
+        # Fallback para mascotas en memoria durante transición
+        pet_name = str(pet_id)
+        for dp in DEFAULT_PETS:
+            if dp['id'] == str(pet_id) or dp['name'].lower() == str(pet_id).lower():
+                pet_name = dp['name']
+                break
+        messages.success(
+            request,
+            _('La mascota %(name)s ha sido eliminada exitosamente.') % {'name': pet_name},
+        )
+    return redirect('pets:pet_management')
+
+
+@login_required
+@require_POST
+def pet_set_active_view(request):
+    """
+    Establece la mascota activa seleccionada en la sesión del usuario
+    y redirige al flujo de emparejamiento (match feed).
+    """
+    selected_id = request.POST.get('selected_pet_id', '1234')
+    request.session['active_pet_id'] = selected_id
+    return redirect('pets:match_feed')
 
 
 @login_required
@@ -152,11 +326,6 @@ def pet_select_view(request):
     Renderiza la pantalla intermedia oficial de Selección de Mascota activa (reto 11, página 11)
     antes de avanzar hacia el flujo de emparejamiento (match feed).
     """
-    if request.method == 'POST':
-        selected_id = request.POST.get('selected_pet_id', '1234')
-        request.session['active_pet_id'] = selected_id
-        return redirect('pets:match_feed')
-
     selected_param = request.GET.get('selected', '').strip().lower()
     selected_id = '5678' if selected_param in ('luna', '5678') else '1234'
 
@@ -203,8 +372,8 @@ MATCH_CANDIDATES = [
         'purpose': 'Cruza y socialización',
         'profile_color': 'coral',
         'profile_color_hex': '#FA7D82',
-        'photo_url': '/static/images/pets/bella.png',
-        'photo_clean_url': '/static/images/pets/bella.png',
+        'photo_url': '/static/images/pets/default_avatar.svg',
+        'photo_clean_url': '/static/images/pets/default_avatar.svg',
         'temperaments': ['Juguetona', 'Sociable', 'Cariñosa', 'Ágil'],
         'description': (
             'Bella es una perrita alegre, noble y muy inteligente. Adora correr al aire libre, '
@@ -241,8 +410,8 @@ MATCH_CANDIDATES = [
         'purpose': 'Cruza responsable',
         'profile_color': 'lilac',
         'profile_color_hex': '#E9D5FF',
-        'photo_url': '/static/images/pets/kira.png',
-        'photo_clean_url': '/static/images/pets/kira.png',
+        'photo_url': '/static/images/pets/default_avatar.svg',
+        'photo_clean_url': '/static/images/pets/default_avatar.svg',
         'temperaments': ['Tranquila', 'Cariñosa', 'Sociable'],
         'description': (
             'Kira es súper dócil, tierna y juguetona en calma. Buscamos una cruza ética '
@@ -279,8 +448,8 @@ MATCH_CANDIDATES = [
         'purpose': 'Socialización',
         'profile_color': 'mint',
         'profile_color_hex': '#8FFFB4',
-        'photo_url': '/static/images/pets/maya.png',
-        'photo_clean_url': '/static/images/pets/maya.png',
+        'photo_url': '/static/images/pets/default_avatar.svg',
+        'photo_clean_url': '/static/images/pets/default_avatar.svg',
         'temperaments': ['Curiosa', 'Juguetona', 'Protectora'],
         'description': (
             'Maya es activa, adora los paseos largos por el parque y jugar con pelotas. '
@@ -312,7 +481,7 @@ INTERESTED_SUITORS = [
         'match_percentage': '98%',
         'is_recent': True,
         'recent_label': 'Match reciente (hace 2h)',
-        'photo_url': '/static/images/pets/kira.png',
+        'photo_url': '/static/images/pets/default_avatar.svg',
         'temperaments': ['Tranquila', 'Cariñosa'],
         'quote': (
             '¡Hola Sofía! Nos encantó Toby. Kira es súper dócil, tierna y juguetona en calma. '
@@ -330,7 +499,7 @@ INTERESTED_SUITORS = [
         'distance': 'A 2.1 km',
         'match_percentage': '91%',
         'badge_label': 'Solicitud previa',
-        'photo_url': '/static/images/pets/chloe.png',
+        'photo_url': '/static/images/pets/default_avatar.svg',
         'temperaments': ['Juguetona', 'Cariñosa'],
     },
     {
@@ -342,7 +511,7 @@ INTERESTED_SUITORS = [
         'age': '3.1 años',
         'distance': 'A 4.5 km',
         'match_percentage': '92%',
-        'photo_url': '/static/images/pets/maya.png',
+        'photo_url': '/static/images/pets/default_avatar.svg',
         'temperaments': ['Curiosa', 'Sociable'],
     },
 ]
@@ -414,3 +583,178 @@ def match_interested_view(request):
         'confirmed_dates': CONFIRMED_DATES,
     }
     return render(request, 'pets/match_interested.html', context)
+
+
+# ==============================================================================
+# Siluetas de Controladores: Feed y Swipe de Candidatos (Issue #63)
+# ==============================================================================
+
+
+@login_required
+@require_POST
+def match_like_candidate_view(request):
+    """
+    Silueta: Registra 'Me gusta' hacia un candidato del feed y verifica coincidencia recíproca.
+
+    El equipo debe implementar:
+    - Obtener `candidate_id` desde `request.POST`.
+    - Delegar el registro a `apps.pets.services.record_candidate_like(active_pet, candidate_pet)`.
+    - Retornar JSON con `{'status': 'success', 'is_match': bool, 'match_data': ...}`.
+    """
+    return JsonResponse(
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
+        status=501,
+    )
+
+
+@login_required
+@require_POST
+def match_pass_candidate_view(request):
+    """
+    Silueta: Registra el descarte de un candidato en el feed para avanzar a la siguiente tarjeta.
+
+    El equipo debe implementar:
+    - Obtener `candidate_id` desde `request.POST`.
+    - Delegar el descarte a `apps.pets.services.record_candidate_pass(active_pet, candidate_pet)`.
+    - Retornar JSON con `{'status': 'success', 'candidate_id': candidate_id}`.
+    """
+    return JsonResponse(
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
+        status=501,
+    )
+
+
+@login_required
+@require_POST
+def match_report_candidate_view(request):
+    """
+    Silueta: Registra una denuncia o reporte contra una mascota candidata desde el feed.
+
+    El equipo debe implementar:
+    - Validar `reported_pet_id` y `reason` recibidos por POST.
+    - Delegar el reporte a `apps.pets.services.report_candidate_pet(...)`.
+    - Retornar JSON con confirmación y mensaje para retroalimentar al usuario.
+    """
+    return JsonResponse(
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
+        status=501,
+    )
+
+
+# ==============================================================================
+# Siluetas de Controladores: Solicitudes e Interesados (Issue #64)
+# ==============================================================================
+
+
+@login_required
+@require_POST
+def match_accept_request_view(request, request_id):
+    """
+    Silueta: Acepta una solicitud de match recibida en la bandeja de interesados.
+
+    El equipo debe implementar:
+    - Validar que la solicitud pertenezca a la mascota activa del usuario.
+    - Delegar la actualización a `apps.pets.services.accept_match_request(request_id, active_pet)`.
+    - Retornar JSON con `{'status': 'accepted', 'request_id': request_id}`.
+    """
+    return JsonResponse(
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
+        status=501,
+    )
+
+
+@login_required
+@require_POST
+def match_reject_request_view(request, request_id):
+    """
+    Silueta: Descarta o rechaza una solicitud de match en la bandeja de interesados.
+
+    El equipo debe implementar:
+    - Validar que la solicitud pertenezca a la mascota activa del usuario.
+    - Delegar la actualización a `apps.pets.services.reject_match_request(request_id, active_pet)`.
+    - Retornar JSON con `{'status': 'rejected', 'request_id': request_id}`.
+    """
+    return JsonResponse(
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
+        status=501,
+    )
+
+
+@login_required
+@require_POST
+def send_initial_message_view(request, request_id):
+    """
+    Silueta: Envía el mensaje inicial tras confirmar un match mutuo aceptado.
+
+    El equipo debe implementar:
+    - Obtener `message_text` desde el POST y validar contenido no vacío.
+    - Delegar a `apps.pets.services.send_initial_match_message(...)`.
+    - Retornar JSON con confirmación de envío.
+    """
+    return JsonResponse(
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
+        status=501,
+    )
+
+
+# ==============================================================================
+# Siluetas de Controladores: Citas y Encuentros Caninos (Issue #65)
+# ==============================================================================
+
+
+@login_required
+@require_POST
+def schedule_meetup_view(request):
+    """
+    Silueta: Procesa la concertación de un encuentro canino seguro desde el modal.
+
+    El equipo debe implementar:
+    - Validar los datos recibidos mediante `ScheduleMeetupForm(request.POST)`.
+    - Delegar la creación a `apps.pets.services.schedule_pet_meetup(...)`.
+    - Retornar JSON con `{'status': 'scheduled', 'meetup_id': ...}`.
+    """
+    return JsonResponse(
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
+        status=501,
+    )
+
+
+@login_required
+@require_POST
+def cancel_meetup_view(request, meetup_id):
+    """
+    Silueta: Cancela una cita de encuentro canino previamente acordada.
+
+    El equipo debe implementar:
+    - Validar permisos del usuario sobre el encuentro.
+    - Delegar a `apps.pets.services.cancel_pet_meetup(meetup_id, request.user)`.
+    - Retornar JSON con confirmación de cancelación.
+    """
+    return JsonResponse(
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
+        status=501,
+    )

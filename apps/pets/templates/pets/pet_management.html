@@ -90,12 +90,13 @@
     </div>
 
     <!-- Formulario unificado de gestión de mascota -->
-    <form method="post" action="{% url 'pets:pet_management' %}" id="pet-management-form" class="space-y-6 w-full">
+    <form method="post" action="{% url 'pets:pet_save' %}" enctype="multipart/form-data" id="pet-management-form" class="space-y-6 w-full">
         {% csrf_token %}
         <input type="hidden" name="action" id="form-action" value="save">
         <input type="hidden" name="pet_id" id="form-pet-id" value="{{ active_pet.id|default:'' }}">
         <input type="hidden" name="profile_color" id="input-profile-color" value="{{ active_pet.profile_color|default:'coral' }}">
         <input type="hidden" name="temperaments" id="input-temperaments" value="{% for t in active_pet.temperaments %}{{ t }}{% if not forloop.last %},{% endif %}{% endfor %}">
+        <input type="hidden" name="remove_photo" id="remove-photo-flag" value="false">
 
         <!-- Input de archivo oculto para la fotografía -->
         <input type="file" id="pet-photo-input" name="photo" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
@@ -113,7 +114,7 @@
                     <div class="relative w-36 h-36 sm:w-40 sm:h-40 mb-4 cursor-pointer" onclick="triggerPhotoUpload()" title="{% translate 'Subir nueva foto' %}">
                         <div class="w-full h-full rounded-full border-4 border-white shadow-md overflow-hidden bg-petly-ice flex items-center justify-center relative group">
                             <img id="pet-avatar-img"
-                                 src="{% if active_pet.photo_url %}{{ active_pet.photo_url }}{% else %}{% static 'images/pets/Toby.png' %}{% endif %}"
+                                 src="{% if active_pet.photo_url %}{{ active_pet.photo_url }}{% else %}{% static 'images/pets/default_avatar.svg' %}{% endif %}"
                                  alt="{{ active_pet.name|default:'Mascota' }}"
                                  class="w-full h-full object-cover select-none">
                             <div class="absolute inset-0 bg-neutral-900/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold">
@@ -122,16 +123,11 @@
                         </div>
                         <!-- Insignia de cámara en la esquina inferior derecha (visible y accesible siempre) -->
                         {% translate 'Subir nueva foto' as aria_subir_foto %}
-                        {% include 'components/button.html' with variant="custom" icon="camera" icon_class="w-3.5 h-3.5 text-white" aria_label=aria_subir_foto onclick="triggerPhotoUpload()" class="avatar-badge-camera z-10" %}
+                        {% include 'components/button.html' with variant="custom" icon="camera" icon_class="w-4 h-4 sm:w-4.5 sm:h-4.5 text-white" aria_label=aria_subir_foto onclick="triggerPhotoUpload()" class="avatar-badge-camera-lg z-10" %}
                     </div>
 
-                    <!-- Botón móvil para cambiar foto (visible solo en teléfonos) -->
-                    <div class="lg:hidden mb-4">
-                        {% include 'components/button.html' with text=_("Cambiar foto") variant="secondary" icon="camera-plus" icon_class="w-4 h-4 text-neutral-800" type="button" onclick="triggerPhotoUpload()" class="text-xs px-4 py-2 shadow-xs" %}
-                    </div>
-
-                    <!-- Datos rápidos de la mascota (escritorio) -->
-                    <div class="hidden lg:block w-full">
+                    <!-- Datos rápidos de la mascota y acciones de foto (visibles en móvil y escritorio) -->
+                    <div class="w-full">
                         <h2 id="summary-pet-name" class="title-h4 text-neutral-900 font-bold mb-1">
                             {{ active_pet.name|default:_("Nueva mascota") }}
                         </h2>
@@ -287,7 +283,7 @@
                             </label>
                             {% translate "Macho" as g_macho %}
                             {% translate "Hembra" as g_hembra %}
-                            {% include 'components/segmented.html' with name="gender" input_id="input-gender" text_1=g_macho value_1="macho" icon_1="male" text_2=g_hembra value_2="hembra" icon_2="female" active_value=active_pet.gender|default:"macho" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center" %}
+                            {% include 'components/segmented.html' with name="gender" input_id="input-gender" text_1=g_macho value_1="M" icon_1="male" text_2=g_hembra value_2="H" icon_2="female" active_value=active_pet.gender|default:"M" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center" %}
                         </div>
 
                         <!-- Campo: Raza -->
@@ -349,45 +345,45 @@
                         {% translate "Energético" as t_energetico %}
 
                         {% if 'Juguetón' in active_pet.temperaments or not active_pet %}
-                            {% include 'components/button.html' with text=t_jugueton text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Juguetón')" attrs='data-trait="Juguetón"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_jugueton icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Juguetón')" attrs='data-trait="Juguetón"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_jugueton text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Juguetón')" attrs='data-trait="Juguetón"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_jugueton icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Juguetón')" attrs='data-trait="Juguetón"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Sociable' in active_pet.temperaments or not active_pet %}
-                            {% include 'components/button.html' with text=t_sociable text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Sociable')" attrs='data-trait="Sociable"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_sociable icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Sociable')" attrs='data-trait="Sociable"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_sociable text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Sociable')" attrs='data-trait="Sociable"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_sociable icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Sociable')" attrs='data-trait="Sociable"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Cariñoso' in active_pet.temperaments or not active_pet %}
-                            {% include 'components/button.html' with text=t_carinoso text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Cariñoso')" attrs='data-trait="Cariñoso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_carinoso icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Cariñoso')" attrs='data-trait="Cariñoso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_carinoso text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Cariñoso')" attrs='data-trait="Cariñoso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_carinoso icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Cariñoso')" attrs='data-trait="Cariñoso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Tranquilo' in active_pet.temperaments %}
-                            {% include 'components/button.html' with text=t_tranquilo text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Tranquilo')" attrs='data-trait="Tranquilo"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_tranquilo icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Tranquilo')" attrs='data-trait="Tranquilo"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_tranquilo text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Tranquilo')" attrs='data-trait="Tranquilo"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_tranquilo icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Tranquilo')" attrs='data-trait="Tranquilo"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Protector' in active_pet.temperaments %}
-                            {% include 'components/button.html' with text=t_protector text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Protector')" attrs='data-trait="Protector"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_protector icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Protector')" attrs='data-trait="Protector"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_protector text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Protector')" attrs='data-trait="Protector"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_protector icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Protector')" attrs='data-trait="Protector"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Curioso' in active_pet.temperaments %}
-                            {% include 'components/button.html' with text=t_curioso text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Curioso')" attrs='data-trait="Curioso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_curioso icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Curioso')" attrs='data-trait="Curioso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_curioso text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Curioso')" attrs='data-trait="Curioso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_curioso icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Curioso')" attrs='data-trait="Curioso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Energético' in active_pet.temperaments %}
-                            {% include 'components/button.html' with text=t_energetico text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Energético')" attrs='data-trait="Energético"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_energetico icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Energético')" attrs='data-trait="Energético"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_energetico text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Energético')" attrs='data-trait="Energético"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_energetico icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Energético')" attrs='data-trait="Energético"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
                     </div>
 
@@ -413,8 +409,15 @@
 
                 <!-- Barra de acciones inferiores para escritorio y móvil -->
                 <div class="order-6 flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-3 pb-6 mb-6 sm:mb-0">
-                    {% translate "Descartar cambios" as discard_label %}
-                    {% include 'components/button.html' with text=discard_label type="button" variant="soft" onclick="openModal('modal-discard')" class="w-full sm:w-auto text-xs font-semibold py-2.5 px-4" %}
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        {% translate "Descartar cambios" as discard_label %}
+                        {% include 'components/button.html' with text=discard_label type="button" variant="soft" onclick="openModal('modal-discard')" class="w-full sm:w-auto text-xs font-semibold py-2.5 px-4" %}
+
+                        {% if not is_new and active_pet %}
+                            {% translate "Eliminar mascota" as delete_pet_label %}
+                            {% include 'components/button.html' with text=delete_pet_label type="button" variant="outline" icon="trash" icon_class="w-3.5 h-3.5 text-rose-500" onclick="openModal('modal-delete-pet')" class="w-full sm:w-auto text-xs font-semibold py-2.5 px-4 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 justify-center cursor-pointer" %}
+                        {% endif %}
+                    </div>
 
                     <div class="flex items-center gap-3 w-full sm:w-auto">
                         {% translate "Vista previa" as preview_label %}
@@ -439,6 +442,18 @@
 <!-- Modal: Eliminar Foto de Perfil -->
 {% include 'components/confirmation_modal.html' with id="modal-delete-photo" variant="danger" icon="trash" title=_("¿Eliminar la foto de perfil?") text=_("La mascota volverá a mostrar la ilustración predeterminada de Petly.") confirm_text=_("Eliminar foto") cancel_text=_("Mantener foto") onconfirm="removePetPhoto()" %}
 
+<!-- Modal: Eliminar Perfil de Mascota -->
+{% if not is_new and active_pet %}
+<form id="delete-pet-form" method="post" action="{% url 'pets:pet_delete' active_pet.id %}" class="hidden">
+    {% csrf_token %}
+</form>
+{% blocktranslate with name=active_pet.name asvar del_pet_title %}¿Eliminar el perfil de {{ name }}?{% endblocktranslate %}
+{% translate "Esta acción es definitiva. Se eliminarán los datos de la mascota junto con su historial de emparejamientos y solicitudes en la plataforma." as del_pet_desc %}
+{% translate "Eliminar definitivamente" as del_pet_confirm %}
+{% translate "Mantener mascota" as del_pet_cancel %}
+{% include 'components/confirmation_modal.html' with id="modal-delete-pet" variant="danger" icon="trash" title=del_pet_title text=del_pet_desc confirm_text=del_pet_confirm cancel_text=del_pet_cancel onconfirm="deletePetProfile()" %}
+{% endif %}
+
 <!-- Modal: Vista Previa de Tarjeta de Descubrimiento (Pet Discovery Preview) -->
 <div id="modal-pet-preview" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-2 sm:p-4 overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-preview-title">
     <div class="fixed inset-0 bg-neutral-900/60 backdrop-blur-xs transition-opacity duration-200 cursor-pointer" onclick="closeModal('modal-pet-preview')" aria-hidden="true"></div>
@@ -459,7 +474,8 @@
                     </p>
                 </div>
             </div>
-    
+            {% translate "Cerrar" as aria_close_preview %}
+            {% include 'components/button.html' with variant="custom" icon="close" text="" icon_class="w-4 h-4 text-neutral-400 hover:text-neutral-700" onclick="closeModal('modal-pet-preview')" aria_label=aria_close_preview class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-neutral-100 transition-colors select-none cursor-pointer shrink-0" %}
         </div>
 
         <!-- Cuerpo del modal con scroll interno fluido optimizado -->
@@ -475,7 +491,7 @@
                 <!-- FOTOGRAFÍA PRINCIPAL (proporcional y responsiva) -->
                 <div class="relative w-full h-44 sm:h-56 bg-neutral-900 overflow-hidden">
                     <img id="modal-preview-avatar"
-                         src="{% if active_pet.photo_url %}{{ active_pet.photo_url }}{% else %}{% static 'images/pets/Toby.png' %}{% endif %}"
+                         src="{% if active_pet.photo_url %}{{ active_pet.photo_url }}{% else %}{% static 'images/pets/default_avatar.svg' %}{% endif %}"
                          alt=""
                          class="w-full h-full object-cover select-none transition-transform duration-500">
 
@@ -604,7 +620,7 @@
                         </div>
 
                         <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[11px] sm:text-xs font-semibold shrink-0">
-                            <span>★</span>
+                            {% include 'components/icon.html' with name="star" class="w-3.5 h-3.5 text-amber-500" %}
                             <span>5.0</span>
                             <span class="text-neutral-500 font-normal">({% translate "Tu perfil" %})</span>
                         </div>
@@ -730,10 +746,18 @@
             const iconSpan = btn.querySelector('.trait-icon');
             if (isActive) {
                 btn.className = 'trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs';
-                if (iconSpan) iconSpan.textContent = '✓';
+                if (iconSpan) {
+                    const iconUrl = '{% static "images/icons/check.svg" %}';
+                    iconSpan.style.maskImage = `url('${iconUrl}')`;
+                    iconSpan.style.webkitMaskImage = `url('${iconUrl}')`;
+                }
             } else {
                 btn.className = 'trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60';
-                if (iconSpan) iconSpan.textContent = '+';
+                if (iconSpan) {
+                    const iconUrl = '{% static "images/icons/plus.svg" %}';
+                    iconSpan.style.maskImage = `url('${iconUrl}')`;
+                    iconSpan.style.webkitMaskImage = `url('${iconUrl}')`;
+                }
             }
         }
     }
@@ -782,8 +806,28 @@
 
     function removePetPhoto() {
         const img = document.getElementById('pet-avatar-img');
-        if (img) img.src = "{% static 'images/pets/Toby.png' %}";
+        if (img) img.src = "{% static 'images/pets/default_avatar.svg' %}";
+        const modalImg = document.getElementById('modal-preview-avatar');
+        if (modalImg) modalImg.src = "{% static 'images/pets/default_avatar.svg' %}";
+        const fileInput = document.getElementById('pet-photo-input');
+        if (fileInput) fileInput.value = '';
+        const removeFlag = document.getElementById('remove-photo-flag');
+        if (removeFlag) removeFlag.value = 'true';
         closeModal('modal-delete-photo');
+    }
+
+    function deletePetProfile() {
+        const deleteForm = document.getElementById('delete-pet-form');
+        if (deleteForm) {
+            deleteForm.submit();
+            return;
+        }
+        const form = document.getElementById('pet-management-form');
+        const actionInput = document.getElementById('form-action');
+        if (form && actionInput) {
+            actionInput.value = 'delete';
+            form.submit();
+        }
     }
 
     // Abrir modal de vista previa dinámico con estructura de Buscar Pareja
@@ -796,7 +840,7 @@
         const desc = (descInput && descInput.value.trim()) || '{{ active_pet.description|default:"Sin descripción" }}';
         const color = document.getElementById('input-profile-color').value || 'coral';
         const species = document.getElementById('input-species').value || 'perro';
-        const gender = document.getElementById('input-gender').value || 'macho';
+        const gender = document.getElementById('input-gender').value || 'M';
         const birthInput = document.getElementById('pet-birthdate-input');
         const birth = (birthInput && birthInput.value.trim()) || '{{ active_pet.birth_date|default:"04/15/2022" }}';
         const certificate = document.getElementById('input-certificate').value || 'fci';
@@ -827,7 +871,7 @@
         }
 
         // Género y símbolo
-        const isMale = (gender === 'macho');
+        const isMale = (gender === 'M' || gender === 'macho');
         const genderSym = document.getElementById('modal-preview-gender-symbol');
         if (genderSym) genderSym.textContent = isMale ? '♂' : '♀';
 

@@ -1,0 +1,157 @@
+@startuml
+left to right direction
+
+skinparam linetype ortho
+skinparam roundcorner 6
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam nodesep 70
+skinparam ranksep 120
+
+package "django.contrib.auth" {
+  entity "auth_user" as auth_user #E3F2FD {
+    # id : AutoField <<PK>>
+    --
+    + password : CharField
+    + last_login : DateTimeField
+    + is_superuser : BooleanField
+    + username : CharField
+    + first_name : CharField
+    + last_name : CharField
+    + email : CharField
+    + is_staff : BooleanField
+    + is_active : BooleanField
+    + date_joined : DateTimeField
+  }
+}
+
+package "apps.accounts" {
+  entity "accounts_userprofile" as accounts_userprofile #FFF3E0 {
+    # id : BigAutoField <<PK>>
+    --
+    + created_at : DateTimeField
+    + updated_at : DateTimeField
+    # user : OneToOneField <<FK>>
+    + avatar : FileField
+    + phone_prefix : CharField
+    + phone_number : CharField
+    + id_type : CharField
+    + id_number : CharField
+    + bio : TextField
+    + city : CharField
+    + latitude : FloatField
+    + longitude : FloatField
+    + birth_date : DateField
+    + gender : CharField
+    + rating : DecimalField
+    + completed_meetings_count : PositiveIntegerField
+    + favorite_color : CharField
+    + favorite_book : CharField
+    + favorite_music : CharField
+    + favorite_videogame : CharField
+  }
+  entity "accounts_userreport" as accounts_userreport #FFF3E0 {
+    # id : BigAutoField <<PK>>
+    --
+    + created_at : DateTimeField
+    + updated_at : DateTimeField
+    # reported_by : ForeignKey <<FK>>
+    # reported_user : ForeignKey <<FK>>
+    # reported_pet : ForeignKey <<FK>>
+    + reason : TextField
+    + status : CharField
+    + admin_notes : TextField
+  }
+}
+
+package "apps.pets" {
+  entity "pets_petspecies" as pets_petspecies #E8F5E9 {
+    # id : BigAutoField <<PK>>
+    --
+    + created_at : DateTimeField
+    + updated_at : DateTimeField
+    + name : CharField
+    + slug : SlugField
+    + icon_name : CharField
+    + is_active : BooleanField
+  }
+  entity "pets_pet" as pets_pet #E8F5E9 {
+    # id : BigAutoField <<PK>>
+    --
+    + created_at : DateTimeField
+    + updated_at : DateTimeField
+    # owner : ForeignKey <<FK>>
+    + name : CharField
+    # species : ForeignKey <<FK>>
+    + breed : CharField
+    + gender : CharField
+    + birth_date : DateField
+    + weight_kg : DecimalField
+    + description : TextField
+    + photo : FileField
+    + certificate_type : CharField
+    + certificate_number : CharField
+    + purpose : CharField
+    + is_active_for_match : BooleanField
+    + max_search_distance_km : PositiveIntegerField
+    + temperaments : CharField
+    + profile_color : CharField
+  }
+  entity "pets_matchrequest" as pets_matchrequest #E8F5E9 {
+    # id : BigAutoField <<PK>>
+    --
+    + created_at : DateTimeField
+    + updated_at : DateTimeField
+    # from_pet : ForeignKey <<FK>>
+    # to_pet : ForeignKey <<FK>>
+    + status : CharField
+    + notes : TextField
+  }
+  entity "pets_petmeetup" as pets_petmeetup #E8F5E9 {
+    # id : BigAutoField <<PK>>
+    --
+    + created_at : DateTimeField
+    + updated_at : DateTimeField
+    # match_request : ForeignKey <<FK>>
+    # pet1 : ForeignKey <<FK>>
+    # pet2 : ForeignKey <<FK>>
+    + date : DateField
+    + time : TimeField
+    + location_name : CharField
+    + latitude : FloatField
+    + longitude : FloatField
+    + status : CharField
+    + notes : TextField
+  }
+}
+
+package "apps.core" {
+  entity "core_auditlog" as core_auditlog #F3E5F5 {
+    # id : BigAutoField <<PK>>
+    --
+    + created_at : DateTimeField
+    + updated_at : DateTimeField
+    # user : ForeignKey <<FK>>
+    + action : CharField
+    + ip_address : GenericIPAddressField
+    + details : TextField
+  }
+}
+
+' se agregan espacios a los lados de los numeros y una flecha al final del texto
+accounts_userprofile "1 " ---- " 1" auth_user : "extender perfil >"
+core_auditlog "N " ---- " 1" auth_user : "registrar accion >"
+pets_pet "N " ---- " 1" auth_user : "pertenecer a dueño >"
+
+accounts_userreport "N " .... " 1" auth_user : "emitir por >"
+accounts_userreport "N " .... " 1" auth_user : "acusar usuario >"
+accounts_userreport "N " .... " 1" pets_pet : "acusar mascota >"
+
+pets_pet "N " ---- " 1" pets_petspecies : "clasificar especie >"
+pets_matchrequest "N " ---- " 1" pets_pet : "enviar por >"
+pets_matchrequest "N " ---- " 1" pets_pet : "recibir por >"
+
+pets_petmeetup "N " ---- " 1" pets_matchrequest : "derivar solicitud >"
+pets_petmeetup "N " ---- " 1" pets_pet : "involucrar mascota 1 >"
+pets_petmeetup "N " ---- " 1" pets_pet : "involucrar mascota 2 >"
+@enduml
