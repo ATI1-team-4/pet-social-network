@@ -41,21 +41,21 @@ Ejemplos de uso rápido:
 {% with val_1=value_1|default:text_1|default:'1' val_2=value_2|default:text_2|default:'2' %}
 <div {% if id %}id="{{ id }}"{% endif %} data-segmented="true" role="tablist" class="inline-flex items-center gap-1 shrink-0 p-1 rounded-full {{ container_class|default:'bg-petly-ice border border-petly-blue/80' }} text-xs font-medium {{ class|default:'' }}" {{ attrs|default:'' }}>
     {% if name %}
-        <input type="hidden" name="{{ name }}" {% if input_id %}id="{{ input_id }}"{% endif %} value="{% if active_value %}{{ active_value }}{% elif active_index == '2' or active_index == 2 %}{{ val_2 }}{% else %}{{ val_1 }}{% endif %}">
+        <input type="hidden" name="{{ name }}" {% if input_id %}id="{{ input_id }}"{% endif %} value="{% if active_value == val_1 or active_value == text_1 or active_value|lower == val_1|lower or active_value|lower == text_1|lower or not active_value and not active_index or active_index == '1' or active_index == 1 %}{{ val_1 }}{% elif active_value == val_2 or active_value == text_2 or active_value|lower == val_2|lower or active_value|lower == text_2|lower or active_index == '2' or active_index == 2 %}{{ val_2 }}{% elif text_3 and active_value == val_3 or text_3 and active_value == text_3 or text_3 and active_value|lower == val_3|lower or text_3 and active_value|lower == text_3|lower or active_index == '3' or active_index == 3 %}{{ val_3|default:text_3 }}{% elif active_value %}{{ active_value }}{% else %}{{ val_1 }}{% endif %}">
     {% endif %}
 
     {% if slot %}
         {{ slot|safe }}
     {% else %}
         {# Opción 1 #}
-        {% if active_value == val_1 or active_value == text_1 or not active_value and not active_index or active_index == '1' or active_index == 1 %}
+        {% if active_value == val_1 or active_value == text_1 or active_value|lower == val_1|lower or active_value|lower == text_1|lower or not active_value and not active_index or active_index == '1' or active_index == 1 %}
             {% include 'components/button.html' with text=text_1|default:'Opción 1' variant="segmented-active" onclick=onclick_1 role="tab" aria_selected="true" data_value=val_1 icon=icon_1 icon_class="w-3.5 h-3.5" class=button_class %}
         {% else %}
             {% include 'components/button.html' with text=text_1|default:'Opción 1' variant="segmented-inactive" onclick=onclick_1 role="tab" aria_selected="false" data_value=val_1 icon=icon_1 icon_class="w-3.5 h-3.5" class=button_class %}
         {% endif %}
 
         {# Opción 2 #}
-        {% if active_value == val_2 or active_value == text_2 or active_index == '2' or active_index == 2 %}
+        {% if active_value == val_2 or active_value == text_2 or active_value|lower == val_2|lower or active_value|lower == text_2|lower or active_index == '2' or active_index == 2 %}
             {% include 'components/button.html' with text=text_2|default:'Opción 2' variant="segmented-active" onclick=onclick_2 role="tab" aria_selected="true" data_value=val_2 icon=icon_2 icon_class="w-3.5 h-3.5" class=button_class %}
         {% else %}
             {% include 'components/button.html' with text=text_2|default:'Opción 2' variant="segmented-inactive" onclick=onclick_2 role="tab" aria_selected="false" data_value=val_2 icon=icon_2 icon_class="w-3.5 h-3.5" class=button_class %}
@@ -64,7 +64,7 @@ Ejemplos de uso rápido:
         {# Opción 3 (opcional) #}
         {% if text_3 %}
             {% with val_3=value_3|default:text_3 %}
-            {% if active_value == val_3 or active_value == text_3 or active_index == '3' or active_index == 3 %}
+            {% if active_value == val_3 or active_value == text_3 or active_value|lower == val_3|lower or active_value|lower == text_3|lower or active_index == '3' or active_index == 3 %}
                 {% include 'components/button.html' with text=text_3 variant="segmented-active" onclick=onclick_3 role="tab" aria_selected="true" data_value=val_3 icon=icon_3 icon_class="w-3.5 h-3.5" class=button_class %}
             {% else %}
                 {% include 'components/button.html' with text=text_3 variant="segmented-inactive" onclick=onclick_3 role="tab" aria_selected="false" data_value=val_3 icon=icon_3 icon_class="w-3.5 h-3.5" class=button_class %}

@@ -19,7 +19,7 @@ DEFAULT_PETS = [
         'name': 'Toby',
         'species': 'perro',
         'species_label': 'Perro',
-        'gender': 'macho',
+        'gender': 'M',
         'gender_label': 'Macho',
         'gender_symbol': '♂',
         'breed': 'Bulldog Francés',
@@ -47,7 +47,7 @@ DEFAULT_PETS = [
         'name': 'Luna',
         'species': 'perro',
         'species_label': 'Perro',
-        'gender': 'hembra',
+        'gender': 'H',
         'gender_label': 'Hembra',
         'gender_symbol': '♀',
         'breed': 'Golden Retriever',
@@ -179,7 +179,7 @@ def pet_save_view(request):
                 if species_slug == 'gato'
                 else (_('Otro') if species_slug == 'otro' else _('Perro'))
             )
-            pet['gender'] = 'hembra' if gender == Pet.Gender.HEMBRA else 'macho'
+            pet['gender'] = 'H' if gender == Pet.Gender.HEMBRA else 'M'
             pet['gender_symbol'] = '♀' if gender == Pet.Gender.HEMBRA else '♂'
             pet['gender_label'] = _('Hembra') if gender == Pet.Gender.HEMBRA else _('Macho')
             pet['birth_date'] = request.POST.get('birth_date', pet.get('birth_date', '04/15/2022'))
@@ -219,7 +219,7 @@ def pet_management_view(request):
                     'name': p.name,
                     'species': p.species.slug if p.species else 'perro',
                     'species_label': str(p.species_label),
-                    'gender': 'hembra' if p.is_hembra else 'macho',
+                    'gender': p.gender,
                     'gender_label': str(p.gender_label),
                     'gender_symbol': p.gender_symbol,
                     'breed': p.breed,
@@ -477,8 +477,11 @@ INTERESTED_SUITORS = [
         'birth_date': '15/06/2023',
         'certificate': 'Certificado FCI',
         'distance': 'A 1.2 km de ti',
+        'distance_val': 1.2,
         'location': 'Pomerania',
         'match_percentage': '98%',
+        'compatibility_val': 98,
+        'category': 'breeding',
         'is_recent': True,
         'recent_label': 'Match reciente (hace 2h)',
         'photo_url': '/static/images/pets/default_avatar.svg',
@@ -496,11 +499,24 @@ INTERESTED_SUITORS = [
         'gender_symbol': '♀',
         'breed': 'Bulldog Francés',
         'age': '1 año',
+        'birth_date': '20/09/2024',
+        'certificate': 'Certificado Veterinario',
         'distance': 'A 2.1 km',
+        'distance_val': 2.1,
+        'location': 'Bulldog Francés',
         'match_percentage': '91%',
+        'compatibility_val': 91,
+        'category': 'breeding',
+        'is_recent': True,
+        'recent_label': 'Match reciente (hace 5h)',
         'badge_label': 'Solicitud previa',
         'photo_url': '/static/images/pets/default_avatar.svg',
         'temperaments': ['Juguetona', 'Cariñosa'],
+        'quote': (
+            '¡Hola! Nos encanta la energía de Toby. Chloe es súper alegre, tierna y juguetona. '
+            'Buscamos socialización activa o cruza responsable con chequeos de salud previos.'
+        ),
+        'tutor_signature': 'Carlos Gómez (Tutor de Chloe)',
     },
     {
         'id': 'suitor-maya',
@@ -509,10 +525,23 @@ INTERESTED_SUITORS = [
         'gender_symbol': '♀',
         'breed': 'Boston Terrier',
         'age': '3.1 años',
+        'birth_date': '10/02/2022',
+        'certificate': 'Pedigrí Oficial',
         'distance': 'A 4.5 km',
+        'distance_val': 4.5,
+        'location': 'Boston Terrier',
         'match_percentage': '92%',
+        'compatibility_val': 92,
+        'category': 'social',
+        'is_recent': False,
+        'recent_label': 'Match ayer',
         'photo_url': '/static/images/pets/default_avatar.svg',
         'temperaments': ['Curiosa', 'Sociable'],
+        'quote': (
+            '¡Hola! Maya está lista para nuevas amistades caninas y paseos grupales los fines de semana. '
+            'Cuenta con todas sus vacunas al día y excelente temperamento con otros perritos.'
+        ),
+        'tutor_signature': 'Elena Torres (Tutora de Maya)',
     },
 ]
 
