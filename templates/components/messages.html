@@ -5,7 +5,7 @@
     <div class="p-3.5 rounded-2xl text-xs sm:text-sm border flex items-center justify-between shadow-2xs transition-all {% if message.tags == 'error' %}bg-rose-50 border-rose-200 text-rose-800{% elif message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800{% elif message.tags == 'warning' %}bg-amber-50 border-amber-200 text-amber-800{% else %}bg-sky-50 border-sky-200 text-sky-800{% endif %}" role="alert">
         <span>{{ message }}</span>
         {% translate "Cerrar" as aria_close_msg %}
-        {% include 'components/button.html' with text="✕" variant="custom" onclick="this.parentElement.remove()" aria_label=aria_close_msg class="text-xs font-semibold opacity-70 hover:opacity-100 ml-3 p-1 rounded-lg hover:bg-black/5 transition-colors cursor-pointer select-none" %}
+        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-3.5 h-3.5 text-current" text="" onclick="this.parentElement.remove()" aria_label=aria_close_msg class="opacity-70 hover:opacity-100 ml-3 p-1 rounded-lg hover:bg-black/5 transition-colors cursor-pointer select-none inline-flex items-center justify-center shrink-0" %}
     </div>
     {% endfor %}
 </div>

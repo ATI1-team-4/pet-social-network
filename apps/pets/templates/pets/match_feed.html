@@ -235,7 +235,7 @@
                         </div>
 
                         <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-neutral-100 shadow-xs text-xs font-semibold">
-                            <span class="text-petly-coral">★</span>
+                            {% include 'components/icon.html' with name="star" class="w-3.5 h-3.5 text-petly-coral" %}
                             <span id="card-tutor-rating" class="text-neutral-900 font-bold">{{ current_candidate.tutors.rating }}</span>
                             <span class="text-neutral-400 font-normal text-[11px]">({{ current_candidate.tutors.review_count }})</span>
                         </div>

@@ -6,6 +6,7 @@ app_name = 'pets'
 
 urlpatterns = [
     path('', views.pet_management_view, name='pet_management'),
+    path('save/', views.pet_save_view, name='pet_save'),
     path('<str:pet_id>/delete/', views.pet_delete_view, name='pet_delete'),
     path('select/', views.pet_select_view, name='pet_select'),
     path('match/feed/', views.match_feed_view, name='match_feed'),

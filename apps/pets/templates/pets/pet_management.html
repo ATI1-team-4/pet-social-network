@@ -90,7 +90,7 @@
     </div>
 
     <!-- Formulario unificado de gestión de mascota -->
-    <form method="post" action="{% url 'pets:pet_management' %}" id="pet-management-form" class="space-y-6 w-full">
+    <form method="post" action="{% url 'pets:pet_save' %}" id="pet-management-form" class="space-y-6 w-full">
         {% csrf_token %}
         <input type="hidden" name="action" id="form-action" value="save">
         <input type="hidden" name="pet_id" id="form-pet-id" value="{{ active_pet.id|default:'' }}">
@@ -349,45 +349,45 @@
                         {% translate "Energético" as t_energetico %}
 
                         {% if 'Juguetón' in active_pet.temperaments or not active_pet %}
-                            {% include 'components/button.html' with text=t_jugueton text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Juguetón')" attrs='data-trait="Juguetón"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_jugueton icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Juguetón')" attrs='data-trait="Juguetón"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_jugueton text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Juguetón')" attrs='data-trait="Juguetón"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_jugueton icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Juguetón')" attrs='data-trait="Juguetón"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Sociable' in active_pet.temperaments or not active_pet %}
-                            {% include 'components/button.html' with text=t_sociable text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Sociable')" attrs='data-trait="Sociable"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_sociable icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Sociable')" attrs='data-trait="Sociable"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_sociable text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Sociable')" attrs='data-trait="Sociable"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_sociable icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Sociable')" attrs='data-trait="Sociable"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Cariñoso' in active_pet.temperaments or not active_pet %}
-                            {% include 'components/button.html' with text=t_carinoso text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Cariñoso')" attrs='data-trait="Cariñoso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_carinoso icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Cariñoso')" attrs='data-trait="Cariñoso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_carinoso text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Cariñoso')" attrs='data-trait="Cariñoso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_carinoso icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Cariñoso')" attrs='data-trait="Cariñoso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Tranquilo' in active_pet.temperaments %}
-                            {% include 'components/button.html' with text=t_tranquilo text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Tranquilo')" attrs='data-trait="Tranquilo"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_tranquilo icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Tranquilo')" attrs='data-trait="Tranquilo"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_tranquilo text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Tranquilo')" attrs='data-trait="Tranquilo"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_tranquilo icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Tranquilo')" attrs='data-trait="Tranquilo"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Protector' in active_pet.temperaments %}
-                            {% include 'components/button.html' with text=t_protector text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Protector')" attrs='data-trait="Protector"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_protector icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Protector')" attrs='data-trait="Protector"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_protector text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Protector')" attrs='data-trait="Protector"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_protector icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Protector')" attrs='data-trait="Protector"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Curioso' in active_pet.temperaments %}
-                            {% include 'components/button.html' with text=t_curioso text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Curioso')" attrs='data-trait="Curioso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_curioso icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Curioso')" attrs='data-trait="Curioso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_curioso text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Curioso')" attrs='data-trait="Curioso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_curioso icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Curioso')" attrs='data-trait="Curioso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
 
                         {% if 'Energético' in active_pet.temperaments %}
-                            {% include 'components/button.html' with text=t_energetico text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Energético')" attrs='data-trait="Energético"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                            {% include 'components/button.html' with text=t_energetico icon_end="check" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Energético')" attrs='data-trait="Energético"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
                         {% else %}
-                            {% include 'components/button.html' with text=t_energetico text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Energético')" attrs='data-trait="Energético"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                            {% include 'components/button.html' with text=t_energetico icon_end="plus" icon_end_class="w-3.5 h-3.5 text-current trait-icon" variant="custom" onclick="toggleTemperament('Energético')" attrs='data-trait="Energético"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
                         {% endif %}
                     </div>
 
@@ -478,7 +478,8 @@
                     </p>
                 </div>
             </div>
-    
+            {% translate "Cerrar" as aria_close_preview %}
+            {% include 'components/button.html' with variant="custom" icon="close" text="" icon_class="w-4 h-4 text-neutral-400 hover:text-neutral-700" onclick="closeModal('modal-pet-preview')" aria_label=aria_close_preview class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-neutral-100 transition-colors select-none cursor-pointer shrink-0" %}
         </div>
 
         <!-- Cuerpo del modal con scroll interno fluido optimizado -->
@@ -623,7 +624,7 @@
                         </div>
 
                         <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[11px] sm:text-xs font-semibold shrink-0">
-                            <span>★</span>
+                            {% include 'components/icon.html' with name="star" class="w-3.5 h-3.5 text-amber-500" %}
                             <span>5.0</span>
                             <span class="text-neutral-500 font-normal">({% translate "Tu perfil" %})</span>
                         </div>
@@ -749,10 +750,18 @@
             const iconSpan = btn.querySelector('.trait-icon');
             if (isActive) {
                 btn.className = 'trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs';
-                if (iconSpan) iconSpan.textContent = '✓';
+                if (iconSpan) {
+                    const iconUrl = '{% static "images/icons/check.svg" %}';
+                    iconSpan.style.maskImage = `url('${iconUrl}')`;
+                    iconSpan.style.webkitMaskImage = `url('${iconUrl}')`;
+                }
             } else {
                 btn.className = 'trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60';
-                if (iconSpan) iconSpan.textContent = '+';
+                if (iconSpan) {
+                    const iconUrl = '{% static "images/icons/plus.svg" %}';
+                    iconSpan.style.maskImage = `url('${iconUrl}')`;
+                    iconSpan.style.webkitMaskImage = `url('${iconUrl}')`;
+                }
             }
         }
     }

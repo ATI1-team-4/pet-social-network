@@ -70,73 +70,65 @@ DEFAULT_PETS = [
 
 
 @login_required
+@require_POST
+def pet_save_view(request):
+    """
+    Guarda o actualiza la información del perfil de una mascota.
+    Procesa atributos de color, especie, sexo, temperamentos y biografía.
+    Redirige a la pantalla de gestión con mensaje flash de éxito.
+    """
+    pet_name = request.POST.get('name', 'Mascota')
+    pet_id = request.POST.get('pet_id', '1234')
+
+    profile_color = request.POST.get('profile_color', 'coral')
+    color_hex_map = {
+        'coral': '#FA7D82',
+        'lilac': '#E9D5FF',
+        'mint': '#8FFFB4',
+        'peach': '#FFDAD9',
+    }
+    color_hex = color_hex_map.get(profile_color, '#FA7D82')
+
+    # Actualizar la mascota en DEFAULT_PETS en memoria
+    for pet in DEFAULT_PETS:
+        if pet['id'] == pet_id or (not pet_id and pet['name'] == pet_name):
+            pet['name'] = request.POST.get('name', pet['name'])
+            pet['breed'] = request.POST.get('breed', pet['breed'])
+            species = request.POST.get('species', pet.get('species', 'perro'))
+            pet['species'] = species
+            pet['species_label'] = (
+                _('Gato') if species == 'gato' else (_('Otro') if species == 'otro' else _('Perro'))
+            )
+            raw_gender = request.POST.get('gender', pet.get('gender', 'M'))
+            gender = 'H' if raw_gender in ('H', 'hembra') else 'M'
+            pet['gender'] = gender
+            pet['gender_symbol'] = '♀' if gender == 'H' else '♂'
+            pet['gender_label'] = _('Hembra') if gender == 'H' else _('Macho')
+            pet['birth_date'] = request.POST.get('birth_date', pet.get('birth_date', '04/15/2022'))
+            pet['description'] = request.POST.get('description', pet.get('description', ''))
+            pet['profile_color'] = profile_color
+            pet['profile_color_hex'] = color_hex
+            temperaments_str = request.POST.get('temperaments', '')
+            if temperaments_str:
+                pet['temperaments'] = [t.strip() for t in temperaments_str.split(',') if t.strip()]
+            break
+
+    messages.success(
+        request, _('Los datos de %(name)s se guardaron exitosamente.') % {'name': pet_name}
+    )
+    return redirect('pets:pet_management')
+
+
+@login_required
 def pet_management_view(request):
     """
     Renderiza la pantalla oficial de Gestión de Perfiles de Mascotas (reto 11, página 10).
-    Permite alternar pestañas entre las mascotas del tutor, editar datos y marcas,
-    o limpiar el formulario para registrar una nueva mascota.
+    Permite alternar pestañas entre las mascotas del tutor, visualizar datos y marcas,
+    o desplegar el formulario para registrar una nueva mascota.
     """
     if request.method == 'POST':
-        action = request.POST.get('action', 'save')
-        pet_name = request.POST.get('name', 'Mascota')
-        pet_id = request.POST.get('pet_id', '1234')
-        if action == 'delete':
-            if pet_id and pet_id.isdigit():
-                Pet.objects.filter(owner=request.user, id=int(pet_id)).delete()
-            else:
-                Pet.objects.filter(owner=request.user, name=pet_name).delete()
+        return pet_save_view(request)
 
-            messages.success(
-                request,
-                _('La mascota %(name)s ha sido eliminada exitosamente.') % {'name': pet_name},
-            )
-            return redirect('pets:pet_management')
-        else:
-            profile_color = request.POST.get('profile_color', 'coral')
-            color_hex_map = {
-                'coral': '#FA7D82',
-                'lilac': '#E9D5FF',
-                'mint': '#8FFFB4',
-                'peach': '#FFDAD9',
-            }
-            color_hex = color_hex_map.get(profile_color, '#FA7D82')
-
-            # Actualizar la mascota en DEFAULT_PETS en memoria
-            for pet in DEFAULT_PETS:
-                if pet['id'] == pet_id or (not pet_id and pet['name'] == pet_name):
-                    pet['name'] = request.POST.get('name', pet['name'])
-                    pet['breed'] = request.POST.get('breed', pet['breed'])
-                    species = request.POST.get('species', pet.get('species', 'perro'))
-                    pet['species'] = species
-                    pet['species_label'] = (
-                        _('Gato')
-                        if species == 'gato'
-                        else (_('Otro') if species == 'otro' else _('Perro'))
-                    )
-                    raw_gender = request.POST.get('gender', pet.get('gender', 'M'))
-                    gender = 'H' if raw_gender in ('H', 'hembra') else 'M'
-                    pet['gender'] = gender
-                    pet['gender_symbol'] = '♀' if gender == 'H' else '♂'
-                    pet['gender_label'] = _('Hembra') if gender == 'H' else _('Macho')
-                    pet['birth_date'] = request.POST.get(
-                        'birth_date', pet.get('birth_date', '04/15/2022')
-                    )
-                    pet['description'] = request.POST.get('description', pet.get('description', ''))
-                    pet['profile_color'] = profile_color
-                    pet['profile_color_hex'] = color_hex
-                    temperaments_str = request.POST.get('temperaments', '')
-                    if temperaments_str:
-                        pet['temperaments'] = [
-                            t.strip() for t in temperaments_str.split(',') if t.strip()
-                        ]
-                    break
-
-            messages.success(
-                request, _('Los datos de %(name)s se guardaron exitosamente.') % {'name': pet_name}
-            )
-        return redirect('pets:pet_management')
-
-    # Determinar mascota activa inicial por parámetro de consulta
     pet_param = request.GET.get('pet', '').strip().lower()
     is_new = request.GET.get('new', '').strip().lower() == 'true'
 

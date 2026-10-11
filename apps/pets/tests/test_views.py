@@ -19,6 +19,7 @@ class PetsViewsTests(TestCase):
         self.client.logout()
         protected_urls = [
             reverse('pets:pet_management'),
+            reverse('pets:pet_save'),
             reverse('pets:pet_select'),
             reverse('pets:match_feed'),
             reverse('pets:match_interested'),
@@ -67,14 +68,20 @@ class PetsViewsTests(TestCase):
         self.assertEqual(response_new.status_code, 200)
         self.assertContains(response_new, 'Registrar mascota')
 
-    def test_pet_management_post_save_and_delete(self):
-        """Verifica el procesamiento de formularios POST en la gestión de mascotas."""
-        url = reverse('pets:pet_management')
-        response_save = self.client.post(url, {'action': 'save', 'name': 'Toby'})
-        self.assertRedirects(response_save, url)
+    def test_pet_save_view(self):
+        """Verifica el guardado y actualización de mascotas mediante la vista dedicada pet_save_view."""
+        save_url = reverse('pets:pet_save')
+        response_save = self.client.post(save_url, {'name': 'Toby', 'pet_id': '1234'})
+        self.assertRedirects(response_save, reverse('pets:pet_management'))
 
-        response_del = self.client.post(url, {'action': 'delete', 'name': 'Toby'})
-        self.assertRedirects(response_del, url)
+        # Rechazar solicitudes GET en pet_save_view (require_POST)
+        response_get = self.client.get(save_url)
+        self.assertEqual(response_get.status_code, 405)
+
+        # Delegación transparente si llega POST a la ruta de gestión
+        mgmt_url = reverse('pets:pet_management')
+        response_delegated = self.client.post(mgmt_url, {'name': 'Toby', 'pet_id': '1234'})
+        self.assertRedirects(response_delegated, mgmt_url)
 
     def test_pet_delete_view(self):
         """Verifica la eliminación de mascotas mediante la vista dedicada pet_delete_view."""
