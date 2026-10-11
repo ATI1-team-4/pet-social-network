@@ -283,7 +283,11 @@
                             </label>
                             {% translate "Macho" as g_macho %}
                             {% translate "Hembra" as g_hembra %}
-                            {% include 'components/segmented.html' with name="gender" input_id="input-gender" text_1=g_macho value_1="M" icon_1="male" text_2=g_hembra value_2="H" icon_2="female" active_value=active_pet.gender|default:"M" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center" %}
+                            {% if active_pet.gender == 'H' or active_pet.gender == 'hembra' %}
+                                {% include 'components/segmented.html' with name="gender" input_id="input-gender" text_1=g_macho value_1="M" icon_1="male" text_2=g_hembra value_2="H" icon_2="female" active_value="H" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center" %}
+                            {% else %}
+                                {% include 'components/segmented.html' with name="gender" input_id="input-gender" text_1=g_macho value_1="M" icon_1="male" text_2=g_hembra value_2="H" icon_2="female" active_value="M" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center" %}
+                            {% endif %}
                         </div>
 
                         <!-- Campo: Raza -->
