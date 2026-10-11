@@ -21,7 +21,7 @@
     </div>
 
     <!-- Formulario interactivo de selección de mascota activa -->
-    <form method="post" action="{% url 'pets:pet_select' %}" id="pet-select-form">
+    <form method="post" action="{% url 'pets:pet_set_active' %}" id="pet-select-form">
         {% csrf_token %}
         <input type="hidden" name="selected_pet_id" id="selected-pet-id-input" value="{{ active_pet.id|default:'1234' }}">
 

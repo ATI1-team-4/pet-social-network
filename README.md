@@ -245,9 +245,10 @@ Para evitar subcarpetas innecesariamente anidadas y permitir identificar inmedia
 
 | Categoría | Convención del nombre de archivo | Ejemplo ilustrativo | Ventaja de identificación |
 | :--- | :--- | :--- | :--- |
-| **Avatar de usuario** | `avatars/user_{user_id}_avatar_{timestamp}.{ext}` | `media/avatars/user_42_avatar_20260915_143000.webp` | Identifica al usuario dueño directamente desde el archivo. |
-| **Foto de mascota** | `pets/user_{owner_id}_pet_{pet_id}_{tipo}_{id_unico}.{ext}` | `media/pets/user_42_pet_7_avatar_20260915_143000.jpg` | Asocia la mascota con su dueño actual y el ID de la mascota. |
-| **Multimedia de post** | `posts/user_{author_id}_post_{post_id}_{tipo}_{hash}.{ext}` | `media/posts/user_42_post_105_img_9f8e7d6c.png` | Atribuye el contenido al autor y post para auditoría y moderación. |
+| **Avatar de usuario** | `avatars/user_{user_id}_avatar_{id_unico}.{ext}` | `media/avatars/user_42_avatar_9f8e7d6c.webp` | Identifica al usuario dueño directamente desde el archivo. |
+| **Foto de mascota** | `pets/user_{owner_id}_pet_{pet_id}_{tipo}_{id_unico}.{ext}` | `media/pets/user_42_pet_7_avatar_9f8e7d6c.jpg` | Asocia la mascota con su dueño actual y el ID de la mascota. |
+| **Multimedia de post** | `posts/user_{author_id}_post_{post_id}_{tipo}_{id_unico}.{ext}` | `media/posts/user_42_post_105_img_9f8e7d6c.png` | Atribuye el contenido al autor y post para auditoría y moderación. |
+
 
 > [!IMPORTANT]
 > **Nota sobre la estructura de carpetas e identificadores únicos:**
@@ -307,6 +308,22 @@ Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` q
      git branch -d nombre-de-la-rama
      git fetch -p   # Limpia las referencias locales a ramas remotas ya eliminadas
      ```
+
+### 📋 Estándar de desarrollo para cualquier tarea o cambio en el código
+
+Para **cualquier tarea que se vaya a realizar en el código** —ya sea una nueva funcionalidad, corrección de errores, refactorización o tarea planificada en un issue del proyecto— es **estricto y mandatorio** cumplir con las siguientes directrices:
+
+1. **Principio de Responsabilidad Única (SRP) en Controladores de Vista (`views.py`):**
+   - **Una única intención por vista:** Cada vista debe resolver exactamente una responsabilidad. Queda terminantemente prohibido sobrecargar una misma vista con múltiples operaciones de negocio, múltiples pantallas o flujos dispares.
+   - **Separación de consulta (`GET`) y mutación (`POST`):** Las vistas principales de pantalla deben ser exclusivamente de renderizado/lectura (`GET`). Toda acción que cree, modifique, elimine o altere estado (en base de datos o en sesión) debe contar con su propio endpoint dedicado protegido con `@require_POST` (ejemplo: `pet_save_view`, `pet_set_active_view`, `pet_delete_view`).
+   - **Cero delegación oculta:** Las vistas de pantalla `GET` no deben capturar `if request.method == 'POST'` para delegar o ejecutar lógica de guardado; la acción de mutación debe vivir en su propio endpoint independiente y los formularios deben apuntar directamente a su URL.
+   - **Vistas delgadas (Thin Views):** La vista únicamente orquesta la petición HTTP: valida la entrada mediante `forms.py`, delega la lógica a `services.py` y responde con redirección o plantilla.
+
+2. **Checklist obligatorio antes de dar por terminada cualquier tarea de código:**
+   - [ ] **SRP en vistas:** Cada vista implementada o modificada tiene una única responsabilidad bien delimitada.
+   - [ ] **Métodos HTTP explícitos:** Las acciones de mutación usan `@require_POST` y las pantallas solo responden a `GET`.
+   - [ ] **Lógica en servicios:** Reglas de negocio y mutaciones complejas encapsuladas en `apps/<modulo>/services.py`.
+   - [ ] **Pruebas unitarias:** Tests que verifican casos de éxito, validaciones y rechazo de métodos no permitidos (`405 Method Not Allowed`).
 
 ### 🤖 Integración continua (CI) con GitHub Actions
 
@@ -408,6 +425,14 @@ from apps.accounts.models import UserProfile
 - **Metadatos obligatorios (`class Meta`):** Definir siempre `verbose_name`, `verbose_name_plural` y el ordenamiento predeterminado (`ordering`).
 - **Auditoría temporal estándar:** Utilizar campos de fecha automáticos (`created_at` con `auto_now_add=True` para creación y `updated_at` con `auto_now=True` para modificación).
 
+### 🛡️ Regla arquitectónica general: Principio de Responsabilidad Única (SRP) en Vistas
+
+En todas las aplicaciones del proyecto (`apps/accounts/`, `apps/pets/`, `apps/core/`, y cualquier módulo futuro), **las vistas deben tener una única responsabilidad**:
+
+- **Vistas de pantalla / lectura (`GET`):** Su única función es preparar el contexto y renderizar la plantilla HTML correspondiente. No deben mutar estado ni contener lógica condicional para procesar envíos de formularios.
+- **Vistas de acción / mutación (`POST`):** Cada acción de modificación (guardar datos, alternar selecciones activas, eliminar registros, cambiar estados) debe contar con su propio endpoint dedicado decorado con `@require_POST`.
+- **Desacoplamiento:** No se permite que una vista de visualización capture llamadas POST para delegar manualmente hacia otra vista (`if request.method == 'POST': return other_view(request)`). Cada formulario en las plantillas HTML debe apuntar directamente (`action="{% url ... %}"`) al endpoint específico de la acción.
+
 ### 📐 Criterios de diseño arquitectónico: ¿Cuándo usar Clases y cuándo Funciones?
 
 Para mantener coherencia estilística e idiomática en todo el repositorio y evitar sobreingeniería, el equipo sigue estas pautas para cada capa:
@@ -416,7 +441,7 @@ Para mantener coherencia estilística e idiomática en todo el repositorio y evi
 | :--- | :--- | :--- | :--- |
 | **Formularios y Validación** | `forms.py` | **Obligatorio: Clases** (`forms.Form`, `forms.ModelForm`) | **Django se apoya en POO para formularios:** Permite declarar campos tipados con widgets HTML, autolimpiar datos en `cleaned_data`, implementar validaciones unitarias en métodos `clean_<campo>()` (ej: verificar unicidad de correo) y validaciones cruzadas en `clean()` (ej: comprobar coincidencia de contraseñas). **Nunca procesar entradas POST crudas con funciones artesanales.** |
 | **Lógica de Negocio y Dominio** | `services.py` | **Preferente: Funciones puras** (Stateless Functions) | En Python los archivos son *namespaces* naturales. **No crear clases artificiales con `@staticmethod`** (anti-patrón de lenguajes como Java/C#). Las funciones puras son sin estado (*stateless*), previenen condiciones de carrera entre hilos y son sumamente fáciles de aislar en pruebas unitarias. <br>*(Usar clases en servicios únicamente cuando se deba encapsular estado persistente de conexión, clientes de APIs externas o patrones Strategy con polimorfismo).* |
-| **Controladores de Vista** | `views.py` | **Vistas Delgadas (Thin Views):** Funciones (FBVs) o Clases (CBVs) | La vista **solo orquesta el ciclo HTTP**: recibe la petición, delega la validación de entrada a `forms.py`, delega la mutación/negocio a `services.py` y retorna una redirección o renderizado. No debe contener lógica de negocio ni consultas complejas inline. |
+| **Controladores de Vista** | `views.py` | **Vistas Delgadas y Responsabilidad Única (SRP):** Funciones (FBVs) o Clases (CBVs) | **Principio de Responsabilidad Única (SRP):** Cada vista atiende una única intención del usuario. Se prohíbe mezclar pantallas de consulta/renderizado (`GET`) con acciones de mutación (`POST`) o sobrecargar un endpoint con múltiples operaciones. Si una pantalla requiere acciones (guardar, activar, eliminar), cada una debe contar con su propio endpoint dedicado decorado con `@require_POST`, delegando el negocio a `services.py`. |
 | **Persistencia y Entidades** | `models.py` | **Obligatorio: Clases** (`models.Model`) | Representan las tablas del ORM. Se recomienda enriquecer el modelo con métodos de dominio propios que muten el estado de la propia instancia (ej. `pet.mark_as_adopted()`). |
 | **Pruebas y Verificación** | `tests/` (`test_*.py`) | **Obligatorio: Clases** (`TestCase`, `SimpleTestCase`) | **El test runner nativo de Django (`unittest`) se fundamenta en clases:** Heredar de `django.test.TestCase` provee aislamiento transaccional automático (rollback por prueba), acceso a `self.client` (sesiones, cookies y CSRF), hooks de ciclo de vida (`setUpTestData`, `setUp`, `tearDown`) y aserciones especializadas del framework (`assertRedirects`, `assertTemplateUsed`, `assertContains`). |
 

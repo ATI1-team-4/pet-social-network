@@ -65,6 +65,28 @@ class UserProfileModelTests(TestCase):
         expected = f'Perfil de {full_name}'
         self.assertEqual(str(self.profile), expected)
 
+    def test_user_profile_avatar_url_and_fallback(self):
+        """Verifica que el avatar por defecto devuelva el SVG neutro estilo WhatsApp."""
+        self.assertFalse(self.profile.has_avatar)
+        self.assertEqual(self.profile.avatar_url, '/static/images/avatars/default_user.svg')
+
+        self.profile.avatar = 'avatars/user_1_avatar_9f8e7d6c.jpg'
+        self.assertTrue(self.profile.has_avatar)
+        self.assertEqual(
+            self.profile.avatar_url,
+            '/media/avatars/user_1_avatar_9f8e7d6c.jpg',
+        )
+
+
+    def test_user_avatar_upload_path_convention(self):
+        """Verifica que la ruta generada para el avatar siga la convención definida."""
+        from apps.accounts.models import user_avatar_upload_path
+
+        path = user_avatar_upload_path(self.profile, 'perfil.jpg')
+        self.assertTrue(path.startswith(f'avatars/user_{self.user.id}_avatar_'))
+        self.assertTrue(path.endswith('.jpg'))
+
+
 
 class UserReportModelAndAdminTests(TestCase):
     """Pruebas unitarias para el modelo UserReport y la acción de moderación en Admin."""

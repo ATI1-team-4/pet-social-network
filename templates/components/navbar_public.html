@@ -20,10 +20,10 @@
                 <div class="hidden sm:block h-4 w-px bg-neutral-300/80 shrink-0"></div>
 
                 <!-- Botones de acceso público: Ocultos en móvil, visibles desde sm -->
-                <a href="{% url 'accounts:login' %}" class="h-8 hidden sm:inline-flex items-center px-3 sm:px-4 rounded-full text-xs font-medium bg-white border border-neutral-300 text-neutral-800 hover:bg-neutral-100 hover:border-neutral-400 hover:text-neutral-900 shadow-xs transition-all duration-150 cursor-pointer no-underline select-none shrink-0 whitespace-nowrap">
+                <a href="{% url 'accounts:login' %}" class="h-8 hidden sm:inline-flex items-center justify-center px-3 sm:px-4 rounded-full text-xs font-semibold bg-white border border-neutral-300 text-neutral-800 hover:bg-neutral-50 hover:border-neutral-400 hover:text-neutral-900 shadow-2xs transition-all duration-150 cursor-pointer no-underline select-none shrink-0 whitespace-nowrap leading-none box-border">
                     {% translate "Iniciar sesión" %}
                 </a>
-                <a href="{% url 'accounts:register' %}" class="h-8 hidden sm:inline-flex items-center px-4 rounded-full text-xs font-medium bg-white/70 border border-neutral-300/80 text-neutral-800 hover:bg-white hover:border-neutral-400 hover:text-neutral-900 shadow-xs transition-all duration-150 cursor-pointer no-underline select-none shrink-0 whitespace-nowrap">
+                <a href="{% url 'accounts:register' %}" class="h-8 hidden sm:inline-flex items-center justify-center px-3.5 sm:px-4 rounded-full text-xs font-semibold bg-white border border-neutral-300 text-neutral-800 hover:bg-neutral-50 hover:border-neutral-400 hover:text-neutral-900 shadow-2xs transition-all duration-150 cursor-pointer no-underline select-none shrink-0 whitespace-nowrap leading-none box-border">
                     {% translate "Registrarse" %}
                 </a>
             </div>

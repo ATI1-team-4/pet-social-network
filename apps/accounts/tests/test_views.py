@@ -54,6 +54,29 @@ class AccountsViewsTests(TestCase):
         self.assertEqual(response_auth.status_code, 200)
         self.assertTemplateUsed(response_auth, 'accounts/user_profile.html')
 
+    def test_profile_save_view_post_updates_profile(self):
+        url = reverse('accounts:profile_save')
+        self.assertEqual(resolve(url).func, views.profile_save_view)
+
+        user = User.objects.get(username='edwyn')
+        self.client.force_login(user)
+
+        response = self.client.post(url, {
+            'full_name': 'Edwyn Jesús',
+            'email': 'edwyn.updated@petly.com',
+            'phone': '+58 412 111 2233',
+            'city': 'Caracas Centro',
+            'favorite_color': 'Azul Eléctrico',
+        })
+        self.assertRedirects(response, reverse('accounts:profile'))
+        user.refresh_from_db()
+        self.assertEqual(user.first_name, 'Edwyn')
+        self.assertEqual(user.last_name, 'Jesús')
+        self.assertEqual(user.profile.phone_number, '+58 412 111 2233')
+        self.assertEqual(user.profile.city, 'Caracas Centro')
+        self.assertEqual(user.profile.favorite_color, 'Azul Eléctrico')
+
+
 
 class AccountsSecurityAndAuditTests(TestCase):
     """Pruebas para el módulo de seguridad, roles, permisos y AuditLog."""

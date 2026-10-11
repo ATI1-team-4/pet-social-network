@@ -6,8 +6,10 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 
 from apps.accounts.forms import LoginForm, PasswordResetRequestForm, RegisterForm
+from apps.accounts.models import UserProfile
 from apps.accounts.services import (
     authenticate_by_email_or_username,
     create_tutor_user,
@@ -135,3 +137,61 @@ def profile_view(request):
     Requiere que el tutor esté autenticado en el sistema.
     """
     return render(request, 'accounts/user_profile.html')
+
+
+@login_required
+@require_POST
+def profile_save_view(request):
+    """
+    Actualiza la información personal y el avatar del tutor autenticado.
+    Almacena las fotografías subidas en media/avatars/ según la convención del proyecto.
+    """
+    user = request.user
+    profile, _created = UserProfile.objects.get_or_create(user=user)
+
+    full_name = request.POST.get('full_name', '').strip()
+    if full_name:
+        parts = full_name.split(' ', 1)
+        user.first_name = parts[0]
+        user.last_name = parts[1] if len(parts) > 1 else ''
+        user.save()
+
+    email = request.POST.get('email', '').strip()
+    if email:
+        user.email = email
+        user.save()
+
+    profile.phone_number = request.POST.get('phone', profile.phone_number).strip()
+    profile.city = request.POST.get('city', profile.city).strip()
+
+    birth_date_val = request.POST.get('birth_date', '').strip()
+    if birth_date_val:
+        try:
+            profile.birth_date = birth_date_val
+        except (ValueError, TypeError):
+            pass
+
+    gender_val = request.POST.get('gender', '').strip()
+    if gender_val:
+        profile.gender = (
+            'F'
+            if gender_val in ('Femenino', 'F', 'f')
+            else ('M' if gender_val in ('Masculino', 'M', 'm') else 'O')
+        )
+
+    profile.favorite_color = request.POST.get('favorite_color', profile.favorite_color).strip()
+    profile.favorite_book = request.POST.get('favorite_book', profile.favorite_book).strip()
+    profile.favorite_music = request.POST.get('favorite_music', profile.favorite_music).strip()
+    profile.favorite_videogame = request.POST.get('favorite_game', profile.favorite_videogame).strip()
+
+    if request.POST.get('remove_avatar') == 'true' and profile.avatar:
+        profile.avatar.delete(save=False)
+        profile.avatar = None
+
+    if 'avatar' in request.FILES:
+        profile.avatar = request.FILES['avatar']
+
+    profile.save()
+    messages.success(request, _('Tu perfil ha sido actualizado exitosamente.'))
+    return redirect('accounts:profile')
+

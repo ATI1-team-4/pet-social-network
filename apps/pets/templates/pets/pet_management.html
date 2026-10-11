@@ -90,12 +90,13 @@
     </div>
 
     <!-- Formulario unificado de gestión de mascota -->
-    <form method="post" action="{% url 'pets:pet_save' %}" id="pet-management-form" class="space-y-6 w-full">
+    <form method="post" action="{% url 'pets:pet_save' %}" enctype="multipart/form-data" id="pet-management-form" class="space-y-6 w-full">
         {% csrf_token %}
         <input type="hidden" name="action" id="form-action" value="save">
         <input type="hidden" name="pet_id" id="form-pet-id" value="{{ active_pet.id|default:'' }}">
         <input type="hidden" name="profile_color" id="input-profile-color" value="{{ active_pet.profile_color|default:'coral' }}">
         <input type="hidden" name="temperaments" id="input-temperaments" value="{% for t in active_pet.temperaments %}{{ t }}{% if not forloop.last %},{% endif %}{% endfor %}">
+        <input type="hidden" name="remove_photo" id="remove-photo-flag" value="false">
 
         <!-- Input de archivo oculto para la fotografía -->
         <input type="file" id="pet-photo-input" name="photo" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
@@ -113,7 +114,7 @@
                     <div class="relative w-36 h-36 sm:w-40 sm:h-40 mb-4 cursor-pointer" onclick="triggerPhotoUpload()" title="{% translate 'Subir nueva foto' %}">
                         <div class="w-full h-full rounded-full border-4 border-white shadow-md overflow-hidden bg-petly-ice flex items-center justify-center relative group">
                             <img id="pet-avatar-img"
-                                 src="{% if active_pet.photo_url %}{{ active_pet.photo_url }}{% else %}{% static 'images/pets/Toby.png' %}{% endif %}"
+                                 src="{% if active_pet.photo_url %}{{ active_pet.photo_url }}{% else %}{% static 'images/pets/default_avatar.svg' %}{% endif %}"
                                  alt="{{ active_pet.name|default:'Mascota' }}"
                                  class="w-full h-full object-cover select-none">
                             <div class="absolute inset-0 bg-neutral-900/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold">
@@ -495,7 +496,7 @@
                 <!-- FOTOGRAFÍA PRINCIPAL (proporcional y responsiva) -->
                 <div class="relative w-full h-44 sm:h-56 bg-neutral-900 overflow-hidden">
                     <img id="modal-preview-avatar"
-                         src="{% if active_pet.photo_url %}{{ active_pet.photo_url }}{% else %}{% static 'images/pets/Toby.png' %}{% endif %}"
+                         src="{% if active_pet.photo_url %}{{ active_pet.photo_url }}{% else %}{% static 'images/pets/default_avatar.svg' %}{% endif %}"
                          alt=""
                          class="w-full h-full object-cover select-none transition-transform duration-500">
 
@@ -810,7 +811,13 @@
 
     function removePetPhoto() {
         const img = document.getElementById('pet-avatar-img');
-        if (img) img.src = "{% static 'images/pets/Toby.png' %}";
+        if (img) img.src = "{% static 'images/pets/default_avatar.svg' %}";
+        const modalImg = document.getElementById('modal-preview-avatar');
+        if (modalImg) modalImg.src = "{% static 'images/pets/default_avatar.svg' %}";
+        const fileInput = document.getElementById('pet-photo-input');
+        if (fileInput) fileInput.value = '';
+        const removeFlag = document.getElementById('remove-photo-flag');
+        if (removeFlag) removeFlag.value = 'true';
         closeModal('modal-delete-photo');
     }
 

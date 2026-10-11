@@ -3,7 +3,6 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.files import File
 from django.core.management.base import BaseCommand
 
 from apps.accounts.models import UserProfile
@@ -241,23 +240,8 @@ class Command(BaseCommand):
                 name=spec['name'],
                 defaults=spec,
             )
-            # Asignar archivo fotográfico en media/ según la convención del README
-            if not pet.photo or not pet.photo.name:
-                photo_candidates = [
-                    settings.BASE_DIR / 'static' / 'images' / 'pets' / f'{spec["name"]}.png',
-                    settings.BASE_DIR
-                    / 'static'
-                    / 'images'
-                    / 'pets'
-                    / f'{spec["name"].lower()}.png',
-                ]
-                for p_candidate in photo_candidates:
-                    if p_candidate.exists():
-                        with open(p_candidate, 'rb') as img_f:
-                            pet.photo.save(f'{spec["name"].lower()}.png', File(img_f), save=True)
-                        break
-
             created_pets[spec['name']] = pet
+
             status = 'creada' if created else 'actualizada'
             self.stdout.write(f'  • Mascota {pet.name} ({status})')
 

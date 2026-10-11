@@ -74,12 +74,13 @@ class PetModelTests(TestCase):
         self.assertEqual(self.pet.photo_url, '/static/images/pets/default_avatar.svg')
         self.assertEqual(self.pet.photo_clean_url, '/static/images/pets/default_avatar.svg')
 
-        self.pet.photo = 'pets/user_1_pet_1_avatar_20261011_120000_abc123.jpg'
+        self.pet.photo = 'pets/user_1_pet_1_avatar_9f8e7d6c.jpg'
         self.assertTrue(self.pet.has_photo)
         self.assertEqual(
             self.pet.photo_url,
-            '/media/pets/user_1_pet_1_avatar_20261011_120000_abc123.jpg',
+            '/media/pets/user_1_pet_1_avatar_9f8e7d6c.jpg',
         )
+
 
     def test_pet_photo_upload_path_convention(self):
         from apps.pets.models import pet_photo_upload_path

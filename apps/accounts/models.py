@@ -1,8 +1,27 @@
+import uuid
+
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimeStampedModel
+
+
+def user_avatar_upload_path(instance, filename):
+    """
+    Genera la ruta de almacenamiento para avatars de tutores siguiendo
+    la convención autodescriptiva definida en README.md:
+    avatars/user_{user_id}_avatar_{id_unico}.{ext}
+    Ejemplo: avatars/user_42_avatar_9f8e7d6c.jpg
+    """
+    ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else 'jpg'
+    user_id = instance.user_id or getattr(instance.user, 'id', 'unknown')
+    id_unico = uuid.uuid4().hex[:8]
+    return f'avatars/user_{user_id}_avatar_{id_unico}.{ext}'
+
+
+
 
 
 class UserProfile(TimeStampedModel):
@@ -18,6 +37,13 @@ class UserProfile(TimeStampedModel):
         related_name='profile',
         verbose_name=_('Usuario'),
         help_text=_('Cuenta de usuario vinculada al perfil.'),
+    )
+    avatar = models.ImageField(
+        upload_to=user_avatar_upload_path,
+        blank=True,
+        null=True,
+        verbose_name=_('Avatar'),
+        help_text=_('Fotografía o imagen de perfil del usuario.'),
     )
     phone_prefix = models.CharField(
         max_length=6,
@@ -136,6 +162,20 @@ class UserProfile(TimeStampedModel):
         full_name = self.user.get_full_name()
         identifier = full_name if full_name else self.user.username
         return f'Perfil de {identifier}'
+
+    @property
+    def avatar_url(self):
+        """Retorna la URL del avatar del usuario o el fallback neutro estilo WhatsApp."""
+        if self.avatar and hasattr(self.avatar, 'name') and self.avatar.name:
+            try:
+                return self.avatar.url
+            except ValueError:
+                pass
+        return f'{settings.STATIC_URL}images/avatars/default_user.svg'
+
+    @property
+    def has_avatar(self):
+        return bool(self.avatar and hasattr(self.avatar, 'name') and self.avatar.name)
 
 
 class UserReport(TimeStampedModel):

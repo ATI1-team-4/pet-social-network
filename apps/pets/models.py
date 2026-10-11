@@ -55,15 +55,17 @@ def pet_photo_upload_path(instance, filename):
     Genera la ruta de almacenamiento para fotos de mascotas siguiendo
     la convención autodescriptiva definida en README.md:
     pets/user_{owner_id}_pet_{pet_id}_{tipo}_{id_unico}.{ext}
-    Ejemplo: pets/user_42_pet_7_avatar_20260915_143000.jpg
+    Ejemplo: pets/user_42_pet_7_avatar_9f8e7d6c.jpg
     """
     ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else 'jpg'
     owner_id = instance.owner_id or getattr(instance.owner, 'id', 'unknown')
     pet_id = instance.pk or 'new'
     tipo = 'avatar'
-    timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
-    unique_id = uuid.uuid4().hex[:6]
-    return f'pets/user_{owner_id}_pet_{pet_id}_{tipo}_{timestamp}_{unique_id}.{ext}'
+    id_unico = uuid.uuid4().hex[:8]
+    return f'pets/user_{owner_id}_pet_{pet_id}_{tipo}_{id_unico}.{ext}'
+
+
+
 
 
 class Pet(TimeStampedModel):

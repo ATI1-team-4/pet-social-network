@@ -20,7 +20,9 @@ class PetsViewsTests(TestCase):
         protected_urls = [
             reverse('pets:pet_management'),
             reverse('pets:pet_save'),
+            reverse('pets:pet_delete', kwargs={'pet_id': '1234'}),
             reverse('pets:pet_select'),
+            reverse('pets:pet_set_active'),
             reverse('pets:match_feed'),
             reverse('pets:match_interested'),
         ]
@@ -70,6 +72,10 @@ class PetsViewsTests(TestCase):
 
     def test_pet_save_view(self):
         """Verifica el guardado y actualización de mascotas mediante la vista dedicada pet_save_view."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from apps.pets.models import Pet
+
         save_url = reverse('pets:pet_save')
         response_save = self.client.post(save_url, {'name': 'Toby', 'pet_id': '1234'})
         self.assertRedirects(response_save, reverse('pets:pet_management'))
@@ -78,10 +84,22 @@ class PetsViewsTests(TestCase):
         response_get = self.client.get(save_url)
         self.assertEqual(response_get.status_code, 405)
 
-        # Delegación transparente si llega POST a la ruta de gestión
-        mgmt_url = reverse('pets:pet_management')
-        response_delegated = self.client.post(mgmt_url, {'name': 'Toby', 'pet_id': '1234'})
-        self.assertRedirects(response_delegated, mgmt_url)
+        photo_file = SimpleUploadedFile('dog.jpg', b'\x47\x49\x46\x38\x39\x61', content_type='image/jpeg')
+        response_photo = self.client.post(save_url, {
+            'name': 'Maximus',
+            'breed': 'Husky',
+            'species': 'perro',
+            'gender': 'M',
+            'birth_date': '2023-01-01',
+            'photo': photo_file,
+        })
+
+        self.assertRedirects(response_photo, reverse('pets:pet_management'))
+        saved_pet = Pet.objects.filter(owner=self.user, name='Maximus').first()
+        self.assertIsNotNone(saved_pet)
+        self.assertTrue(saved_pet.has_photo)
+        self.assertTrue(saved_pet.photo.name.startswith(f'pets/user_{self.user.id}_pet_{saved_pet.id}_avatar_'))
+
 
     def test_pet_delete_view(self):
         """Verifica la eliminación de mascotas mediante la vista dedicada pet_delete_view."""
@@ -112,9 +130,14 @@ class PetsViewsTests(TestCase):
         self.assertRedirects(response_post, reverse('pets:pet_management'))
         self.assertFalse(Pet.objects.filter(id=pet.id).exists())
 
-    def test_pet_select_post_updates_session(self):
-        """Verifica que la selección de mascota guarde en sesión y redirija al feed de cruza."""
-        url = reverse('pets:pet_select')
+    def test_pet_set_active_view(self):
+        """Verifica que la vista dedicada pet_set_active_view guarde en sesión y redirija al feed."""
+        url = reverse('pets:pet_set_active')
+
+        # Rechazar solicitudes GET (require_POST)
+        response_get = self.client.get(url)
+        self.assertEqual(response_get.status_code, 405)
+
         response = self.client.post(url, {'selected_pet_id': '5678'})
         self.assertRedirects(response, reverse('pets:match_feed'))
         self.assertEqual(self.client.session.get('active_pet_id'), '5678')
