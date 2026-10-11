@@ -459,6 +459,30 @@ from apps.accounts.models import UserProfile
 - **Metadatos obligatorios (`class Meta`):** Definir siempre `verbose_name`, `verbose_name_plural` y el ordenamiento predeterminado (`ordering`).
 - **Auditoría temporal estándar:** Utilizar campos de fecha automáticos (`created_at` con `auto_now_add=True` para creación y `updated_at` con `auto_now=True` para modificación).
 
+### 🗄️ Modelo Entidad-Relación (MER / DER) del MVP
+
+El sistema implementa un modelo de datos relacional normalizado y desacoplado para soportar los casos de uso del MVP (**UC-02**: Gestión de perfil principal / humano, **UC-03**: Gestión de perfiles de mascota y **UC-08**: Búsqueda de parejas y socialización):
+
+<p align="center">
+  <img src="docs/petly_er_mvp.png" alt="Modelo Entidad-Relación del MVP de Petly" width="100%" />
+</p>
+
+> [!NOTE]
+> El diagrama fuente se encuentra versionado en formato PlantUML en [docs/diagrama_er_mvp.puml](docs/diagrama_er_mvp.puml), permitiendo compilar o regenerar el esquema ante cualquier evolución del modelo de datos.
+
+#### 📋 Catálogo de entidades y cardinalidades del MVP
+
+| Módulo / Paquete | Entidad (Tabla) | Modelo Django | Descripción y cardinalidades clave |
+| :--- | :--- | :--- | :--- |
+| **`django.contrib.auth`** | `auth_user` | `User` | Tabla nativa de seguridad y autenticación. <br>• **`1 : 1`** con `UserProfile` (extensión de perfil humano).<br>• **`1 : N`** con `Pet` (un usuario es dueño de 0..N mascotas).<br>• **`1 : N`** con `UserReport` (`reported_by` y `reported_user`).<br>• **`0..1 : N`** con `AuditLog` (eventos de seguridad). |
+| **`apps.accounts`** | `accounts_userprofile` | `UserProfile` | Perfil extendido del tutor con cédula, teléfono, ciudad, coordenadas geográficas, preferencias de afinidad, calificación promedio (`rating`) y contador de citas completadas (`completed_meetings_count`). |
+| **`apps.accounts`** | `accounts_userreport` | `UserReport` | Denuncias de moderación emitidas por tutores sobre usuarios o mascotas inapropiadas en el feed. |
+| **`apps.pets`** | `pets_petspecies` | `PetSpecies` | Catálogo configurable de especies (Perro, Gato, etc.) con íconos dinámicos.<br>• **`1 : N`** con `Pet` (clasifica especies sin alterar código). |
+| **`apps.pets`** | `pets_pet` | `Pet` | Perfil biológico y social de la mascota (raza, sexo, fecha de nacimiento, peso, fotos, certificados FCI/pedigrí, marcas de búsqueda y color temático). |
+| **`apps.pets`** | `pets_matchrequest` | `MatchRequest` | Solicitudes direccionales de conexión entre mascotas (`from_pet` ➔ `to_pet`) con estados `pending`, `accepted` y `rejected`.<br>• Modela la relación **`N : M`** de interés entre mascotas con restricción de unicidad y check para evitar auto-emparejamiento. |
+| **`apps.pets`** | `pets_petmeetup` | `PetMeetup` | Citas y encuentros presenciales en parques caninos verificados, con fecha, hora, ubicación y estados `proposed`, `confirmed`, `completed` y `cancelled`.<br>• **`0..1 : N`** con `MatchRequest` (originada tras un match mutuo).<br>• Modela la relación **`N : M`** de encuentros entre `pet1` (anfitriona) y `pet2` (invitada). |
+| **`apps.core`** | `core_auditlog` | `AuditLog` | Registro y trazabilidad de eventos de seguridad y accesos al sistema. |
+
 ### 🛡️ Regla arquitectónica general: Principio de Responsabilidad Única (SRP) en Vistas
 
 En todas las aplicaciones del proyecto (`apps/accounts/`, `apps/pets/`, `apps/core/`, y cualquier módulo futuro), **las vistas deben tener una única responsabilidad**:
