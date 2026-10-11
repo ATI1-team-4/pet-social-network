@@ -94,9 +94,6 @@
         {% csrf_token %}
         <input type="hidden" name="action" id="form-action" value="save">
         <input type="hidden" name="pet_id" id="form-pet-id" value="{{ active_pet.id|default:'' }}">
-        <input type="hidden" name="species" id="input-species" value="{{ active_pet.species|default:'perro' }}">
-        <input type="hidden" name="gender" id="input-gender" value="{{ active_pet.gender|default:'macho' }}">
-        <input type="hidden" name="certificate" id="input-certificate" value="{{ active_pet.certificate|default:'fci' }}">
         <input type="hidden" name="profile_color" id="input-profile-color" value="{{ active_pet.profile_color|default:'coral' }}">
         <input type="hidden" name="temperaments" id="input-temperaments" value="{% for t in active_pet.temperaments %}{{ t }}{% if not forloop.last %},{% endif %}{% endfor %}">
 
@@ -124,9 +121,8 @@
                             </div>
                         </div>
                         <!-- Insignia de cámara en la esquina inferior derecha (visible y accesible siempre) -->
-                        <button type="button" class="avatar-badge-camera z-10" aria-label="{% translate 'Subir nueva foto' %}">
-                            {% include 'components/icon.html' with name="camera" class="w-3.5 h-3.5 text-white" %}
-                        </button>
+                        {% translate 'Subir nueva foto' as aria_subir_foto %}
+                        {% include 'components/button.html' with variant="custom" icon="camera" icon_class="w-3.5 h-3.5 text-white" aria_label=aria_subir_foto onclick="triggerPhotoUpload()" class="avatar-badge-camera z-10" %}
                     </div>
 
                     <!-- Botón móvil para cambiar foto (visible solo en teléfonos) -->
@@ -172,52 +168,40 @@
                     <!-- Paleta de 4 muestras circulares interactivas con checkmark activo -->
                     <div class="flex items-center justify-between pt-1">
                         <!-- Muestra: Coral -->
-                        <button type="button"
-                                data-color="coral"
-                                data-color-name="{% translate 'Coral' %}"
-                                onclick="selectProfileColor('coral', 'Coral')"
-                                class="color-swatch relative w-12 h-12 rounded-full bg-[#FA7D82] flex items-center justify-center transition-all cursor-pointer shadow-xs {% if active_pet.profile_color == 'coral' or not active_pet.profile_color %}ring-3 ring-offset-2 ring-[#FA7D82]{% endif %}"
-                                aria-label="{% translate 'Color coral' %}">
-                            <span class="color-check {% if active_pet.profile_color != 'coral' and active_pet.profile_color %}hidden{% endif %} text-white">
-                                {% include 'components/icon.html' with name="check" class="w-5 h-5 text-white" %}
-                            </span>
-                        </button>
+                        {% translate 'Coral' as name_coral %}
+                        {% translate 'Color coral' as aria_coral %}
+                        {% if active_pet.profile_color == 'coral' or not active_pet.profile_color %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-white" icon_wrapper_class="color-check" onclick="selectProfileColor('coral', 'Coral')" aria_label=aria_coral attrs='data-color="coral" data-color-name="'|add:name_coral|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#FA7D82] flex items-center justify-center transition-all cursor-pointer shadow-xs ring-3 ring-offset-2 ring-[#FA7D82]" %}
+                        {% else %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-white" icon_wrapper_class="color-check hidden" onclick="selectProfileColor('coral', 'Coral')" aria_label=aria_coral attrs='data-color="coral" data-color-name="'|add:name_coral|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#FA7D82] flex items-center justify-center transition-all cursor-pointer shadow-xs" %}
+                        {% endif %}
 
                         <!-- Muestra: Lila -->
-                        <button type="button"
-                                data-color="lilac"
-                                data-color-name="{% translate 'Lila' %}"
-                                onclick="selectProfileColor('lilac', 'Lila')"
-                                class="color-swatch relative w-12 h-12 rounded-full bg-[#E9D5FF] flex items-center justify-center transition-all cursor-pointer shadow-xs {% if active_pet.profile_color == 'lilac' %}ring-3 ring-offset-2 ring-[#C084FC]{% endif %}"
-                                aria-label="{% translate 'Color lila' %}">
-                            <span class="color-check {% if active_pet.profile_color != 'lilac' %}hidden{% endif %} text-purple-800">
-                                {% include 'components/icon.html' with name="check" class="w-5 h-5 text-purple-800" %}
-                            </span>
-                        </button>
+                        {% translate 'Lila' as name_lilac %}
+                        {% translate 'Color lila' as aria_lilac %}
+                        {% if active_pet.profile_color == 'lilac' %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-purple-800" icon_wrapper_class="color-check" onclick="selectProfileColor('lilac', 'Lila')" aria_label=aria_lilac attrs='data-color="lilac" data-color-name="'|add:name_lilac|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#E9D5FF] flex items-center justify-center transition-all cursor-pointer shadow-xs ring-3 ring-offset-2 ring-[#C084FC]" %}
+                        {% else %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-purple-800" icon_wrapper_class="color-check hidden" onclick="selectProfileColor('lilac', 'Lila')" aria_label=aria_lilac attrs='data-color="lilac" data-color-name="'|add:name_lilac|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#E9D5FF] flex items-center justify-center transition-all cursor-pointer shadow-xs" %}
+                        {% endif %}
 
                         <!-- Muestra: Verde Menta -->
-                        <button type="button"
-                                data-color="mint"
-                                data-color-name="{% translate 'Menta' %}"
-                                onclick="selectProfileColor('mint', 'Menta')"
-                                class="color-swatch relative w-12 h-12 rounded-full bg-[#8FFFB4] flex items-center justify-center transition-all cursor-pointer shadow-xs {% if active_pet.profile_color == 'mint' %}ring-3 ring-offset-2 ring-[#34D399]{% endif %}"
-                                aria-label="{% translate 'Color verde menta' %}">
-                            <span class="color-check {% if active_pet.profile_color != 'mint' %}hidden{% endif %} text-emerald-900">
-                                {% include 'components/icon.html' with name="check" class="w-5 h-5 text-emerald-900" %}
-                            </span>
-                        </button>
+                        {% translate 'Menta' as name_mint %}
+                        {% translate 'Color verde menta' as aria_mint %}
+                        {% if active_pet.profile_color == 'mint' %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-emerald-900" icon_wrapper_class="color-check" onclick="selectProfileColor('mint', 'Menta')" aria_label=aria_mint attrs='data-color="mint" data-color-name="'|add:name_mint|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#8FFFB4] flex items-center justify-center transition-all cursor-pointer shadow-xs ring-3 ring-offset-2 ring-[#34D399]" %}
+                        {% else %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-emerald-900" icon_wrapper_class="color-check hidden" onclick="selectProfileColor('mint', 'Menta')" aria_label=aria_mint attrs='data-color="mint" data-color-name="'|add:name_mint|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#8FFFB4] flex items-center justify-center transition-all cursor-pointer shadow-xs" %}
+                        {% endif %}
 
                         <!-- Muestra: Melocotón -->
-                        <button type="button"
-                                data-color="peach"
-                                data-color-name="{% translate 'Melocotón' %}"
-                                onclick="selectProfileColor('peach', 'Melocotón')"
-                                class="color-swatch relative w-12 h-12 rounded-full bg-[#FFDAD9] flex items-center justify-center transition-all cursor-pointer shadow-xs {% if active_pet.profile_color == 'peach' %}ring-3 ring-offset-2 ring-[#FB7185]{% endif %}"
-                                aria-label="{% translate 'Color melocotón' %}">
-                            <span class="color-check {% if active_pet.profile_color != 'peach' %}hidden{% endif %} text-rose-700">
-                                {% include 'components/icon.html' with name="check" class="w-5 h-5 text-rose-700" %}
-                            </span>
-                        </button>
+                        {% translate 'Melocotón' as name_peach %}
+                        {% translate 'Color melocotón' as aria_peach %}
+                        {% if active_pet.profile_color == 'peach' %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-rose-700" icon_wrapper_class="color-check" onclick="selectProfileColor('peach', 'Melocotón')" aria_label=aria_peach attrs='data-color="peach" data-color-name="'|add:name_peach|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#FFDAD9] flex items-center justify-center transition-all cursor-pointer shadow-xs ring-3 ring-offset-2 ring-[#FB7185]" %}
+                        {% else %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-rose-700" icon_wrapper_class="color-check hidden" onclick="selectProfileColor('peach', 'Melocotón')" aria_label=aria_peach attrs='data-color="peach" data-color-name="'|add:name_peach|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#FFDAD9] flex items-center justify-center transition-all cursor-pointer shadow-xs" %}
+                        {% endif %}
                     </div>
                 </div>
 
@@ -285,57 +269,25 @@
                             {% include 'components/input.html' with name="name" id="pet-name-input" label=name_label value=active_pet.name|default:'' required=True icon="id-card" placeholder=name_ph attrs='oninput="updatePetNamePreview(this.value)"' %}
                         </div>
 
-                        <!-- Campo: Especie (Selector de 3 botones según prototipo) -->
+                        <!-- Campo: Especie (Selector segmentado oficial) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-xs font-semibold text-neutral-700">
                                 {% translate "Especie" %}
                             </label>
-                            <div class="grid grid-cols-3 gap-2">
-                                <button type="button"
-                                        data-species="perro"
-                                        onclick="selectSpecies('perro')"
-                                        class="species-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.species == 'perro' or not active_pet.species %}bg-petly-coral text-white shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                    {% include 'components/icon.html' with name="dog" class="w-3.5 h-3.5" %}
-                                    <span>{% translate "Perro" %}</span>
-                                </button>
-                                <button type="button"
-                                        data-species="gato"
-                                        onclick="selectSpecies('gato')"
-                                        class="species-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.species == 'gato' %}bg-petly-coral text-white shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                    {% include 'components/icon.html' with name="paw" class="w-3.5 h-3.5" %}
-                                    <span>{% translate "Gato" %}</span>
-                                </button>
-                                <button type="button"
-                                        data-species="otro"
-                                        onclick="selectSpecies('otro')"
-                                        class="species-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.species == 'otro' %}bg-petly-coral text-white shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                    {% include 'components/icon.html' with name="sparkles" class="w-3.5 h-3.5" %}
-                                    <span>{% translate "Otro" %}</span>
-                                </button>
-                            </div>
+                            {% translate "Perro" as sp_perro %}
+                            {% translate "Gato" as sp_gato %}
+                            {% translate "Otro" as sp_otro %}
+                            {% include 'components/segmented.html' with name="species" input_id="input-species" text_1=sp_perro value_1="perro" icon_1="dog" text_2=sp_gato value_2="gato" icon_2="paw" text_3=sp_otro value_3="otro" icon_3="sparkles" active_value=active_pet.species|default:"perro" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center" %}
                         </div>
 
-                        <!-- Campo: Género biológico (Selector de 2 botones según prototipo) -->
+                        <!-- Campo: Género biológico (Selector segmentado oficial) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-xs font-semibold text-neutral-700">
                                 {% translate "Género biológico" %}
                             </label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button type="button"
-                                        data-gender="macho"
-                                        onclick="selectGender('macho')"
-                                        class="gender-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.gender == 'macho' or not active_pet.gender %}bg-petly-coral text-white shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                    {% include 'components/icon.html' with name="male" class="w-3.5 h-3.5" %}
-                                    <span>{% translate "Macho" %}</span>
-                                </button>
-                                <button type="button"
-                                        data-gender="hembra"
-                                        onclick="selectGender('hembra')"
-                                        class="gender-btn flex items-center justify-center gap-1.5 py-2 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.gender == 'hembra' %}bg-petly-coral text-white shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                    {% include 'components/icon.html' with name="female" class="w-3.5 h-3.5" %}
-                                    <span>{% translate "Hembra" %}</span>
-                                </button>
-                            </div>
+                            {% translate "Macho" as g_macho %}
+                            {% translate "Hembra" as g_hembra %}
+                            {% include 'components/segmented.html' with name="gender" input_id="input-gender" text_1=g_macho value_1="macho" icon_1="male" text_2=g_hembra value_2="hembra" icon_2="female" active_value=active_pet.gender|default:"macho" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center" %}
                         </div>
 
                         <!-- Campo: Raza -->
@@ -355,43 +307,18 @@
                                     {{ active_pet.age_completed|default:_("3 años cumplidos") }}
                                 </span>
                             </div>
-                            {% include 'components/input.html' with name="birth_date" id="pet-birthdate-input" value=active_pet.birth_date|default:'04/15/2022' icon="calendar" placeholder="MM/DD/YYYY" %}
+                            {% include 'components/input.html' with name="birth_date" id="pet-birthdate-input" type="date" value=active_pet.birth_date_iso|default:'2022-04-15' icon="calendar" %}
                         </div>
 
-                        <!-- Campo: Pedigrí y certificado -->
+                        <!-- Campo: Pedigrí y certificado (Selector segmentado oficial) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-xs font-semibold text-neutral-700">
                                 {% translate "Pedigrí y certificado" %}
                             </label>
-                            <div class="flex flex-wrap gap-1.5">
-                                <button type="button"
-                                        data-cert="fci"
-                                        onclick="selectCertificate('fci')"
-                                        class="cert-btn flex items-center gap-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.certificate == 'fci' or not active_pet.certificate %}bg-[#A8F0C6] text-[#064E3B] border border-emerald-300 shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                    <span class="cert-check {% if active_pet.certificate != 'fci' and active_pet.certificate %}hidden{% endif %}">
-                                        {% include 'components/icon.html' with name="check-circle" class="w-3.5 h-3.5 text-emerald-800" %}
-                                    </span>
-                                    <span>{% translate "Certificado FCI / con pedigrí" %}</span>
-                                </button>
-                                <button type="button"
-                                        data-cert="tramite"
-                                        onclick="selectCertificate('tramite')"
-                                        class="cert-btn flex items-center gap-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.certificate == 'tramite' %}bg-[#A8F0C6] text-[#064E3B] border border-emerald-300 shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                    <span class="cert-check {% if active_pet.certificate != 'tramite' %}hidden{% endif %}">
-                                        {% include 'components/icon.html' with name="check-circle" class="w-3.5 h-3.5 text-emerald-800" %}
-                                    </span>
-                                    <span>{% translate "En trámite" %}</span>
-                                </button>
-                                <button type="button"
-                                        data-cert="sin_pedigri"
-                                        onclick="selectCertificate('sin_pedigri')"
-                                        class="cert-btn flex items-center gap-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer select-none {% if active_pet.certificate == 'sin_pedigri' %}bg-[#A8F0C6] text-[#064E3B] border border-emerald-300 shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                    <span class="cert-check {% if active_pet.certificate != 'sin_pedigri' %}hidden{% endif %}">
-                                        {% include 'components/icon.html' with name="check-circle" class="w-3.5 h-3.5 text-emerald-800" %}
-                                    </span>
-                                    <span>{% translate "Sin pedigrí" %}</span>
-                                </button>
-                            </div>
+                            {% translate "Certificado FCI" as cert_fci %}
+                            {% translate "En trámite" as cert_tramite %}
+                            {% translate "Sin pedigrí" as cert_sin_pedigri %}
+                            {% include 'components/segmented.html' with name="certificate" input_id="input-certificate" text_1=cert_fci value_1="fci" text_2=cert_tramite value_2="tramite" text_3=cert_sin_pedigri value_3="sin_pedigri" active_value=active_pet.certificate|default:"fci" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center text-center" %}
                         </div>
 
                     </div>
@@ -413,39 +340,55 @@
 
                     <!-- Lista de chips de temperamento interactivos -->
                     <div class="flex flex-wrap gap-2 mb-6" id="temperament-chips-container">
-                        {% for trait in "Juguetón,Sociable,Cariñoso,Tranquilo,Protector,Curioso,Energético"|make_list|slice:":1" %}
-                        {# Se generan los tags en base a la lista predeterminada oficial #}
-                        {% endfor %}
-                        {% with official_traits="Juguetón,Sociable,Cariñoso,Tranquilo,Protector,Curioso,Energético" %}
-                            <button type="button" onclick="toggleTemperament('Juguetón')" data-trait="Juguetón" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Juguetón' in active_pet.temperaments or not active_pet %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                <span>{% translate "Juguetón" %}</span>
-                                <span class="trait-icon font-bold">{% if 'Juguetón' in active_pet.temperaments or not active_pet %}✓{% else %}+{% endif %}</span>
-                            </button>
-                            <button type="button" onclick="toggleTemperament('Sociable')" data-trait="Sociable" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Sociable' in active_pet.temperaments or not active_pet %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                <span>{% translate "Sociable" %}</span>
-                                <span class="trait-icon font-bold">{% if 'Sociable' in active_pet.temperaments or not active_pet %}✓{% else %}+{% endif %}</span>
-                            </button>
-                            <button type="button" onclick="toggleTemperament('Cariñoso')" data-trait="Cariñoso" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Cariñoso' in active_pet.temperaments or not active_pet %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                <span>{% translate "Cariñoso" %}</span>
-                                <span class="trait-icon font-bold">{% if 'Cariñoso' in active_pet.temperaments or not active_pet %}✓{% else %}+{% endif %}</span>
-                            </button>
-                            <button type="button" onclick="toggleTemperament('Tranquilo')" data-trait="Tranquilo" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Tranquilo' in active_pet.temperaments %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                <span>{% translate "Tranquilo" %}</span>
-                                <span class="trait-icon font-bold">{% if 'Tranquilo' in active_pet.temperaments %}✓{% else %}+{% endif %}</span>
-                            </button>
-                            <button type="button" onclick="toggleTemperament('Protector')" data-trait="Protector" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Protector' in active_pet.temperaments %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                <span>{% translate "Protector" %}</span>
-                                <span class="trait-icon font-bold">{% if 'Protector' in active_pet.temperaments %}✓{% else %}+{% endif %}</span>
-                            </button>
-                            <button type="button" onclick="toggleTemperament('Curioso')" data-trait="Curioso" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Curioso' in active_pet.temperaments %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                <span>{% translate "Curioso" %}</span>
-                                <span class="trait-icon font-bold">{% if 'Curioso' in active_pet.temperaments %}✓{% else %}+{% endif %}</span>
-                            </button>
-                            <button type="button" onclick="toggleTemperament('Energético')" data-trait="Energético" class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none {% if 'Energético' in active_pet.temperaments %}bg-petly-lilac text-petly-purple font-semibold shadow-xs{% else %}bg-petly-ice text-neutral-700 hover:bg-petly-blue/60{% endif %}">
-                                <span>{% translate "Energético" %}</span>
-                                <span class="trait-icon font-bold">{% if 'Energético' in active_pet.temperaments %}✓{% else %}+{% endif %}</span>
-                            </button>
-                        {% endwith %}
+                        {% translate "Juguetón" as t_jugueton %}
+                        {% translate "Sociable" as t_sociable %}
+                        {% translate "Cariñoso" as t_carinoso %}
+                        {% translate "Tranquilo" as t_tranquilo %}
+                        {% translate "Protector" as t_protector %}
+                        {% translate "Curioso" as t_curioso %}
+                        {% translate "Energético" as t_energetico %}
+
+                        {% if 'Juguetón' in active_pet.temperaments or not active_pet %}
+                            {% include 'components/button.html' with text=t_jugueton text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Juguetón')" attrs='data-trait="Juguetón"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                        {% else %}
+                            {% include 'components/button.html' with text=t_jugueton text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Juguetón')" attrs='data-trait="Juguetón"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                        {% endif %}
+
+                        {% if 'Sociable' in active_pet.temperaments or not active_pet %}
+                            {% include 'components/button.html' with text=t_sociable text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Sociable')" attrs='data-trait="Sociable"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                        {% else %}
+                            {% include 'components/button.html' with text=t_sociable text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Sociable')" attrs='data-trait="Sociable"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                        {% endif %}
+
+                        {% if 'Cariñoso' in active_pet.temperaments or not active_pet %}
+                            {% include 'components/button.html' with text=t_carinoso text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Cariñoso')" attrs='data-trait="Cariñoso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                        {% else %}
+                            {% include 'components/button.html' with text=t_carinoso text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Cariñoso')" attrs='data-trait="Cariñoso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                        {% endif %}
+
+                        {% if 'Tranquilo' in active_pet.temperaments %}
+                            {% include 'components/button.html' with text=t_tranquilo text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Tranquilo')" attrs='data-trait="Tranquilo"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                        {% else %}
+                            {% include 'components/button.html' with text=t_tranquilo text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Tranquilo')" attrs='data-trait="Tranquilo"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                        {% endif %}
+
+                        {% if 'Protector' in active_pet.temperaments %}
+                            {% include 'components/button.html' with text=t_protector text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Protector')" attrs='data-trait="Protector"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                        {% else %}
+                            {% include 'components/button.html' with text=t_protector text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Protector')" attrs='data-trait="Protector"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                        {% endif %}
+
+                        {% if 'Curioso' in active_pet.temperaments %}
+                            {% include 'components/button.html' with text=t_curioso text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Curioso')" attrs='data-trait="Curioso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                        {% else %}
+                            {% include 'components/button.html' with text=t_curioso text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Curioso')" attrs='data-trait="Curioso"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                        {% endif %}
+
+                        {% if 'Energético' in active_pet.temperaments %}
+                            {% include 'components/button.html' with text=t_energetico text_end="✓" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Energético')" attrs='data-trait="Energético"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-lilac text-petly-purple font-semibold shadow-xs" %}
+                        {% else %}
+                            {% include 'components/button.html' with text=t_energetico text_end="+" text_end_class="trait-icon font-bold" variant="custom" onclick="toggleTemperament('Energético')" attrs='data-trait="Energético"' class="trait-chip inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all select-none bg-petly-ice text-neutral-700 hover:bg-petly-blue/60" %}
+                        {% endif %}
                     </div>
 
                     <!-- Campo: Descripción y biografía con contador dinámico en tiempo real -->

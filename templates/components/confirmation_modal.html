@@ -26,11 +26,12 @@ Parámetros disponibles:
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity duration-200 cursor-pointer" onclick="closeModal('{{ modal_id }}')" aria-hidden="true"></div>
 
     <!-- Tarjeta central del diálogo de confirmación responsiva -->
-    <div class="relative w-full max-w-md max-h-[92vh] flex flex-col bg-white card-petly p-5 sm:p-7 shadow-2xl border border-neutral-300/80 z-10 transition-all transform duration-200 scale-100 overflow-y-auto {{ class|default:'' }}">
+    <div class="relative w-full max-w-md flex flex-col bg-white card-petly p-5 sm:p-7 shadow-2xl border border-neutral-300/80 z-10 transition-all transform duration-200 scale-100 overflow-hidden {{ class|default:'' }}">
         <!-- Botón de cierre en la esquina superior -->
-        <button type="button" onclick="closeModal('{{ modal_id }}')" class="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 active:scale-95 transition-all cursor-pointer select-none" aria-label="{% translate 'Cerrar diálogo' %}">
-            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
-        </button>
+        {% translate 'Cerrar diálogo' as aria_close_conf %}
+        {% with close_onclick="closeModal('"|add:modal_id|add:"')" %}
+        {% include 'components/button.html' with variant="custom" icon="close" text="" icon_class="w-4 h-4" onclick=close_onclick aria_label=aria_close_conf class="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 active:scale-95 transition-all cursor-pointer select-none" %}
+        {% endwith %}
 
         <!-- Cabecera del diálogo: Ícono y título -->
         <div class="flex items-start gap-3 sm:gap-3.5 mb-3 sm:mb-4 pr-6 sm:pr-8">
@@ -61,20 +62,19 @@ Parámetros disponibles:
 
         <!-- Botones de acción simétricos y responsivos (apilados en móvil, alineados al 50% en escritorio) -->
         <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-5 sm:mt-6 pt-4 border-t border-neutral-200/80 w-full">
-            <button type="button" onclick="closeModal('{{ modal_id }}')" class="w-full sm:flex-1 sm:w-1/2 min-h-[46px] select-none {% if cancel_variant == 'secondary' %}btn-petly-secondary{% else %}btn-petly-outline{% endif %} text-sm font-semibold px-6 py-3 bg-white cursor-pointer justify-center text-center">
-                {{ cancel_text|default:_('Cancelar') }}
-            </button>
+            {% with cancel_var=cancel_variant|default:'outline' cancel_onclick="closeModal('"|add:modal_id|add:"')" %}
+            {% include 'components/button.html' with text=cancel_text|default:_('Cancelar') icon=cancel_icon|default:'' variant=cancel_var onclick=cancel_onclick class="w-full sm:flex-1 sm:w-1/2 min-h-[46px] text-sm font-semibold px-6 py-3 bg-white justify-center text-center cursor-pointer" %}
+            {% endwith %}
+
+            {% with conf_var=confirm_variant|default:modal_variant|default:'primary' conf_onclick="confirmModal('"|add:modal_id|add:"')" %}
             {% if confirm_form_id %}
-                <button type="submit" form="{{ confirm_form_id }}" onclick="confirmModal('{{ modal_id }}')" class="w-full sm:flex-1 sm:w-1/2 min-h-[46px] text-sm font-semibold px-6 py-3 select-none cursor-pointer justify-center text-center {% if confirm_variant == 'secondary' %}btn-petly-secondary{% elif confirm_variant == 'outline' %}btn-petly-outline{% elif confirm_variant == 'danger' or modal_variant == 'danger' %}btn-petly-danger{% elif confirm_variant == 'soft' %}btn-petly-soft{% else %}btn-petly-primary{% endif %}">
-                    {{ confirm_text|default:_('Confirmar') }}
-                </button>
+                {% include 'components/button.html' with text=confirm_text|default:_('Confirmar') icon=confirm_icon|default:'' type="submit" form_id=confirm_form_id onclick=conf_onclick variant=conf_var class="w-full sm:flex-1 sm:w-1/2 min-h-[46px] text-sm font-semibold px-6 py-3 justify-center text-center cursor-pointer" %}
             {% elif confirm_url %}
-                {% include 'components/button.html' with text=confirm_text|default:_('Confirmar') href=confirm_url variant=confirm_variant|default:modal_variant class="w-full sm:flex-1 sm:w-1/2 min-h-[46px] text-sm font-semibold px-6 py-3 justify-center text-center" %}
+                {% include 'components/button.html' with text=confirm_text|default:_('Confirmar') icon=confirm_icon|default:'' href=confirm_url variant=conf_var class="w-full sm:flex-1 sm:w-1/2 min-h-[46px] text-sm font-semibold px-6 py-3 justify-center text-center" %}
             {% else %}
-                <button type="button" onclick="confirmModal('{{ modal_id }}')" class="w-full sm:flex-1 sm:w-1/2 min-h-[46px] text-sm font-semibold px-6 py-3 select-none cursor-pointer justify-center text-center {% if confirm_variant == 'secondary' %}btn-petly-secondary{% elif confirm_variant == 'outline' %}btn-petly-outline{% elif confirm_variant == 'danger' or modal_variant == 'danger' %}btn-petly-danger{% elif confirm_variant == 'soft' %}btn-petly-soft{% else %}btn-petly-primary{% endif %}">
-                    {{ confirm_text|default:_('Confirmar') }}
-                </button>
+                {% include 'components/button.html' with text=confirm_text|default:_('Confirmar') icon=confirm_icon|default:'' type="button" onclick=conf_onclick variant=conf_var class="w-full sm:flex-1 sm:w-1/2 min-h-[46px] text-sm font-semibold px-6 py-3 justify-center text-center cursor-pointer" %}
             {% endif %}
+            {% endwith %}
         </div>
     </div>
 </div>

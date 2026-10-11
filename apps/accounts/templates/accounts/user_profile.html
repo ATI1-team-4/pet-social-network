@@ -18,12 +18,8 @@
                     <img src="{% static 'images/auth/register_showcase.jpg' %}"
                          alt="Sofía Hernández Morales"
                          class="w-20 h-20 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-white shadow-sm ring-2 ring-neutral-100">
-                    <button type="button"
-                            class="avatar-badge-camera cursor-pointer"
-                            title="{% translate 'Cambiar foto de perfil' %}"
-                            aria-label="{% translate 'Cambiar foto de perfil' %}">
-                        {% include 'components/icon.html' with name="camera" class="w-3.5 h-3.5 text-white" %}
-                    </button>
+                    {% translate "Cambiar foto de perfil" as change_avatar_label %}
+                    {% include 'components/button.html' with icon="camera" icon_class="w-3.5 h-3.5 text-white" variant="custom" class="avatar-badge-camera cursor-pointer" title=change_avatar_label aria_label=change_avatar_label %}
                 </div>
 
                 <div class="min-w-0">
@@ -211,26 +207,16 @@
                             <label for="profile-birth-date" class="text-xs font-semibold text-neutral-700">
                                 {% translate "Fecha de cumpleaños" %}
                             </label>
-                            {% include 'components/input.html' with name="birth_date" id="profile-birth-date" type="text" value="10/05/1990" placeholder="10/05/1990" icon="calendar" %}
+                            {% include 'components/input.html' with name="birth_date" id="profile-birth-date" type="date" value="1990-05-10" icon="calendar" %}
                         </div>
 
                         <!-- Selector de Género -->
-                        <div class="w-full flex flex-col gap-1.5">
+                        <div class="flex flex-col gap-1.5">
                             <label class="text-xs font-semibold text-neutral-700">{% translate "Género" %}</label>
-                            <div class="pt-0.5">
-                                <div id="gender-segmented-control" role="tablist" class="flex flex-wrap items-center gap-1 w-fit max-w-full p-1 rounded-full bg-neutral-100 border border-neutral-300 text-xs font-medium">
-                                    <input type="hidden" name="gender" id="gender-input" value="Femenino">
-                                    <button type="button" role="tab" data-gender="Masculino" aria-selected="false" class="select-none segmented-pill segmented-pill-inactive">
-                                        {% translate "Masculino" %}
-                                    </button>
-                                    <button type="button" role="tab" data-gender="Femenino" aria-selected="true" class="select-none segmented-pill segmented-pill-active">
-                                        {% translate "Femenino" %}
-                                    </button>
-                                    <button type="button" role="tab" data-gender="Otro" aria-selected="false" class="select-none segmented-pill segmented-pill-inactive">
-                                        {% translate "Otro" %}
-                                    </button>
-                                </div>
-                            </div>
+                            {% translate "Masculino" as txt_masculino %}
+                            {% translate "Femenino" as txt_femenino %}
+                            {% translate "Otro" as txt_otro %}
+                            {% include 'components/segmented.html' with id="gender-segmented-control" name="gender" input_id="gender-input" text_1=txt_masculino value_1="Masculino" text_2=txt_femenino value_2="Femenino" text_3=txt_otro value_3="Otro" active_value="Femenino" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center text-center" %}
                         </div>
 
                         <!-- Color Favorito -->
@@ -298,30 +284,4 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const genderControl = document.getElementById('gender-segmented-control');
-        if (genderControl) {
-            const pills = genderControl.querySelectorAll('.segmented-pill');
-            const hiddenInput = document.getElementById('gender-input');
-
-            pills.forEach(pill => {
-                pill.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    pills.forEach(p => {
-                        p.classList.remove('segmented-pill-active');
-                        p.classList.add('segmented-pill-inactive');
-                        p.setAttribute('aria-selected', 'false');
-                    });
-                    this.classList.remove('segmented-pill-inactive');
-                    this.classList.add('segmented-pill-active');
-                    this.setAttribute('aria-selected', 'true');
-                    if (hiddenInput) {
-                        hiddenInput.value = this.getAttribute('data-gender');
-                    }
-                });
-            });
-        }
-    });
-</script>
 {% endblock %}

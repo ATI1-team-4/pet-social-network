@@ -48,10 +48,8 @@
         </div>
 
         <!-- Botón de filtros avanzados -->
-        <button type="button" onclick="openModal('modal-filters')" class="text-xs font-semibold text-neutral-600 hover:text-petly-coral inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white/80 transition-all cursor-pointer">
-            {% include 'components/icon.html' with name="sliders" class="w-4 h-4 text-neutral-600" %}
-            <span>{% translate "Configurar filtros avanzados" %}</span>
-        </button>
+        {% translate "Configurar filtros avanzados" as filter_adv_label %}
+        {% include 'components/button.html' with text=filter_adv_label variant="custom" icon="sliders" icon_class="w-4 h-4 text-neutral-600" onclick="openModal('modal-filters')" class="text-xs font-semibold text-neutral-600 hover:text-petly-coral inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white/80 transition-all cursor-pointer" %}
     </div>
 
     <!-- Barra de contexto para móvil -->
@@ -80,24 +78,13 @@
 
         <div class="flex items-center justify-between gap-2 py-1">
             <div class="flex items-center gap-1.5 overflow-x-auto">
-                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white border border-neutral-300 text-neutral-700 whitespace-nowrap">
-                    {% include 'components/icon.html' with name="location" class="w-3 h-3 text-neutral-500" %}
-                    <span>&lt; 5 km</span>
-                </span>
-                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white border border-neutral-300 text-neutral-700 whitespace-nowrap">
-                    {% include 'components/icon.html' with name="dog" class="w-3 h-3 text-neutral-500" %}
-                    <span>{% translate "Perros" %}</span>
-                </span>
+                {% include 'components/badge.html' with text="< 5 km" variant="neutral" icon="location" class="bg-white text-xs py-1 px-3 whitespace-nowrap" %}
+                {% translate "Perros" as dogs_label_mob %}
+                {% include 'components/badge.html' with text=dogs_label_mob variant="neutral" icon="dog" class="bg-white text-xs py-1 px-3 whitespace-nowrap" %}
                 {% translate "Con pedigrí FCI" as fci_label_mob %}
                 {% include 'components/badge.html' with text=fci_label_mob variant="compat" icon="award" class="text-xs py-1 px-3 whitespace-nowrap" %}
             </div>
-            <button type="button"
-                    onclick="openModal('modal-filters')"
-                    class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-petly-coral flex items-center justify-center shadow-xs shrink-0 cursor-pointer"
-                    title="{% translate 'Configurar filtros avanzados' %}"
-                    aria-label="{% translate 'Configurar filtros avanzados' %}">
-                {% include 'components/icon.html' with name="sliders" class="w-4 h-4 text-neutral-700" %}
-            </button>
+            {% include 'components/button.html' with variant="outline" icon="sliders" icon_class="w-4 h-4 text-neutral-700" onclick="openModal('modal-filters')" class="w-8 h-8 rounded-full p-0 bg-white border-neutral-300 text-neutral-700 hover:text-petly-coral flex items-center justify-center shadow-xs shrink-0 cursor-pointer" title=filter_adv_label aria_label=filter_adv_label %}
         </div>
     </div>
 
@@ -115,8 +102,7 @@
                  Aplica dinámicamente el ancho amplio proporcional a la columna y el acento del tutor activo
             -->
             <div id="discovery-card"
-                 class="relative w-full max-w-2xl lg:max-w-none bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border border-neutral-200/80 mb-8 lg:mb-0"
-                 style="box-shadow: 0 16px 40px -8px {{ active_pet.profile_color_hex|default:'#FA7D82' }}26;">
+                 class="relative w-full max-w-2xl lg:max-w-none bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border border-neutral-200/80 mb-8 lg:mb-0 shadow-pet-discovery">
 
                 <!-- SECCIÓN 1: FOTOGRAFÍA PRINCIPAL CON GRADIENTE E INFORMACIÓN -->
                 <div class="relative w-full h-80 sm:h-96 md:h-[480px] lg:h-[500px] bg-neutral-100 overflow-hidden">
@@ -151,7 +137,7 @@
                                 <h2 id="card-name" class="title-h2 text-white font-bold tracking-tight drop-shadow-md">
                                     {{ current_candidate.name }}
                                 </h2>
-                                <span id="card-gender-symbol" class="text-lg font-bold drop-shadow-md" style="color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
+                                <span id="card-gender-symbol" class="text-lg font-bold drop-shadow-md text-pet-accent">
                                     {{ current_candidate.gender_symbol }}
                                 </span>
                                 <span id="card-age" class="text-xs font-semibold bg-white/20 backdrop-blur-xs px-2.5 py-0.5 rounded-full drop-shadow-xs">
@@ -166,7 +152,7 @@
                         <!-- Insignia de propósito en móvil y ubicación sobre la foto -->
                         <div class="shrink-0 flex flex-col items-end gap-1.5">
                             <span id="card-purpose-badge" class="sm:hidden inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/95 text-neutral-800 shadow-md">
-                                <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};"></span>
+                                <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-pet-accent"></span>
                                 <span id="card-purpose-text">{{ current_candidate.purpose }}</span>
                             </span>
                             <span id="card-location" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-black/40 backdrop-blur-md text-white border border-white/20">
@@ -235,7 +221,7 @@
                     <!-- Bloque de tutores responsables (tarjeta redondeada limpia como en UI Figma) -->
                     <div class="p-3.5 rounded-2xl bg-[#F4F6F9] border border-slate-100 flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-xs shrink-0" style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-xs shrink-0 bg-pet-accent">
                                 <span id="card-tutor-avatar">{{ current_candidate.tutors.avatar_letter|default:"SC" }}</span>
                             </div>
                             <div>
@@ -260,59 +246,31 @@
                 <!-- Versión Escritorio (md en adelante) -->
                 <div class="hidden md:flex p-4 sm:p-5 bg-neutral-50/80 border-t border-neutral-100 items-center justify-between gap-4">
                     <!-- Botón: Pasar / Descartar (✕) -->
-                    <button type="button"
-                            onclick="handlePassCandidate()"
-                            id="btn-pass"
-                            class="w-12 h-12 rounded-full bg-white border border-neutral-200/90 text-neutral-600 hover:text-neutral-900 hover:border-neutral-300 shadow-xs hover:shadow-md active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer"
-                            title="{% translate 'Pasar candidato' %}"
-                            aria-label="{% translate 'Pasar candidato' %}">
-                        {% include 'components/icon.html' with name="close" class="w-5 h-5 text-neutral-600" %}
-                    </button>
+                    {% translate 'Pasar candidato' as aria_pass_cand %}
+                    {% include 'components/button.html' with id="btn-pass" variant="custom" icon="close" icon_class="w-5 h-5 text-neutral-600" onclick="handlePassCandidate()" title=aria_pass_cand aria_label=aria_pass_cand class="w-12 h-12 rounded-full bg-white border border-neutral-200/90 text-neutral-600 hover:text-neutral-900 hover:border-neutral-300 shadow-xs hover:shadow-md active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer" %}
 
                     <!-- Botón primario central: Mostrar Interés (♥) -->
-                    <button type="button"
-                            onclick="handleLikeCandidate()"
-                            id="btn-like"
-                            class="select-none flex-1 py-3.5 px-6 rounded-full font-bold text-white shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
-                            style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; box-shadow: 0 10px 24px -4px {{ active_pet.profile_color_hex|default:'#FA7D82' }}66;">
-                        {% include 'components/icon.html' with name="heart-filled" class="w-5 h-5 text-white" %}
-                        <span id="btn-like-text">{% blocktranslate with name=current_candidate.name %}Mostrar interés en {{ name }}{% endblocktranslate %}</span>
-                    </button>
+                    {% blocktranslate with name=current_candidate.name asvar like_btn_text %}Mostrar interés en {{ name }}{% endblocktranslate %}
+                    {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-white" onclick="handleLikeCandidate()" class="btn-pet-dynamic-like select-none flex-1 py-3.5 px-6 rounded-full font-bold text-white shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
 
-                    <!-- Botón secundario: Información o reporte con bandera -->
-                    <button type="button"
-                            onclick="openCandidateInfoModal()"
-                            class="w-12 h-12 rounded-full bg-white border border-neutral-200/90 text-neutral-600 hover:text-neutral-900 hover:border-neutral-300 shadow-xs hover:shadow-md active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer"
-                            title="{% translate 'Detalles del candidato' %}"
-                            aria-label="{% translate 'Detalles del candidato' %}">
-                        {% include 'components/icon.html' with name="flag" class="w-5 h-5 text-neutral-600" %}
-                    </button>
+                    <!-- Botón secundario: Reporte de candidato con bandera -->
+                    {% translate 'Reportar candidato' as aria_report_cand %}
+                    {% include 'components/button.html' with variant="custom" icon="flag" icon_class="w-5 h-5 text-neutral-600 hover:text-rose-600" onclick="openCandidateReportModal()" title=aria_report_cand aria_label=aria_report_cand class="w-12 h-12 rounded-full bg-white border border-neutral-200/90 text-neutral-600 hover:text-rose-600 hover:border-rose-300 shadow-xs hover:shadow-md active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer" %}
                 </div>
 
                 <!-- Versión Teléfono Móvil: Botones Circulares de Acción oficiales -->
                 <div class="md:hidden px-4 pt-4 pb-6 bg-white flex items-center justify-center gap-12">
                     <!-- Botón Circular Descartar (✕) -->
                     <div class="flex flex-col items-center gap-1.5">
-                        <button type="button"
-                                id="btn-pass-mobile"
-                                onclick="handlePassCandidate()"
-                                class="w-16 h-16 rounded-full bg-white border border-neutral-200/90 shadow-md hover:shadow-lg active:scale-95 transition-all text-neutral-600 flex items-center justify-center cursor-pointer"
-                                aria-label="{% translate 'Pasar' %}">
-                            {% include 'components/icon.html' with name="close" class="w-6 h-6 text-neutral-600" %}
-                        </button>
+                        {% translate 'Pasar' as aria_pass_mobile %}
+                        {% include 'components/button.html' with id="btn-pass-mobile" variant="custom" icon="close" icon_class="w-6 h-6 text-neutral-600" onclick="handlePassCandidate()" aria_label=aria_pass_mobile class="w-16 h-16 rounded-full bg-white border border-neutral-200/90 shadow-md hover:shadow-lg active:scale-95 transition-all text-neutral-600 flex items-center justify-center cursor-pointer" %}
                         <span class="text-xs font-semibold text-neutral-500">{% translate "Pasar" %}</span>
                     </div>
 
                     <!-- Botón Circular Me Interesa (♥) -->
                     <div class="flex flex-col items-center gap-1.5">
-                        <button type="button"
-                                id="btn-like-mobile"
-                                onclick="handleLikeCandidate()"
-                                class="w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-white flex items-center justify-center cursor-pointer"
-                                style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; box-shadow: 0 10px 25px {{ active_pet.profile_color_hex|default:'#FA7D82' }}66;"
-                                aria-label="{% translate 'Interesado' %}">
-                            {% include 'components/icon.html' with name="heart-filled" class="w-7 h-7 text-white" %}
-                        </button>
+                        {% translate 'Interesado' as aria_like_mobile %}
+                        {% include 'components/button.html' with id="btn-like-mobile" variant="custom" icon="heart-filled" icon_class="w-7 h-7 text-white" onclick="handleLikeCandidate()" aria_label=aria_like_mobile class="btn-pet-dynamic-like w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-white flex items-center justify-center cursor-pointer" %}
                         <span class="text-xs font-semibold text-neutral-700">{% translate "Interesado" %}</span>
                     </div>
                 </div>
@@ -327,8 +285,7 @@
         <div class="hidden lg:block lg:col-span-4 sticky top-24 space-y-4">
 
             <!-- Tarjeta: Pretendientes interesados en Toby -->
-            <div class="card-petly p-5 sm:p-6 bg-white shadow-md space-y-4 border border-neutral-200/80 rounded-3xl"
-                 style="box-shadow: 0 10px 30px -10px {{ active_pet.profile_color_hex|default:'#FA7D82' }}22;">
+            <div class="card-petly p-5 sm:p-6 bg-white space-y-4 border border-neutral-200/80 rounded-3xl shadow-pet-sidebar">
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
                         {% include 'components/icon.html' with name="heart" class="w-4 h-4 text-neutral-700" %}
@@ -337,8 +294,7 @@
                         </h2>
                     </div>
                     <!-- Badge '3 nuevas' en una sola línea sin desbordamiento -->
-                    <span class="inline-flex items-center justify-center whitespace-nowrap shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                          style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}22; color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
+                    <span class="inline-flex items-center justify-center whitespace-nowrap shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold badge-pet-accent">
                         {{ interested_count }} {% translate "nuevas" %}
                     </span>
                 </div>
@@ -360,13 +316,8 @@
                                     </span>
                                 </div>
                             </div>
-                            <button type="button"
-                                    onclick="quickMatchWith('{{ suitor.name }}', '{{ suitor.photo_url }}')"
-                                    class="w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer"
-                                    style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}22; color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};"
-                                    title="{% translate 'Responder con match' %}">
-                                {% include 'components/icon.html' with name="heart-filled" class="w-4 h-4" %}
-                            </button>
+                            {% translate 'Responder con match' as aria_quick_match %}
+                            {% include 'components/button.html' with variant="custom" icon="heart-filled" icon_class="w-4 h-4" onclick="handleSidebarQuickMatch(this)" data_name=suitor.name data_photo=suitor.photo_url title=aria_quick_match class="btn-pet-quick-match w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer" %}
                         </div>
                     {% endfor %}
                 </div>
@@ -382,8 +333,7 @@
             </div>
 
             <!-- Tarjeta de consejos de bienestar animal -->
-            <div class="p-4 rounded-2xl bg-white border shadow-xs text-xs space-y-1.5"
-                 style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}33;">
+            <div class="p-4 rounded-2xl bg-white border border-pet-accent-light shadow-xs text-xs space-y-1.5">
                 <div class="flex items-center gap-1.5 text-emerald-800 font-bold">
                     {% include 'components/icon.html' with name="award" class="w-4 h-4 text-emerald-600" %}
                     <span>{% translate "Normas de cruza responsable" %}</span>
@@ -409,9 +359,8 @@
     <!-- Tarjeta del diálogo de match con animación y celebración -->
     <div class="relative w-full max-w-md bg-white card-petly p-6 sm:p-8 shadow-2xl border-2 border-petly-coral z-10 overflow-hidden text-center animate-fade-in">
         <!-- Botón de cierre en la esquina -->
-        <button type="button" onclick="closeModal('modal-match-success')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer select-none" aria-label="{% translate 'Cerrar diálogo' %}">
-            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
-        </button>
+        {% translate 'Cerrar diálogo' as aria_close_match %}
+        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4" onclick="closeModal('modal-match-success')" aria_label=aria_close_match class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer select-none" %}
 
         <!-- Efecto de celebración con destellos -->
         <div class="w-14 h-14 rounded-full bg-petly-coral-light text-petly-coral mx-auto mb-3 flex items-center justify-center shadow-xs">
@@ -467,9 +416,8 @@
 <div id="modal-filters" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-filters-title">
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-filters')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        <button type="button" onclick="closeModal('modal-filters')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none" aria-label="{% translate 'Cerrar' %}">
-            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
-        </button>
+        {% translate 'Cerrar' as aria_close_filter %}
+        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4" onclick="closeModal('modal-filters')" aria_label=aria_close_filter class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none cursor-pointer" %}
 
         <h3 id="modal-filters-title" class="title-h4 text-neutral-900 font-bold mb-4">
             {% translate "Filtros de búsqueda de pareja" %}
@@ -533,8 +481,18 @@
         }
     }
 
+    // Color de acento reactivo de la mascota activa
+    const activePetColor = '{{ active_pet.profile_color_hex|default:"#FA7D82" }}';
+    document.documentElement.style.setProperty('--pet-color', activePetColor);
+
     // Dataset reactivo de candidatos oficiales según el prototipo
-    const CANDIDATES = {{ candidates_json|safe }};
+    const candidatesRaw = '{{ candidates_json|escapejs }}';
+    let CANDIDATES = [];
+    try {
+        CANDIDATES = JSON.parse(candidatesRaw);
+    } catch (e) {
+        CANDIDATES = [];
+    }
     let currentCandidateIndex = 0;
 
     // Actualiza dinámicamente la tarjeta con el candidato en el índice dado
@@ -652,6 +610,11 @@
     }
 
     // Match rápido desde la barra lateral de interesados
+    function handleSidebarQuickMatch(button) {
+        if (!button) return;
+        quickMatchWith(button.getAttribute('data-name'), button.getAttribute('data-photo'));
+    }
+
     function quickMatchWith(name, photoUrl) {
         const matchName = document.getElementById('match-candidate-name');
         if (matchName) matchName.textContent = name;
@@ -662,9 +625,11 @@
         openModal('modal-match-success');
     }
 
-    function openCandidateInfoModal() {
+    function openCandidateReportModal() {
         const c = CANDIDATES[currentCandidateIndex % CANDIDATES.length];
-        alert(`${c.name} (${c.breed})\n${c.description}`);
+        if (confirm(`{% translate "¿Deseas reportar el perfil de" %} ${c.name} {% translate "por contenido o comportamiento inapropiado?" %}`)) {
+            alert(`{% translate "El reporte ha sido enviado al equipo de administración para su revisión." %}`);
+        }
     }
 </script>
 {% endblock %}
