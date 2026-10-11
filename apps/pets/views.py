@@ -4,6 +4,7 @@ from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -575,3 +576,155 @@ def match_interested_view(request):
         'confirmed_dates': CONFIRMED_DATES,
     }
     return render(request, 'pets/match_interested.html', context)
+
+
+# ==============================================================================
+# Siluetas de Controladores: Feed y Swipe de Candidatos (Issue #63)
+# ==============================================================================
+
+
+@login_required
+@require_POST
+def match_like_candidate_view(request):
+    """
+    Silueta: Registra 'Me gusta' hacia un candidato del feed y verifica coincidencia recíproca.
+
+    El equipo debe implementar:
+    - Obtener `candidate_id` desde `request.POST`.
+    - Delegar el registro a `apps.pets.services.record_candidate_like(active_pet, candidate_pet)`.
+    - Retornar JSON con `{'status': 'success', 'is_match': bool, 'match_data': ...}`.
+    """
+    return JsonResponse(
+        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        status=501,
+    )
+
+
+@login_required
+@require_POST
+def match_pass_candidate_view(request):
+    """
+    Silueta: Registra el descarte de un candidato en el feed para avanzar a la siguiente tarjeta.
+
+    El equipo debe implementar:
+    - Obtener `candidate_id` desde `request.POST`.
+    - Delegar el descarte a `apps.pets.services.record_candidate_pass(active_pet, candidate_pet)`.
+    - Retornar JSON con `{'status': 'success', 'candidate_id': candidate_id}`.
+    """
+    return JsonResponse(
+        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        status=501,
+    )
+
+
+@login_required
+@require_POST
+def match_report_candidate_view(request):
+    """
+    Silueta: Registra una denuncia o reporte contra una mascota candidata desde el feed.
+
+    El equipo debe implementar:
+    - Validar `reported_pet_id` y `reason` recibidos por POST.
+    - Delegar el reporte a `apps.pets.services.report_candidate_pet(...)`.
+    - Retornar JSON con confirmación y mensaje para retroalimentar al usuario.
+    """
+    return JsonResponse(
+        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        status=501,
+    )
+
+
+# ==============================================================================
+# Siluetas de Controladores: Solicitudes e Interesados (Issue #64)
+# ==============================================================================
+
+
+@login_required
+@require_POST
+def match_accept_request_view(request, request_id):
+    """
+    Silueta: Acepta una solicitud de match recibida en la bandeja de interesados.
+
+    El equipo debe implementar:
+    - Validar que la solicitud pertenezca a la mascota activa del usuario.
+    - Delegar la actualización a `apps.pets.services.accept_match_request(request_id, active_pet)`.
+    - Retornar JSON con `{'status': 'accepted', 'request_id': request_id}`.
+    """
+    return JsonResponse(
+        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        status=501,
+    )
+
+
+@login_required
+@require_POST
+def match_reject_request_view(request, request_id):
+    """
+    Silueta: Descarta o rechaza una solicitud de match en la bandeja de interesados.
+
+    El equipo debe implementar:
+    - Validar que la solicitud pertenezca a la mascota activa del usuario.
+    - Delegar la actualización a `apps.pets.services.reject_match_request(request_id, active_pet)`.
+    - Retornar JSON con `{'status': 'rejected', 'request_id': request_id}`.
+    """
+    return JsonResponse(
+        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        status=501,
+    )
+
+
+@login_required
+@require_POST
+def send_initial_message_view(request, request_id):
+    """
+    Silueta: Envía el mensaje inicial tras confirmar un match mutuo aceptado.
+
+    El equipo debe implementar:
+    - Obtener `message_text` desde el POST y validar contenido no vacío.
+    - Delegar a `apps.pets.services.send_initial_match_message(...)`.
+    - Retornar JSON con confirmación de envío.
+    """
+    return JsonResponse(
+        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        status=501,
+    )
+
+
+# ==============================================================================
+# Siluetas de Controladores: Citas y Encuentros Caninos (Issue #65)
+# ==============================================================================
+
+
+@login_required
+@require_POST
+def schedule_meetup_view(request):
+    """
+    Silueta: Procesa la concertación de un encuentro canino seguro desde el modal.
+
+    El equipo debe implementar:
+    - Validar los datos recibidos mediante `ScheduleMeetupForm(request.POST)`.
+    - Delegar la creación a `apps.pets.services.schedule_pet_meetup(...)`.
+    - Retornar JSON con `{'status': 'scheduled', 'meetup_id': ...}`.
+    """
+    return JsonResponse(
+        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        status=501,
+    )
+
+
+@login_required
+@require_POST
+def cancel_meetup_view(request, meetup_id):
+    """
+    Silueta: Cancela una cita de encuentro canino previamente acordada.
+
+    El equipo debe implementar:
+    - Validar permisos del usuario sobre el encuentro.
+    - Delegar a `apps.pets.services.cancel_pet_meetup(meetup_id, request.user)`.
+    - Retornar JSON con confirmación de cancelación.
+    """
+    return JsonResponse(
+        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        status=501,
+    )
+
