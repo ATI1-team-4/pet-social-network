@@ -50,6 +50,9 @@ docker compose up -d --build
 
 # 3. Aplicar las migraciones (obligatorio la primera vez que se inicia el proyecto)
 docker compose exec web python manage.py migrate
+
+# 4. Poblar datos iniciales de prueba (mascotas, solicitudes de match y citas)
+docker compose exec web python manage.py seed_pets
 ```
 
 La aplicación estará lista y accesible en [http://localhost:8000/](http://localhost:8000/).
@@ -61,6 +64,14 @@ La aplicación estará lista y accesible en [http://localhost:8000/](http://loca
 > - La base de datos SQLite vive y se resguarda dentro del **volumen administrado por Docker (`petly_db_data`)**, el cual opera de forma totalmente aislada de tu sistema de archivos local.
 > - Aunque elimines archivos en tu máquina anfitriona o no exista una carpeta local `data/`, **la base de datos dentro del volumen NO se borra ni se ve afectada**.
 > - La base de datos únicamente se reiniciará o borrará si ejecutas explícitamente `docker compose down -v` (con la bandera `-v` de volúmenes). Con el comando habitual `docker compose down`, todos tus datos se conservan íntegros para el siguiente inicio.
+
+> [!TIP]
+> **Datos de prueba para desarrollo (`seed_pets`):**
+> Para comenzar a programar y probar funcionalidades de inmediato con un entorno poblado (mascotas, solicitudes de match, citas presenciales y reportes asignados a los usuarios de desarrollo), ejecuta:
+> ```bash
+> docker compose exec web python manage.py seed_pets
+> ```
+> Este comando es **idempotente** (puedes ejecutarlo cuantas veces desees sin duplicar datos) y crea 17 mascotas con perfiles diversos (perros y gatos de distintas edades, razas y géneros), 13 solicitudes de emparejamiento (`MatchRequest`) en todos los estados del ciclo de vida (`pending`, `accepted`, `rejected`), 6 citas de encuentro (`PetMeetup`) y actualiza los perfiles de los usuarios con preferencias y calificaciones de prueba.
 
 > [!TIP]
 > **¿Cómo inspeccionar la base de datos desde tu editor o visor de SQLite (VS Code, DBeaver, SQLite Viewer)?**
@@ -111,6 +122,7 @@ docker compose exec web pip install <nombre-del-paquete>
 | Reconstruir e iniciar contenedores | `docker compose up -d --build` |
 | Ver logs en vivo de Django y Tailwind | `docker compose logs -f web` |
 | Ver logs en vivo de la base de datos | `docker compose logs -f db` |
+| Poblar base de datos con datos de prueba (`seed_pets`) | `docker compose exec web python manage.py seed_pets` |
 | Ejecutar las pruebas unitarias | `docker compose exec web python manage.py test` |
 | Crear un superusuario administrador | `docker compose exec web python manage.py createsuperuser` |
 | Copiar base de datos viva al host (para SQLite Viewer / DBeaver) | `docker compose cp web:/app/data/db.sqlite3 ./data/db.sqlite3` |
@@ -133,7 +145,10 @@ pip install -r requirements.txt
 # 3. Aplicar migraciones
 python manage.py migrate
 
-# 4. Iniciar el servidor
+# 4. Poblar datos iniciales de prueba (mascotas, matches y citas)
+python manage.py seed_pets
+
+# 5. Iniciar el servidor
 python manage.py runserver
 ```
 
@@ -169,6 +184,25 @@ Para facilitar las pruebas de autenticación, diseño y flujos de usuario a todo
 
 > [!TIP]
 > Puedes iniciar sesión ingresando indistintamente el **correo electrónico** o el **nombre de usuario** junto con la contraseña en la pantalla de [Inicio de sesión](http://localhost:8000/accounts/login/).
+
+### 🌱 Datos de prueba precargados (`seed_pets`)
+
+Al ejecutar el comando `python manage.py seed_pets`, se inicializan automáticamente mascotas e interacciones asignadas a las cuentas de desarrollo con la contraseña universal `123456789`:
+
+| Usuario | Mascotas asignadas | Actividad y casos de prueba disponibles |
+| :--- | :--- | :--- |
+| `edwyn` | **Max** (Pastor Alemán, M) y **Bella** (Pomerania, H) | Solicitudes de match pendientes y aceptadas, cita confirmada en Parque del Este para probar flujos de emparejamiento. |
+| `admin` | **Toby** (Bulldog Francés, M) y **Luna** (Golden Retriever, H) | Acceso de superusuario (`/admin/`), reportes de moderación y auditoría de citas. |
+| `stefany` | **Rocky** (Beagle, M) y **Mia** (Gata Siamés, H) | Casos multi-especie (perro y gato), citas propuestas y solicitudes rechazadas. |
+| `tutor` | **Bruno** (Labrador, M) y **Coco** (Husky Siberiano, M) | Cita completada con valoración histórica y perfiles con pedigrí certificado. |
+| `sofia` | **Daisy** (Caniche Toy, H), **Simbad** (Gato Persa, M) y **Thor** (Rottweiler, M) | Usuario con 3 mascotas de distintas especies para probar el selector de mascota activa. |
+| `maria` | **Nala** (Border Collie, H) y **Milo** (Gato Bengalí, M) | Solicitudes entrantes y salientes de socialización. |
+| `bryan` | **Simba** (Akita Inu, M) y **Kira** (Samoyedo, H) | Pruebas de compatibilidad geográfica y distancias de búsqueda. |
+| `oriana` | **Chloe** (Dálmata, H) y **Oliver** (Cavalier King Charles, M) | Cita cancelada de prueba y solicitudes pendientes para validar flujos de interfaz. |
+
+> [!NOTE]
+> **Imágenes predeterminadas:**
+> Todas las mascotas y perfiles de usuario creados por el comando de semilla utilizan los avatares predeterminados en formato SVG (`/static/images/pets/default_avatar.svg` y `/static/images/avatars/default_avatar.svg`), por lo que no requieren archivos multimedia externos ni consumen almacenamiento en disco.
 
 ## 📁 Estructura del proyecto
 
