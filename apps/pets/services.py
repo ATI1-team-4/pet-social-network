@@ -29,7 +29,9 @@ def get_user_pets(user_id: Any) -> list[Any]:
 # ==============================================================================
 
 
-def get_match_candidates(active_pet: Pet, filters: Optional[dict[str, Any]] = None) -> QuerySet[Pet]:
+def get_match_candidates(
+    active_pet: Pet, filters: Optional[dict[str, Any]] = None
+) -> QuerySet[Pet]:
     """
     Silueta: Consulta en base de datos los candidatos compatibles para el feed.
 
@@ -55,7 +57,9 @@ def record_candidate_like(active_pet: Pet, candidate_pet: Pet) -> tuple[MatchReq
       y retornar `(match_request, is_mutual=True)`.
     - En caso contrario, registrar con estado `PENDING` y retornar `(match_request, is_mutual=False)`.
     """
-    raise NotImplementedError('El equipo debe implementar el registro de likes y detección de reciprocidad.')
+    raise NotImplementedError(
+        'El equipo debe implementar el registro de likes y detección de reciprocidad.'
+    )
 
 
 def record_candidate_pass(active_pet: Pet, candidate_pet: Pet) -> MatchRequest:
@@ -159,7 +163,9 @@ def send_initial_match_message(
     - Validar que la solicitud esté en estado `ACCEPTED`.
     - Registrar el mensaje en el modelo de chat o enviar notificación de inicio de conversación.
     """
-    raise NotImplementedError('El equipo debe implementar el envío de mensaje inicial tras el match.')
+    raise NotImplementedError(
+        'El equipo debe implementar el envío de mensaje inicial tras el match.'
+    )
 
 
 # ==============================================================================

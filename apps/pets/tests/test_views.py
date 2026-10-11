@@ -84,22 +84,28 @@ class PetsViewsTests(TestCase):
         response_get = self.client.get(save_url)
         self.assertEqual(response_get.status_code, 405)
 
-        photo_file = SimpleUploadedFile('dog.jpg', b'\x47\x49\x46\x38\x39\x61', content_type='image/jpeg')
-        response_photo = self.client.post(save_url, {
-            'name': 'Maximus',
-            'breed': 'Husky',
-            'species': 'perro',
-            'gender': 'M',
-            'birth_date': '2023-01-01',
-            'photo': photo_file,
-        })
+        photo_file = SimpleUploadedFile(
+            'dog.jpg', b'\x47\x49\x46\x38\x39\x61', content_type='image/jpeg'
+        )
+        response_photo = self.client.post(
+            save_url,
+            {
+                'name': 'Maximus',
+                'breed': 'Husky',
+                'species': 'perro',
+                'gender': 'M',
+                'birth_date': '2023-01-01',
+                'photo': photo_file,
+            },
+        )
 
         self.assertRedirects(response_photo, reverse('pets:pet_management'))
         saved_pet = Pet.objects.filter(owner=self.user, name='Maximus').first()
         self.assertIsNotNone(saved_pet)
         self.assertTrue(saved_pet.has_photo)
-        self.assertTrue(saved_pet.photo.name.startswith(f'pets/user_{self.user.id}_pet_{saved_pet.id}_avatar_'))
-
+        self.assertTrue(
+            saved_pet.photo.name.startswith(f'pets/user_{self.user.id}_pet_{saved_pet.id}_avatar_')
+        )
 
     def test_pet_delete_view(self):
         """Verifica la eliminación de mascotas mediante la vista dedicada pet_delete_view."""

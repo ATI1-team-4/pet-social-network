@@ -3,7 +3,6 @@ from datetime import date
 
 from django.conf import settings
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimeStampedModel
@@ -63,9 +62,6 @@ def pet_photo_upload_path(instance, filename):
     tipo = 'avatar'
     id_unico = uuid.uuid4().hex[:8]
     return f'pets/user_{owner_id}_pet_{pet_id}_{tipo}_{id_unico}.{ext}'
-
-
-
 
 
 class Pet(TimeStampedModel):

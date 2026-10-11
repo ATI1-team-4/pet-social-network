@@ -61,13 +61,16 @@ class AccountsViewsTests(TestCase):
         user = User.objects.get(username='edwyn')
         self.client.force_login(user)
 
-        response = self.client.post(url, {
-            'full_name': 'Edwyn Jesús',
-            'email': 'edwyn.updated@petly.com',
-            'phone': '+58 412 111 2233',
-            'city': 'Caracas Centro',
-            'favorite_color': 'Azul Eléctrico',
-        })
+        response = self.client.post(
+            url,
+            {
+                'full_name': 'Edwyn Jesús',
+                'email': 'edwyn.updated@petly.com',
+                'phone': '+58 412 111 2233',
+                'city': 'Caracas Centro',
+                'favorite_color': 'Azul Eléctrico',
+            },
+        )
         self.assertRedirects(response, reverse('accounts:profile'))
         user.refresh_from_db()
         self.assertEqual(user.first_name, 'Edwyn')
@@ -75,7 +78,6 @@ class AccountsViewsTests(TestCase):
         self.assertEqual(user.profile.phone_number, '+58 412 111 2233')
         self.assertEqual(user.profile.city, 'Caracas Centro')
         self.assertEqual(user.profile.favorite_color, 'Azul Eléctrico')
-
 
 
 class AccountsSecurityAndAuditTests(TestCase):

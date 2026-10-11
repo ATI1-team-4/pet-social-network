@@ -2,7 +2,6 @@ import uuid
 
 from django.conf import settings
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimeStampedModel
@@ -19,9 +18,6 @@ def user_avatar_upload_path(instance, filename):
     user_id = instance.user_id or getattr(instance.user, 'id', 'unknown')
     id_unico = uuid.uuid4().hex[:8]
     return f'avatars/user_{user_id}_avatar_{id_unico}.{ext}'
-
-
-
 
 
 class UserProfile(TimeStampedModel):

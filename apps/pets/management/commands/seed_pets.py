@@ -1,7 +1,6 @@
 from datetime import date, time
 from decimal import Decimal
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
@@ -179,7 +178,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.LILAC,
                 'description': 'Le encanta nadar, buscar pelotas en el parque y descansar en familia.',
             },
-
             # 2. Mascotas de Edwyn (usuario desarrollador principal)
             {
                 'owner': edwyn_user,
@@ -232,7 +230,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.PEACH,
                 'description': 'Poodle pequeña, muy simpática y le encanta compartir paseos cortos y juegos.',
             },
-
             # 3. Mascotas de Sofia
             {
                 'owner': sofia_user,
@@ -271,7 +268,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.MINT,
                 'description': 'Beagle activo y alegre con excelente olfato y sociable con cualquier mascota.',
             },
-
             # 4. Mascotas de Maria
             {
                 'owner': maria_user,
@@ -310,7 +306,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.CORAL,
                 'description': 'Schnauzer cariñoso y obediente con excelente conducta.',
             },
-
             # 5. Mascotas de Bryan
             {
                 'owner': bryan_user,
@@ -349,7 +344,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.LILAC,
                 'description': 'Husky de ojos celestes, adora caminatas por la montaña y climas templados.',
             },
-
             # 6. Mascotas de Oriana
             {
                 'owner': oriana_user,
@@ -385,7 +379,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.CORAL,
                 'description': 'Gato leopardo de bengala, atlético, amigable y muy juguetón.',
             },
-
             # 7. Mascotas de Stefany
             {
                 'owner': stefany_user,
@@ -421,7 +414,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.PEACH,
                 'description': 'Gata persa de manto blanco esponjoso, adora caricias y ambientes calmados.',
             },
-
             # 8. Mascotas de Tutor
             {
                 'owner': tutor_user,
@@ -485,7 +477,6 @@ class Command(BaseCommand):
         kira = created_pets.get('Kira')
         oliver = created_pets.get('Oliver')
         maya = created_pets.get('Maya')
-        balto = created_pets.get('Balto')
         chloe = created_pets.get('Chloe')
         leo = created_pets.get('Leo')
         rocky = created_pets.get('Rocky')

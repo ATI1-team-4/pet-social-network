@@ -182,7 +182,9 @@ def profile_save_view(request):
     profile.favorite_color = request.POST.get('favorite_color', profile.favorite_color).strip()
     profile.favorite_book = request.POST.get('favorite_book', profile.favorite_book).strip()
     profile.favorite_music = request.POST.get('favorite_music', profile.favorite_music).strip()
-    profile.favorite_videogame = request.POST.get('favorite_game', profile.favorite_videogame).strip()
+    profile.favorite_videogame = request.POST.get(
+        'favorite_game', profile.favorite_videogame
+    ).strip()
 
     if request.POST.get('remove_avatar') == 'true' and profile.avatar:
         profile.avatar.delete(save=False)
@@ -194,4 +196,3 @@ def profile_save_view(request):
     profile.save()
     messages.success(request, _('Tu perfil ha sido actualizado exitosamente.'))
     return redirect('accounts:profile')
-

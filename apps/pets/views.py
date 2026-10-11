@@ -10,7 +10,6 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-
 from apps.pets.models import Pet, PetSpecies
 
 # Perfiles de mascotas de referencia según prototipo oficial (reto 11, páginas 10 y 11)
@@ -166,14 +165,8 @@ def pet_save_view(request):
         final_photo_url = db_pet.photo_url
         pet_id = str(db_pet.id)
 
-
-
     else:
-        final_photo_url = (
-            '/static/images/pets/default_avatar.svg'
-            if remove_photo
-            else None
-        )
+        final_photo_url = '/static/images/pets/default_avatar.svg' if remove_photo else None
 
     # Actualizar la mascota en DEFAULT_PETS en memoria para consistencia
     for pet in DEFAULT_PETS:
@@ -182,7 +175,9 @@ def pet_save_view(request):
             pet['breed'] = request.POST.get('breed', pet['breed'])
             pet['species'] = species_slug
             pet['species_label'] = (
-                _('Gato') if species_slug == 'gato' else (_('Otro') if species_slug == 'otro' else _('Perro'))
+                _('Gato')
+                if species_slug == 'gato'
+                else (_('Otro') if species_slug == 'otro' else _('Perro'))
             )
             pet['gender'] = 'hembra' if gender == Pet.Gender.HEMBRA else 'macho'
             pet['gender_symbol'] = '♀' if gender == Pet.Gender.HEMBRA else '♂'
@@ -218,41 +213,55 @@ def pet_management_view(request):
     if user_pets:
         pets_list = []
         for p in user_pets:
-            pets_list.append({
-                'id': str(p.id),
-                'name': p.name,
-                'species': p.species.slug if p.species else 'perro',
-                'species_label': str(p.species_label),
-                'gender': 'hembra' if p.is_hembra else 'macho',
-                'gender_label': str(p.gender_label),
-                'gender_symbol': p.gender_symbol,
-                'breed': p.breed,
-                'birth_date': p.birth_date.strftime('%m/%d/%Y') if p.birth_date else '04/15/2022',
-                'birth_date_iso': p.birth_date.isoformat() if p.birth_date else '2022-04-15',
-                'age_years': p.age_years,
-                'age_text': str(p.age_text),
-                'age_completed': f'{p.age_years} años cumplidos',
-                'certificate': 'fci',
-                'certificate_label': str(p.certificate_type or 'Certificado FCI / con pedigrí'),
-                'temperaments': [t.strip() for t in p.temperaments.split(',') if t.strip()] if p.temperaments else ['Juguetón'],
-                'description': p.description,
-                'profile_color': p.profile_color,
-                'profile_color_hex': {'coral': '#FA7D82', 'lilac': '#E9D5FF', 'mint': '#8FFFB4', 'peach': '#FFDAD9'}.get(p.profile_color, '#FA7D82'),
-                'is_matching': p.is_active_for_match,
-                'is_socializing': True,
-                'is_adoption': False,
-                'photo_url': p.photo_url,
-                'is_active': p.is_active_for_match,
-                'status_label': 'Activo' if p.is_active_for_match else 'Inactiva',
-                'tab_label': p.name,
-            })
+            pets_list.append(
+                {
+                    'id': str(p.id),
+                    'name': p.name,
+                    'species': p.species.slug if p.species else 'perro',
+                    'species_label': str(p.species_label),
+                    'gender': 'hembra' if p.is_hembra else 'macho',
+                    'gender_label': str(p.gender_label),
+                    'gender_symbol': p.gender_symbol,
+                    'breed': p.breed,
+                    'birth_date': p.birth_date.strftime('%m/%d/%Y')
+                    if p.birth_date
+                    else '04/15/2022',
+                    'birth_date_iso': p.birth_date.isoformat() if p.birth_date else '2022-04-15',
+                    'age_years': p.age_years,
+                    'age_text': str(p.age_text),
+                    'age_completed': f'{p.age_years} años cumplidos',
+                    'certificate': 'fci',
+                    'certificate_label': str(p.certificate_type or 'Certificado FCI / con pedigrí'),
+                    'temperaments': [t.strip() for t in p.temperaments.split(',') if t.strip()]
+                    if p.temperaments
+                    else ['Juguetón'],
+                    'description': p.description,
+                    'profile_color': p.profile_color,
+                    'profile_color_hex': {
+                        'coral': '#FA7D82',
+                        'lilac': '#E9D5FF',
+                        'mint': '#8FFFB4',
+                        'peach': '#FFDAD9',
+                    }.get(p.profile_color, '#FA7D82'),
+                    'is_matching': p.is_active_for_match,
+                    'is_socializing': True,
+                    'is_adoption': False,
+                    'photo_url': p.photo_url,
+                    'is_active': p.is_active_for_match,
+                    'status_label': 'Activo' if p.is_active_for_match else 'Inactiva',
+                    'tab_label': p.name,
+                }
+            )
     else:
         pets_list = DEFAULT_PETS
 
     active_pet = None
     if not is_new and pets_list:
         if pet_param:
-            active_pet = next((p for p in pets_list if p['name'].lower() == pet_param or p['id'] == pet_param), pets_list[0])
+            active_pet = next(
+                (p for p in pets_list if p['name'].lower() == pet_param or p['id'] == pet_param),
+                pets_list[0],
+            )
         else:
             active_pet = pets_list[0]
 
@@ -263,8 +272,6 @@ def pet_management_view(request):
         'pets_json': json.dumps(pets_list, cls=DjangoJSONEncoder),
     }
     return render(request, 'pets/pet_management.html', context)
-
-
 
 
 @login_required
@@ -595,7 +602,10 @@ def match_like_candidate_view(request):
     - Retornar JSON con `{'status': 'success', 'is_match': bool, 'match_data': ...}`.
     """
     return JsonResponse(
-        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
         status=501,
     )
 
@@ -612,7 +622,10 @@ def match_pass_candidate_view(request):
     - Retornar JSON con `{'status': 'success', 'candidate_id': candidate_id}`.
     """
     return JsonResponse(
-        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
         status=501,
     )
 
@@ -629,7 +642,10 @@ def match_report_candidate_view(request):
     - Retornar JSON con confirmación y mensaje para retroalimentar al usuario.
     """
     return JsonResponse(
-        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
         status=501,
     )
 
@@ -651,7 +667,10 @@ def match_accept_request_view(request, request_id):
     - Retornar JSON con `{'status': 'accepted', 'request_id': request_id}`.
     """
     return JsonResponse(
-        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
         status=501,
     )
 
@@ -668,7 +687,10 @@ def match_reject_request_view(request, request_id):
     - Retornar JSON con `{'status': 'rejected', 'request_id': request_id}`.
     """
     return JsonResponse(
-        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
         status=501,
     )
 
@@ -685,7 +707,10 @@ def send_initial_message_view(request, request_id):
     - Retornar JSON con confirmación de envío.
     """
     return JsonResponse(
-        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
         status=501,
     )
 
@@ -707,7 +732,10 @@ def schedule_meetup_view(request):
     - Retornar JSON con `{'status': 'scheduled', 'meetup_id': ...}`.
     """
     return JsonResponse(
-        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
         status=501,
     )
 
@@ -724,7 +752,9 @@ def cancel_meetup_view(request, meetup_id):
     - Retornar JSON con confirmación de cancelación.
     """
     return JsonResponse(
-        {'status': 'pending_implementation', 'message': _('Pendiente de implementación por el equipo.')},
+        {
+            'status': 'pending_implementation',
+            'message': _('Pendiente de implementación por el equipo.'),
+        },
         status=501,
     )
-

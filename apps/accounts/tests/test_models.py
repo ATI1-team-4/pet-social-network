@@ -77,7 +77,6 @@ class UserProfileModelTests(TestCase):
             '/media/avatars/user_1_avatar_9f8e7d6c.jpg',
         )
 
-
     def test_user_avatar_upload_path_convention(self):
         """Verifica que la ruta generada para el avatar siga la convención definida."""
         from apps.accounts.models import user_avatar_upload_path
@@ -85,7 +84,6 @@ class UserProfileModelTests(TestCase):
         path = user_avatar_upload_path(self.profile, 'perfil.jpg')
         self.assertTrue(path.startswith(f'avatars/user_{self.user.id}_avatar_'))
         self.assertTrue(path.endswith('.jpg'))
-
 
 
 class UserReportModelAndAdminTests(TestCase):

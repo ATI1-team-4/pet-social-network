@@ -27,8 +27,16 @@ class ScheduleMeetupForm(forms.ModelForm):
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'input-petly'}),
             'time': forms.TimeInput(attrs={'type': 'time', 'class': 'input-petly'}),
-            'location_name': forms.TextInput(attrs={'class': 'input-petly', 'placeholder': _('Nombre del parque o plaza')}),
-            'notes': forms.Textarea(attrs={'class': 'input-petly', 'rows': 3, 'placeholder': _('Indicaciones o temperamento a considerar')}),
+            'location_name': forms.TextInput(
+                attrs={'class': 'input-petly', 'placeholder': _('Nombre del parque o plaza')}
+            ),
+            'notes': forms.Textarea(
+                attrs={
+                    'class': 'input-petly',
+                    'rows': 3,
+                    'placeholder': _('Indicaciones o temperamento a considerar'),
+                }
+            ),
         }
 
     def clean_date(self):

@@ -81,7 +81,6 @@ class PetModelTests(TestCase):
             '/media/pets/user_1_pet_1_avatar_9f8e7d6c.jpg',
         )
 
-
     def test_pet_photo_upload_path_convention(self):
         from apps.pets.models import pet_photo_upload_path
 

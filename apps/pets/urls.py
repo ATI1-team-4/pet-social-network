@@ -17,9 +17,21 @@ urlpatterns = [
     path('match/pass/', views.match_pass_candidate_view, name='match_pass_candidate'),
     path('match/report/', views.match_report_candidate_view, name='match_report_candidate'),
     # Siluetas de rutas para solicitudes e interesados (Issue #64)
-    path('match/requests/<int:request_id>/accept/', views.match_accept_request_view, name='match_accept_request'),
-    path('match/requests/<int:request_id>/reject/', views.match_reject_request_view, name='match_reject_request'),
-    path('match/requests/<int:request_id>/message/', views.send_initial_message_view, name='send_initial_message'),
+    path(
+        'match/requests/<int:request_id>/accept/',
+        views.match_accept_request_view,
+        name='match_accept_request',
+    ),
+    path(
+        'match/requests/<int:request_id>/reject/',
+        views.match_reject_request_view,
+        name='match_reject_request',
+    ),
+    path(
+        'match/requests/<int:request_id>/message/',
+        views.send_initial_message_view,
+        name='send_initial_message',
+    ),
     # Siluetas de rutas para citas y encuentros seguros (Issue #65)
     path('match/meetups/schedule/', views.schedule_meetup_view, name='schedule_meetup'),
     path('match/meetups/<int:meetup_id>/cancel/', views.cancel_meetup_view, name='cancel_meetup'),

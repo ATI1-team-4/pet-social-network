@@ -12,4 +12,3 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('profile/save/', views.profile_save_view, name='profile_save'),
 ]
-
