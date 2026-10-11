@@ -19,7 +19,12 @@ from apps.accounts.signals import get_client_ip
 
 def login_view(request):
     """Procesa el inicio de sesión y renderiza la pantalla correspondiente."""
+    next_url = request.POST.get('next') or request.GET.get('next') or ''
     if request.user.is_authenticated:
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={request.get_host()}
+        ):
+            return redirect(next_url)
         return redirect('pets:pet_select')
 
     form = LoginForm()
@@ -38,7 +43,6 @@ def login_view(request):
                 else:
                     request.session.set_expiry(0)  # Expira al cerrar el navegador
 
-                next_url = request.POST.get('next') or request.GET.get('next')
                 if next_url and url_has_allowed_host_and_scheme(
                     next_url, allowed_hosts={request.get_host()}
                 ):
@@ -54,12 +58,17 @@ def login_view(request):
         else:
             messages.error(request, _('Por favor, completa todos los campos requeridos.'))
 
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, 'accounts/login.html', {'form': form, 'next_url': next_url})
 
 
 def register_view(request):
     """Procesa el registro de nuevos tutores y renderiza la pantalla correspondiente."""
+    next_url = request.POST.get('next') or request.GET.get('next') or ''
     if request.user.is_authenticated:
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={request.get_host()}
+        ):
+            return redirect(next_url)
         return redirect('pets:pet_select')
 
     # Garantizar que al ingresar a la pantalla de registro no se arrastren mensajes previos
@@ -84,8 +93,12 @@ def register_view(request):
                 ip_address=client_ip,
             )
 
-            # Iniciar sesión automáticamente tras el registro y redirigir a selección de mascota
+            # Iniciar sesión automáticamente tras el registro y redirigir a selección de mascota o next
             login(request, user)
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url, allowed_hosts={request.get_host()}
+            ):
+                return redirect(next_url)
             return redirect('pets:pet_select')
 
         # Mostrar errores específicos del formulario en el banner de mensajes
@@ -93,7 +106,7 @@ def register_view(request):
             for error in errors:
                 messages.error(request, f'{error}')
 
-    return render(request, 'accounts/register.html', {'form': form})
+    return render(request, 'accounts/register.html', {'form': form, 'next_url': next_url})
 
 
 def password_reset_view(request):
