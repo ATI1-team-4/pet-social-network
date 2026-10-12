@@ -244,8 +244,8 @@ class Pet(TimeStampedModel):
         return self.gender in (self.Gender.HEMBRA, 'H', 'hembra', 'F')
 
     @property
-    def gender_symbol(self):
-        return '♂' if self.is_macho else '♀'
+    def gender_icon(self):
+        return 'male' if self.is_macho else 'female'
 
     @property
     def gender_label(self):
@@ -330,8 +330,8 @@ class MatchRequest(TimeStampedModel):
     )
     notes = models.TextField(
         blank=True,
-        verbose_name=_('Mensaje inicial'),
-        help_text=_('Nota o mensaje enviado por el tutor solicitante.'),
+        verbose_name=_('Nota de solicitud'),
+        help_text=_('Nota enviada por el tutor solicitante.'),
     )
 
     class Meta:

@@ -137,8 +137,12 @@
                                 <h2 id="card-name" class="title-h2 text-white font-bold tracking-tight drop-shadow-md">
                                     {{ current_candidate.name }}
                                 </h2>
-                                <span id="card-gender-symbol" class="text-lg font-bold drop-shadow-md text-pet-accent">
-                                    {{ current_candidate.gender_symbol }}
+                                <span id="card-gender-symbol" class="inline-flex items-center drop-shadow-md text-pet-accent">
+                                    {% if current_candidate.gender == 'H' or current_candidate.gender == 'hembra' or current_candidate.is_hembra %}
+                                        {% include 'components/icon.html' with name="female" class="w-4 h-4 sm:w-5 sm:h-5 text-inherit" %}
+                                    {% else %}
+                                        {% include 'components/icon.html' with name="male" class="w-4 h-4 sm:w-5 sm:h-5 text-inherit" %}
+                                    {% endif %}
                                 </span>
                                 <span id="card-age" class="text-xs font-semibold bg-white/20 backdrop-blur-xs px-2.5 py-0.5 rounded-full drop-shadow-xs">
                                     {{ current_candidate.age }}
@@ -400,7 +404,7 @@
 
         <!-- Botones de acción del match -->
         <div class="space-y-2.5">
-            {% translate "Enviar mensaje a los tutores" as send_msg_text %}
+            {% translate "Ver solicitudes y notas" as send_msg_text %}
             {% url 'pets:match_interested' as match_int_url %}
             {% include 'components/button.html' with href=match_int_url text=send_msg_text icon="message-square" icon_class="w-4 h-4 text-white" class="w-full py-3 text-sm font-bold shadow-md inline-flex items-center justify-center gap-2 no-underline" %}
 
@@ -509,7 +513,15 @@
         if (nameElem) nameElem.textContent = c.name;
 
         const genderSymbol = document.getElementById('card-gender-symbol');
-        if (genderSymbol) genderSymbol.textContent = c.gender_symbol;
+        if (genderSymbol) {
+            const isFemale = (c.gender === 'H' || c.gender === 'hembra' || c.gender_icon === 'female');
+            const iconName = isFemale ? 'female' : 'male';
+            const iconSpan = genderSymbol.querySelector('span[style*="mask-image"]');
+            if (iconSpan) {
+                iconSpan.style.maskImage = `url('/static/images/icons/${iconName}.svg')`;
+                iconSpan.style.webkitMaskImage = `url('/static/images/icons/${iconName}.svg')`;
+            }
+        }
 
         const ageElem = document.getElementById('card-age');
         if (ageElem) ageElem.textContent = c.age;

@@ -533,8 +533,12 @@
                                 <h2 id="modal-preview-name" class="title-h3 sm:title-h2 text-white font-bold tracking-tight drop-shadow-md">
                                     {{ active_pet.name|default:"Toby" }}
                                 </h2>
-                                <span id="modal-preview-gender-symbol" class="text-base sm:text-lg font-bold drop-shadow-md" style="color: #FA7D82;">
-                                    {{ active_pet.gender_symbol|default:"♂" }}
+                                <span id="modal-preview-gender-symbol" class="inline-flex items-center drop-shadow-md" style="color: #FA7D82;">
+                                    {% if active_pet.is_hembra or active_pet.gender == 'H' or active_pet.gender == 'hembra' %}
+                                        {% include 'components/icon.html' with name="female" class="w-4 h-4 sm:w-5 sm:h-5 text-inherit" %}
+                                    {% else %}
+                                        {% include 'components/icon.html' with name="male" class="w-4 h-4 sm:w-5 sm:h-5 text-inherit" %}
+                                    {% endif %}
                                 </span>
                                 <span id="modal-preview-age-badge" class="text-[11px] sm:text-xs font-semibold bg-white/20 backdrop-blur-xs px-2 py-0.5 rounded-full drop-shadow-xs">
                                     {{ active_pet.age_text|default:"3 años" }}
@@ -877,7 +881,22 @@
         // Género y símbolo
         const isMale = (gender === 'M' || gender === 'macho');
         const genderSym = document.getElementById('modal-preview-gender-symbol');
-        if (genderSym) genderSym.textContent = isMale ? '♂' : '♀';
+        if (genderSym) {
+            const iconName = isMale ? 'male' : 'female';
+            const iconSpan = genderSym.querySelector('span[style*="mask-image"]');
+            if (iconSpan) {
+                iconSpan.style.maskImage = `url('/static/images/icons/${iconName}.svg')`;
+                iconSpan.style.webkitMaskImage = `url('/static/images/icons/${iconName}.svg')`;
+            }
+            const genderTitle = isMale ? '{% translate "Macho" %}' : '{% translate "Hembra" %}';
+            genderSym.setAttribute('title', genderTitle);
+            genderSym.setAttribute('aria-label', genderTitle);
+            const parentSpan = genderSym.querySelector('[title]');
+            if (parentSpan) {
+                parentSpan.setAttribute('title', genderTitle);
+                parentSpan.setAttribute('aria-label', genderTitle);
+            }
+        }
 
         // Especie y Raza
         const speciesLabel = species === 'gato' ? '{% translate "Gato" %}' : (species === 'otro' ? '{% translate "Otro" %}' : '{% translate "Perro" %}');

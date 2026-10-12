@@ -68,13 +68,13 @@
             {% blocktranslate with count=interested_count asvar f_all_label %}Todos ({{ count }}){% endblocktranslate %}
             {% include 'components/button.html' with text=f_all_label variant="custom" onclick="filterSuitors('all', this)" attrs='data-filter="all"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-[#A53B42] text-white shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
 
-            {% translate "Cruza responsable / pedigrí (2)" as f_breeding_label %}
+            {% translate "Cruza responsable / pedigrí" as f_breeding_label %}
             {% include 'components/button.html' with text=f_breeding_label variant="custom" onclick="filterSuitors('breeding', this)" attrs='data-filter="breeding"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
 
-            {% translate "Citas de socialización (1)" as f_social_label %}
+            {% translate "Citas de socialización" as f_social_label %}
             {% include 'components/button.html' with text=f_social_label variant="custom" onclick="filterSuitors('social', this)" attrs='data-filter="social"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
 
-            {% translate "Cerca de ti (< 5 km)" as f_near_label %}
+            {% translate "Cerca de ti" as f_near_label %}
             {% include 'components/button.html' with text=f_near_label variant="custom" onclick="filterSuitors('near', this)" attrs='data-filter="near"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
         </div>
 
@@ -131,9 +131,11 @@
                                     <h2 class="title-h5 text-neutral-900 font-bold leading-tight group-hover:text-petly-coral transition-colors">
                                         {{ suitor.name }}
                                     </h2>
-                                    <span class="text-sm font-bold text-petly-coral">
-                                        {{ suitor.gender_symbol }}
-                                    </span>
+                                    {% if suitor.is_hembra or suitor.gender == 'H' or suitor.gender == 'hembra' %}
+                                        {% include 'components/icon.html' with name="female" class="w-3.5 h-3.5 text-petly-coral" %}
+                                    {% else %}
+                                        {% include 'components/icon.html' with name="male" class="w-3.5 h-3.5 text-sky-600" %}
+                                    {% endif %}
                                     <span class="badge-tag text-[10px] font-bold py-0.5 px-2">
                                         {{ suitor.match_percentage }} {% translate "Match" %}
                                     </span>
@@ -153,8 +155,8 @@
                         <div class="flex items-center gap-2 self-end sm:self-center">
                             {% translate "Agendar cita" as schedule_label %}
                             {% include 'components/button.html' with text=schedule_label variant="primary" icon="calendar" icon_class="w-3.5 h-3.5 text-white" onclick="event.stopPropagation(); openMeetingModal('"|add:suitor.name|add:"', '"|add:suitor.photo_url|add:"')" class="text-xs px-4 py-2 font-bold shadow-xs inline-flex items-center gap-1.5" %}
-                            {% translate "Enviar mensaje" as send_msg_title %}
-                            {% include 'components/button.html' with variant="outline" icon="message-square" icon_class="w-3.5 h-3.5" title=send_msg_title aria_label=send_msg_title onclick="event.stopPropagation(); openMessageModal('"|add:suitor.name|add:"', '"|add:suitor.tutor_signature|add:"')" class="w-8 h-8 rounded-full p-0 flex items-center justify-center border-neutral-300 text-neutral-600 hover:text-petly-coral hover:border-petly-coral/50 shadow-xs cursor-pointer" %}
+                            {% translate "Nota de solicitud" as send_msg_title %}
+                            {% include 'components/button.html' with variant="outline" icon="message-square" icon_class="w-3.5 h-3.5" title=send_msg_title aria_label=send_msg_title onclick="event.stopPropagation(); openNoteModal('"|add:suitor.name|add:"', '"|add:suitor.tutor_signature|add:"')" class="w-8 h-8 rounded-full p-0 flex items-center justify-center border-neutral-300 text-neutral-600 hover:text-petly-coral hover:border-petly-coral/50 shadow-xs cursor-pointer" %}
                             {% translate "Descartar solicitud" as dismiss_title %}
                             {% include 'components/button.html' with variant="outline" icon="trash" icon_class="w-3.5 h-3.5" title=dismiss_title aria_label=dismiss_title onclick="event.stopPropagation(); dismissSuitor('"|add:suitor.name|add:"')" class="w-8 h-8 rounded-full p-0 flex items-center justify-center border-neutral-300 text-neutral-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 shadow-xs cursor-pointer" %}
 
@@ -185,9 +187,11 @@
                                             <h2 class="title-h3 text-neutral-900 font-bold leading-tight">
                                                 {{ suitor.name }}
                                             </h2>
-                                            <span class="text-sm font-bold text-petly-coral">
-                                                {{ suitor.gender_symbol }}
-                                            </span>
+                                            {% if suitor.is_hembra or suitor.gender == 'H' or suitor.gender == 'hembra' %}
+                                                {% include 'components/icon.html' with name="female" class="w-4 h-4 text-petly-coral" %}
+                                            {% else %}
+                                                {% include 'components/icon.html' with name="male" class="w-4 h-4 text-sky-600" %}
+                                            {% endif %}
                                             <span class="text-neutral-400">•</span>
                                             <span class="text-xs font-semibold text-neutral-600">
                                                 {{ suitor.breed }}
@@ -258,8 +262,8 @@
                                     <div class="flex items-center gap-2 w-full sm:w-auto">
                                         {% translate "Concertar encuentro" as meeting_label %}
                                         {% include 'components/button.html' with text=meeting_label variant="primary" icon="calendar" icon_class="w-4 h-4 text-white" onclick="openMeetingModal('"|add:suitor.name|add:"', '"|add:suitor.photo_url|add:"')" class="flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold shadow-md inline-flex items-center justify-center gap-1.5" %}
-                                        {% translate "Enviar mensaje" as msg_label %}
-                                        {% include 'components/button.html' with text=msg_label variant="lilac" icon="message-square" icon_class="w-4 h-4 text-purple-800" onclick="openMessageModal('"|add:suitor.name|add:"', '"|add:suitor.tutor_signature|add:"')" class="flex-1 sm:flex-initial text-xs px-4 py-2.5 font-semibold inline-flex items-center justify-center gap-1.5 shadow-xs" %}
+                                        {% translate "Nota de solicitud" as msg_label %}
+                                        {% include 'components/button.html' with text=msg_label variant="lilac" icon="message-square" icon_class="w-4 h-4 text-purple-800" onclick="openNoteModal('"|add:suitor.name|add:"', '"|add:suitor.tutor_signature|add:"')" class="flex-1 sm:flex-initial text-xs px-4 py-2.5 font-semibold inline-flex items-center justify-center gap-1.5 shadow-xs" %}
                                     </div>
 
                                     {% translate "Negar interés" as dismiss_label %}
@@ -423,32 +427,32 @@
     </div>
 </div>
 
-<!-- Modal: Enviar Mensaje -->
-<div id="modal-send-message" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-msg-title">
-    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-send-message')" aria-hidden="true"></div>
+<!-- Modal: Nota de solicitud -->
+<div id="modal-send-note" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-note-title">
+    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-send-note')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
         {% translate 'Cerrar' as aria_close_msg %}
-        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4 text-neutral-400 hover:text-neutral-700" onclick="closeModal('modal-send-message')" aria_label=aria_close_msg class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-neutral-100 transition-colors select-none cursor-pointer" %}
+        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4 text-neutral-400 hover:text-neutral-700" onclick="closeModal('modal-send-note')" aria_label=aria_close_msg class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-neutral-100 transition-colors select-none cursor-pointer" %}
         <div class="flex items-center gap-3 mb-3 pr-8">
             <div class="w-10 h-10 rounded-full bg-petly-lilac text-petly-purple flex items-center justify-center">
                 {% include 'components/icon.html' with name="message-square" class="w-5 h-5" %}
             </div>
             <div>
-                <h3 id="modal-msg-title" class="title-h4 text-neutral-900 font-bold">
-                    {% translate "Mensaje directo" %}
+                <h3 id="modal-note-title" class="title-h4 text-neutral-900 font-bold">
+                    {% translate "Nota de solicitud" %}
                 </h3>
                 <p class="text-caption text-neutral-500">
-                    {% translate "Conversación con" %} <span id="msg-tutor-name" class="font-bold text-neutral-800">Mariana Ríos</span>
+                    {% translate "Nota para el tutor" %} <span id="note-tutor-name" class="font-bold text-neutral-800">Mariana Ríos</span>
                 </p>
             </div>
         </div>
 
-        <form onsubmit="handleSendMessage(event)" class="space-y-3 text-xs">
-            <textarea rows="3" class="textarea-petly text-xs" placeholder="{% translate 'Escribe tu mensaje sobre acuerdos de cruza o socialización...' %}" required></textarea>
+        <form onsubmit="handleSendNote(event)" class="space-y-3 text-xs">
+            <textarea rows="3" class="textarea-petly text-xs" placeholder="{% translate 'Escribe una nota sobre acuerdos de cruza o socialización...' %}" required></textarea>
             <div class="flex justify-end gap-2 pt-2">
                 {% translate "Cancelar" as cancel_msg_label %}
-                {% include 'components/button.html' with text=cancel_msg_label type="button" variant="outline" onclick="closeModal('modal-send-message')" class="text-xs px-4 py-2 bg-white" %}
-                {% translate "Enviar mensaje" as send_msg_btn_label %}
+                {% include 'components/button.html' with text=cancel_msg_label type="button" variant="outline" onclick="closeModal('modal-send-note')" class="text-xs px-4 py-2 bg-white" %}
+                {% translate "Guardar nota" as send_msg_btn_label %}
                 {% include 'components/button.html' with text=send_msg_btn_label type="submit" variant="primary" class="text-xs px-5 py-2 font-bold shadow-md" %}
             </div>
         </form>
@@ -537,10 +541,10 @@
         openModal('modal-schedule-meeting');
     }
 
-    function openMessageModal(petName, tutorName) {
-        const titleName = document.getElementById('msg-tutor-name');
+    function openNoteModal(petName, tutorName) {
+        const titleName = document.getElementById('note-tutor-name');
         if (titleName) titleName.textContent = tutorName;
-        openModal('modal-send-message');
+        openModal('modal-send-note');
     }
 
     function handleConfirmMeeting(event) {
@@ -549,10 +553,10 @@
         closeModal('modal-schedule-meeting');
     }
 
-    function handleSendMessage(event) {
+    function handleSendNote(event) {
         event.preventDefault();
-        alert('{% translate "¡Mensaje enviado exitosamente!" %}');
-        closeModal('modal-send-message');
+        alert('{% translate "¡Nota guardada exitosamente!" %}');
+        closeModal('modal-send-note');
     }
 
     function dismissSuitor(petName) {

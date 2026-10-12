@@ -68,7 +68,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Momento exacto en el que se creó el registro.', verbose_name='Fecha de creación')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Momento de la última modificación del registro.', verbose_name='Última actualización')),
                 ('status', models.CharField(choices=[('pending', 'Pendiente'), ('accepted', 'Aceptada'), ('rejected', 'Rechazada')], default='pending', max_length=20, verbose_name='Estado de la solicitud')),
-                ('notes', models.TextField(blank=True, help_text='Nota o mensaje enviado por el tutor solicitante.', verbose_name='Mensaje inicial')),
+                ('notes', models.TextField(blank=True, help_text='Nota enviada por el tutor solicitante.', verbose_name='Nota de solicitud')),
                 ('from_pet', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sent_match_requests', to='pets.pet', verbose_name='Mascota solicitante')),
                 ('to_pet', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='received_match_requests', to='pets.pet', verbose_name='Mascota solicitada')),
             ],

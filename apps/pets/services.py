@@ -151,20 +151,20 @@ def reject_match_request(request_id: int, active_pet: Pet) -> MatchRequest:
     raise NotImplementedError('El equipo debe implementar el rechazo de solicitudes de match.')
 
 
-def send_initial_match_message(
+def send_initial_match_note(
     request_id: int,
     sender_user: Any,
-    message_text: str,
+    note_text: str,
 ) -> dict[str, Any]:
     """
-    Silueta: Envía el primer mensaje de contacto tras confirmarse un match aceptado.
+    Silueta: Registra o actualiza la nota de contacto asociada a la solicitud en `MatchRequest.notes`.
 
     Requerimientos del equipo:
-    - Validar que la solicitud esté en estado `ACCEPTED`.
-    - Registrar el mensaje en el modelo de chat o enviar notificación de inicio de conversación.
+    - Validar que la solicitud esté asociada a las mascotas involucradas.
+    - Persistir la nota en el campo `notes` del modelo `MatchRequest`.
     """
     raise NotImplementedError(
-        'El equipo debe implementar el envío de mensaje inicial tras el match.'
+        'El equipo debe implementar el guardado de la nota de solicitud en MatchRequest.'
     )
 
 

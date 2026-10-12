@@ -21,7 +21,7 @@ DEFAULT_PETS = [
         'species_label': 'Perro',
         'gender': 'M',
         'gender_label': 'Macho',
-        'gender_symbol': '♂',
+        'gender_icon': 'male',
         'breed': 'Bulldog Francés',
         'birth_date': '04/15/2022',
         'birth_date_iso': '2022-04-15',
@@ -49,7 +49,7 @@ DEFAULT_PETS = [
         'species_label': 'Perro',
         'gender': 'H',
         'gender_label': 'Hembra',
-        'gender_symbol': '♀',
+        'gender_icon': 'female',
         'breed': 'Golden Retriever',
         'birth_date': '06/20/2021',
         'birth_date_iso': '2021-06-20',
@@ -180,7 +180,7 @@ def pet_save_view(request):
                 else (_('Otro') if species_slug == 'otro' else _('Perro'))
             )
             pet['gender'] = 'H' if gender == Pet.Gender.HEMBRA else 'M'
-            pet['gender_symbol'] = '♀' if gender == Pet.Gender.HEMBRA else '♂'
+            pet['gender_icon'] = 'female' if gender == Pet.Gender.HEMBRA else 'male'
             pet['gender_label'] = _('Hembra') if gender == Pet.Gender.HEMBRA else _('Macho')
             pet['birth_date'] = request.POST.get('birth_date', pet.get('birth_date', '04/15/2022'))
             pet['description'] = request.POST.get('description', pet.get('description', ''))
@@ -221,7 +221,7 @@ def pet_management_view(request):
                     'species_label': str(p.species_label),
                     'gender': p.gender,
                     'gender_label': str(p.gender_label),
-                    'gender_symbol': p.gender_symbol,
+                    'gender_icon': p.gender_icon,
                     'breed': p.breed,
                     'birth_date': p.birth_date.strftime('%m/%d/%Y')
                     if p.birth_date
@@ -354,7 +354,7 @@ MATCH_CANDIDATES = [
         'name': 'Bella',
         'gender': 'hembra',
         'gender_label': 'Hembra',
-        'gender_symbol': '♀',
+        'gender_icon': 'female',
         'species': 'perro',
         'species_label': 'Perro',
         'breed': 'Pastor Australiano (Perro) • Blue Merle Tricolor',
@@ -392,7 +392,7 @@ MATCH_CANDIDATES = [
         'name': 'Kira',
         'gender': 'hembra',
         'gender_label': 'Hembra',
-        'gender_symbol': '♀',
+        'gender_icon': 'female',
         'species': 'perro',
         'species_label': 'Perro',
         'breed': 'Pomerania Mini',
@@ -430,7 +430,7 @@ MATCH_CANDIDATES = [
         'name': 'Maya',
         'gender': 'hembra',
         'gender_label': 'Hembra',
-        'gender_symbol': '♀',
+        'gender_icon': 'female',
         'species': 'perro',
         'species_label': 'Perro',
         'breed': 'Boston Terrier',
@@ -471,7 +471,7 @@ INTERESTED_SUITORS = [
         'id': 'suitor-kira',
         'name': 'Kira',
         'gender': 'hembra',
-        'gender_symbol': '♀',
+        'gender_icon': 'female',
         'breed': 'Pomerania Mini',
         'age': '2 años',
         'birth_date': '15/06/2023',
@@ -496,7 +496,7 @@ INTERESTED_SUITORS = [
         'id': 'suitor-chloe',
         'name': 'Chloe',
         'gender': 'hembra',
-        'gender_symbol': '♀',
+        'gender_icon': 'female',
         'breed': 'Bulldog Francés',
         'age': '1 año',
         'birth_date': '20/09/2024',
@@ -522,7 +522,7 @@ INTERESTED_SUITORS = [
         'id': 'suitor-maya',
         'name': 'Maya',
         'gender': 'hembra',
-        'gender_symbol': '♀',
+        'gender_icon': 'female',
         'breed': 'Boston Terrier',
         'age': '3.1 años',
         'birth_date': '10/02/2022',
@@ -726,14 +726,14 @@ def match_reject_request_view(request, request_id):
 
 @login_required
 @require_POST
-def send_initial_message_view(request, request_id):
+def send_initial_note_view(request, request_id):
     """
-    Silueta: Envía el mensaje inicial tras confirmar un match mutuo aceptado.
+    Silueta: Envía o actualiza la nota de contacto asociada a la solicitud de match.
 
     El equipo debe implementar:
-    - Obtener `message_text` desde el POST y validar contenido no vacío.
-    - Delegar a `apps.pets.services.send_initial_match_message(...)`.
-    - Retornar JSON con confirmación de envío.
+    - Obtener `note_text` (o `message_text`) desde el POST y validar contenido no vacío.
+    - Delegar a `apps.pets.services.send_initial_match_note(...)`.
+    - Retornar JSON con confirmación de registro de nota.
     """
     return JsonResponse(
         {
