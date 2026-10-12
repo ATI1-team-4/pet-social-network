@@ -330,8 +330,8 @@ class MatchRequest(TimeStampedModel):
     )
     notes = models.TextField(
         blank=True,
-        verbose_name=_('Mensaje inicial'),
-        help_text=_('Nota o mensaje enviado por el tutor solicitante.'),
+        verbose_name=_('Nota de solicitud'),
+        help_text=_('Nota enviada por el tutor solicitante.'),
     )
 
     class Meta:

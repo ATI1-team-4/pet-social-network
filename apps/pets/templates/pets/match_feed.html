@@ -400,7 +400,7 @@
 
         <!-- Botones de acción del match -->
         <div class="space-y-2.5">
-            {% translate "Enviar mensaje a los tutores" as send_msg_text %}
+            {% translate "Ver solicitudes y notas" as send_msg_text %}
             {% url 'pets:match_interested' as match_int_url %}
             {% include 'components/button.html' with href=match_int_url text=send_msg_text icon="message-square" icon_class="w-4 h-4 text-white" class="w-full py-3 text-sm font-bold shadow-md inline-flex items-center justify-center gap-2 no-underline" %}
 

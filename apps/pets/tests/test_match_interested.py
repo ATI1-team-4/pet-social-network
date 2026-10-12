@@ -46,10 +46,10 @@ class MatchInterestedTests(TestCase):
         response = self.client.get(reverse('pets:match_reject_request', kwargs={'request_id': 1}))
         self.assertEqual(response.status_code, 405)
 
-    def test_send_initial_message_endpoint_requires_post(self):
-        """Silueta: Verifica que el envío de mensaje inicial rechace peticiones GET."""
+    def test_send_initial_note_endpoint_requires_post(self):
+        """Silueta: Verifica que el envío de nota de solicitud rechace peticiones GET."""
         self.client.login(username='tutor_interesados', password='password123')
-        response = self.client.get(reverse('pets:send_initial_message', kwargs={'request_id': 1}))
+        response = self.client.get(reverse('pets:send_initial_note', kwargs={'request_id': 1}))
         self.assertEqual(response.status_code, 405)
 
     def test_tab_counters_calculation(self):

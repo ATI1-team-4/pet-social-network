@@ -28,9 +28,9 @@ urlpatterns = [
         name='match_reject_request',
     ),
     path(
-        'match/requests/<int:request_id>/message/',
-        views.send_initial_message_view,
-        name='send_initial_message',
+        'match/requests/<int:request_id>/note/',
+        views.send_initial_note_view,
+        name='send_initial_note',
     ),
     # Siluetas de rutas para citas y encuentros seguros (Issue #65)
     path('match/meetups/schedule/', views.schedule_meetup_view, name='schedule_meetup'),

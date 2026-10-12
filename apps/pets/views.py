@@ -726,14 +726,14 @@ def match_reject_request_view(request, request_id):
 
 @login_required
 @require_POST
-def send_initial_message_view(request, request_id):
+def send_initial_note_view(request, request_id):
     """
-    Silueta: Envía el mensaje inicial tras confirmar un match mutuo aceptado.
+    Silueta: Envía o actualiza la nota de contacto asociada a la solicitud de match.
 
     El equipo debe implementar:
-    - Obtener `message_text` desde el POST y validar contenido no vacío.
-    - Delegar a `apps.pets.services.send_initial_match_message(...)`.
-    - Retornar JSON con confirmación de envío.
+    - Obtener `note_text` (o `message_text`) desde el POST y validar contenido no vacío.
+    - Delegar a `apps.pets.services.send_initial_match_note(...)`.
+    - Retornar JSON con confirmación de registro de nota.
     """
     return JsonResponse(
         {
