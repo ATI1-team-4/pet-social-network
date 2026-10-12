@@ -26,13 +26,13 @@ class Migration(migrations.Migration):
                 ('id_type', models.CharField(default='V', help_text='Nacionalidad o tipo de documento (V, E, J, P).', max_length=2, verbose_name='Tipo de documento')),
                 ('id_number', models.CharField(blank=True, help_text='Número de identificación legal del tutor.', max_length=20, verbose_name='Número de cédula/documento')),
                 ('bio', models.TextField(blank=True, help_text='Presentación o notas sobre el tutor.', verbose_name='Biografía')),
-                ('city', models.CharField(blank=True, default='Caracas', help_text='Ciudad o localidad de residencia del tutor.', max_length=100, verbose_name='Ciudad')),
+                ('state', models.CharField(blank=True, default='Distrito Capital', help_text='Estado o entidad federal de residencia.', max_length=100, verbose_name='Estado')),
+                ('municipality', models.CharField(blank=True, default='Libertador', help_text='Municipio de residencia.', max_length=100, verbose_name='Municipio')),
+                ('neighborhood', models.CharField(blank=True, help_text='Parroquia, urbanización o sector de residencia habitual.', max_length=150, verbose_name='Parroquia / Urbanización / Sector')),
                 ('latitude', models.FloatField(blank=True, help_text='Coordenada geográfica de latitud.', null=True, verbose_name='Latitud')),
                 ('longitude', models.FloatField(blank=True, help_text='Coordenada geográfica de longitud.', null=True, verbose_name='Longitud')),
                 ('birth_date', models.DateField(blank=True, help_text='Fecha de nacimiento del tutor.', null=True, verbose_name='Fecha de nacimiento')),
                 ('gender', models.CharField(blank=True, choices=[('M', 'Masculino'), ('F', 'Femenino'), ('O', 'Otro')], help_text='Género o identidad del tutor.', max_length=1, verbose_name='Género')),
-                ('rating', models.DecimalField(decimal_places=2, default=5.0, help_text='Puntuación promedio del tutor (1.00 a 5.00).', max_digits=3, verbose_name='Calificación')),
-                ('completed_meetings_count', models.PositiveIntegerField(default=0, help_text='Total de citas de socialización o cruza concretadas.', verbose_name='Citas completadas')),
                 ('favorite_color', models.CharField(blank=True, help_text='Color preferido para personalización de perfil.', max_length=50, verbose_name='Color favorito')),
                 ('favorite_book', models.CharField(blank=True, help_text='Libro favorito para afinidad cultural.', max_length=200, verbose_name='Libro favorito')),
                 ('favorite_music', models.CharField(blank=True, help_text='Género o banda favorita.', max_length=200, verbose_name='Música favorita')),
@@ -42,6 +42,13 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'Perfil de usuario',
                 'verbose_name_plural': 'Perfiles de usuario',
+                'constraints': [
+                    models.UniqueConstraint(
+                        condition=models.Q(('id_number', ''), _negated=True),
+                        fields=('id_type', 'id_number'),
+                        name='unique_tutor_identity_document',
+                    ),
+                ],
             },
         ),
         migrations.CreateModel(

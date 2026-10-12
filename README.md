@@ -475,7 +475,7 @@ El sistema implementa un modelo de datos relacional normalizado y desacoplado pa
 | Módulo / Paquete | Entidad (Tabla) | Modelo Django | Descripción y cardinalidades clave |
 | :--- | :--- | :--- | :--- |
 | **`django.contrib.auth`** | `auth_user` | `User` | Tabla nativa de seguridad y autenticación. <br>• **`1 : 1`** con `UserProfile` (extensión de perfil humano).<br>• **`1 : N`** con `Pet` (un usuario es dueño de 0..N mascotas).<br>• **`1 : N`** con `UserReport` (`reported_by` y `reported_user`).<br>• **`0..1 : N`** con `AuditLog` (eventos de seguridad). |
-| **`apps.accounts`** | `accounts_userprofile` | `UserProfile` | Perfil extendido del tutor con cédula, teléfono, ciudad, coordenadas geográficas, preferencias de afinidad, calificación promedio (`rating`) y contador de citas completadas (`completed_meetings_count`). |
+| **`apps.accounts`** | `accounts_userprofile` | `UserProfile` | Perfil extendido del tutor con cédula, teléfono, ubicación granular (`state`, `municipality`, `neighborhood`), coordenadas geográficas y preferencias de afinidad. |
 | **`apps.accounts`** | `accounts_userreport` | `UserReport` | Denuncias de moderación emitidas por tutores sobre usuarios o mascotas inapropiadas en el feed. |
 | **`apps.pets`** | `pets_petspecies` | `PetSpecies` | Catálogo configurable de especies (Perro, Gato, etc.) con íconos dinámicos.<br>• **`1 : N`** con `Pet` (clasifica especies sin alterar código). |
 | **`apps.pets`** | `pets_pet` | `Pet` | Perfil biológico y social de la mascota (raza, sexo, fecha de nacimiento, peso, fotos, certificados FCI/pedigrí, marcas de búsqueda y color temático). |

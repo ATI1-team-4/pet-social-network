@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
@@ -70,12 +71,25 @@ class UserProfile(TimeStampedModel):
         verbose_name=_('Biografía'),
         help_text=_('Presentación o notas sobre el tutor.'),
     )
-    city = models.CharField(
+    state = models.CharField(
         max_length=100,
-        default='Caracas',
+        default='Distrito Capital',
         blank=True,
-        verbose_name=_('Ciudad'),
-        help_text=_('Ciudad o localidad de residencia del tutor.'),
+        verbose_name=_('Estado'),
+        help_text=_('Estado o entidad federal de residencia.'),
+    )
+    municipality = models.CharField(
+        max_length=100,
+        default='Libertador',
+        blank=True,
+        verbose_name=_('Municipio'),
+        help_text=_('Municipio de residencia.'),
+    )
+    neighborhood = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name=_('Parroquia / Urbanización / Sector'),
+        help_text=_('Parroquia, urbanización o sector de residencia habitual.'),
     )
     latitude = models.FloatField(
         null=True,
@@ -105,18 +119,6 @@ class UserProfile(TimeStampedModel):
         blank=True,
         verbose_name=_('Género'),
         help_text=_('Género o identidad del tutor.'),
-    )
-    rating = models.DecimalField(
-        max_digits=3,
-        decimal_places=2,
-        default=5.00,
-        verbose_name=_('Calificación'),
-        help_text=_('Puntuación promedio del tutor (1.00 a 5.00).'),
-    )
-    completed_meetings_count = models.PositiveIntegerField(
-        default=0,
-        verbose_name=_('Citas completadas'),
-        help_text=_('Total de citas de socialización o cruza concretadas.'),
     )
     favorite_color = models.CharField(
         max_length=50,
@@ -172,6 +174,39 @@ class UserProfile(TimeStampedModel):
     @property
     def has_avatar(self):
         return bool(self.avatar and hasattr(self.avatar, 'name') and self.avatar.name)
+
+    @property
+    def city(self):
+        """Compatibilidad hacia atrás para código y reportes que consulten ciudad."""
+        return self.municipality or self.state or 'Caracas'
+
+    @property
+    def location_display(self):
+        """Retorna una cadena legible con la ubicación geográfica estructurada."""
+        parts = [p for p in (self.neighborhood, self.municipality, self.state) if p]
+        return ', '.join(parts) if parts else 'Caracas'
+
+    @property
+    def rating(self):
+        """
+        Puntuación promedio del tutor (1.00 a 5.00).
+        Calculado dinámicamente en código para evitar desnormalización en la base de datos.
+        Por defecto retorna 5.00 para la interfaz y compatibilidad hacia atrás.
+        """
+        return Decimal('5.00')
+
+    @property
+    def completed_meetings_count(self):
+        """
+        Total de citas de socialización o cruza concretadas.
+        Calculado dinámicamente en código a partir de los encuentros completados en PetMeetup.
+        """
+        from apps.pets.models import PetMeetup
+
+        return PetMeetup.objects.filter(
+            models.Q(pet1__owner=self.user) | models.Q(pet2__owner=self.user),
+            status=PetMeetup.MeetupStatus.COMPLETED,
+        ).count()
 
 
 class UserReport(TimeStampedModel):

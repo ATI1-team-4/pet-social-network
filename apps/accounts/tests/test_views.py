@@ -111,7 +111,9 @@ class AccountsViewsTests(TestCase):
                 'full_name': 'Edwyn Jesús',
                 'email': 'edwyn.updated@petly.com',
                 'phone': '+58 412 111 2233',
-                'city': 'Caracas Centro',
+                'state': 'Miranda',
+                'municipality': 'Chacao',
+                'neighborhood': 'Los Palos Grandes',
                 'favorite_color': 'Azul Eléctrico',
             },
         )
@@ -120,7 +122,10 @@ class AccountsViewsTests(TestCase):
         self.assertEqual(user.first_name, 'Edwyn')
         self.assertEqual(user.last_name, 'Jesús')
         self.assertEqual(user.profile.phone_number, '+58 412 111 2233')
-        self.assertEqual(user.profile.city, 'Caracas Centro')
+        self.assertEqual(user.profile.state, 'Miranda')
+        self.assertEqual(user.profile.municipality, 'Chacao')
+        self.assertEqual(user.profile.neighborhood, 'Los Palos Grandes')
+        self.assertEqual(user.profile.city, 'Chacao')
         self.assertEqual(user.profile.favorite_color, 'Azul Eléctrico')
 
 
