@@ -107,7 +107,11 @@ class PetModelTests(TestCase):
         self.assertFalse(pet_no_pedigree.has_pedigree)
 
     def test_pet_location_from_owner(self):
-        self.assertEqual(self.pet.location, 'Caracas')
+        self.assertEqual(self.pet.location, 'Libertador, Distrito Capital')
+        self.owner.profile.neighborhood = 'Los Palos Grandes'
+        self.owner.profile.municipality = 'Chacao'
+        self.owner.profile.state = 'Miranda'
+        self.assertEqual(self.pet.location, 'Los Palos Grandes, Chacao, Miranda')
 
 
 class MatchRequestModelTests(TestCase):

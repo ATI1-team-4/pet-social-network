@@ -38,13 +38,13 @@ package "apps.accounts" {
     + id_type : CharField
     + id_number : CharField
     + bio : TextField
-    + city : CharField
+    + state : CharField
+    + municipality : CharField
+    + neighborhood : CharField
     + latitude : FloatField
     + longitude : FloatField
     + birth_date : DateField
     + gender : CharField
-    + rating : DecimalField
-    + completed_meetings_count : PositiveIntegerField
     + favorite_color : CharField
     + favorite_book : CharField
     + favorite_music : CharField

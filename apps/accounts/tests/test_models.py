@@ -25,21 +25,24 @@ class UserProfileModelTests(TestCase):
 
     def test_user_profile_default_values(self):
         """Verifica los valores por defecto configurados en UserProfile."""
-        self.assertEqual(self.profile.city, 'Caracas')
+        self.assertEqual(self.profile.state, 'Distrito Capital')
+        self.assertEqual(self.profile.municipality, 'Libertador')
+        self.assertEqual(self.profile.neighborhood, '')
+        self.assertEqual(self.profile.city, 'Libertador')
         self.assertEqual(self.profile.rating, Decimal('5.00'))
         self.assertEqual(self.profile.completed_meetings_count, 0)
         self.assertIsNone(self.profile.latitude)
         self.assertIsNone(self.profile.longitude)
 
     def test_user_profile_extended_fields(self):
-        """Verifica la asignación y persistencia de campos de ubicación, fecha y afinidades."""
-        self.profile.city = 'Los Teques'
+        """Verifica la asignación y persistencia de campos de ubicación estructurada, fecha y afinidades."""
+        self.profile.state = 'Miranda'
+        self.profile.municipality = 'Guaicaipuro'
+        self.profile.neighborhood = 'Los Teques'
         self.profile.latitude = 10.3456
         self.profile.longitude = -67.0421
         self.profile.birth_date = date(1998, 5, 20)
         self.profile.gender = 'M'
-        self.profile.rating = Decimal('4.85')
-        self.profile.completed_meetings_count = 14
         self.profile.favorite_color = 'Coral'
         self.profile.favorite_book = 'Clean Architecture'
         self.profile.favorite_music = 'Rock'
@@ -47,13 +50,17 @@ class UserProfileModelTests(TestCase):
         self.profile.save()
 
         self.profile.refresh_from_db()
-        self.assertEqual(self.profile.city, 'Los Teques')
+        self.assertEqual(self.profile.state, 'Miranda')
+        self.assertEqual(self.profile.municipality, 'Guaicaipuro')
+        self.assertEqual(self.profile.neighborhood, 'Los Teques')
+        self.assertEqual(self.profile.city, 'Guaicaipuro')
+        self.assertEqual(self.profile.location_display, 'Los Teques, Guaicaipuro, Miranda')
         self.assertAlmostEqual(self.profile.latitude, 10.3456)
         self.assertAlmostEqual(self.profile.longitude, -67.0421)
         self.assertEqual(self.profile.birth_date, date(1998, 5, 20))
         self.assertEqual(self.profile.gender, 'M')
-        self.assertEqual(self.profile.rating, Decimal('4.85'))
-        self.assertEqual(self.profile.completed_meetings_count, 14)
+        self.assertEqual(self.profile.rating, Decimal('5.00'))
+        self.assertEqual(self.profile.completed_meetings_count, 0)
         self.assertEqual(self.profile.favorite_color, 'Coral')
         self.assertEqual(self.profile.favorite_book, 'Clean Architecture')
         self.assertEqual(self.profile.favorite_music, 'Rock')

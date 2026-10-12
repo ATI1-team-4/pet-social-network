@@ -294,8 +294,8 @@ class Pet(TimeStampedModel):
 
     @property
     def location(self):
-        if hasattr(self.owner, 'profile') and self.owner.profile.city:
-            return self.owner.profile.city
+        if hasattr(self.owner, 'profile'):
+            return self.owner.profile.location_display
         return 'Caracas'
 
 

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petly 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-12 10:53-0400\n"
+"POT-Creation-Date: 2026-10-12 13:15-0400\n"
 "PO-Revision-Date: 2026-10-03 23:20-0400\n"
 "Last-Translator: Team 4 <ati-team4@ucv.ve>\n"
 "Language-Team: English\n"
@@ -28,24 +28,29 @@ msgstr "Registered pets"
 msgid "Perfil adicional"
 msgstr "Additional profile"
 
-#: apps/accounts/admin.py:58 apps/accounts/models.py:77
-msgid "Ciudad"
-msgstr "City"
-
-#: apps/accounts/admin.py:62 apps/accounts/models.py:113
+#: apps/accounts/admin.py:40 apps/accounts/admin.py:72
+#: apps/accounts/admin.py:104
 msgid "Calificación"
 msgstr "Rating"
 
-#: apps/accounts/admin.py:111
+#: apps/accounts/admin.py:44 apps/accounts/admin.py:108
+msgid "Citas completadas"
+msgstr "Completed meetups"
+
+#: apps/accounts/admin.py:68
+msgid "Ciudad / Ubicación"
+msgstr "City / Location"
+
+#: apps/accounts/admin.py:133
 msgid "Suspender usuario reportado (bloqueo) y marcar acción tomada"
 msgstr "Suspend reported user (ban) and mark action taken"
 
-#: apps/accounts/admin.py:122
+#: apps/accounts/admin.py:144
 msgid ""
 "Usuario suspendido automáticamente mediante acción del panel de moderación."
 msgstr ""
 
-#: apps/accounts/admin.py:129
+#: apps/accounts/admin.py:151
 #, python-format
 msgid "%(count)d reportes procesados: usuarios suspendidos exitosamente."
 msgstr "%(count)d reports processed: users successfully suspended."
@@ -75,7 +80,7 @@ msgstr "Full name"
 msgid "Correo electrónico"
 msgstr "Email address"
 
-#: apps/accounts/forms.py:48 apps/accounts/models.py:47
+#: apps/accounts/forms.py:48 apps/accounts/models.py:48
 #: apps/accounts/templates/accounts/register.html:101
 msgid "Código de país"
 msgstr "Country code"
@@ -84,7 +89,7 @@ msgstr "Country code"
 msgid "Teléfono / contacto"
 msgstr "Phone / contact"
 
-#: apps/accounts/forms.py:59 apps/accounts/models.py:59
+#: apps/accounts/forms.py:59 apps/accounts/models.py:60
 #: apps/accounts/templates/accounts/register.html:135
 msgid "Tipo de documento"
 msgstr "Document type"
@@ -125,232 +130,242 @@ msgstr "An account with this ID document (%(type)s-%(number)s) already exists."
 msgid "Correo electrónico registrado"
 msgstr "Registered email address"
 
-#: apps/accounts/models.py:34
+#: apps/accounts/models.py:35
 msgid "Usuario"
 msgstr "User"
 
-#: apps/accounts/models.py:35
+#: apps/accounts/models.py:36
 msgid "Cuenta de usuario vinculada al perfil."
 msgstr "User account linked to this profile."
 
-#: apps/accounts/models.py:41
+#: apps/accounts/models.py:42
 msgid "Avatar"
 msgstr ""
 
-#: apps/accounts/models.py:42
+#: apps/accounts/models.py:43
 msgid "Fotografía o imagen de perfil del usuario."
 msgstr ""
 
-#: apps/accounts/models.py:48
+#: apps/accounts/models.py:49
 msgid "Prefijo telefónico internacional."
 msgstr "International phone dialing prefix."
 
-#: apps/accounts/models.py:53
+#: apps/accounts/models.py:54
 msgid "Teléfono"
 msgstr "Phone"
 
-#: apps/accounts/models.py:54
+#: apps/accounts/models.py:55
 msgid "Número de teléfono o contacto del tutor."
 msgstr "Guardian's phone or contact number."
 
-#: apps/accounts/models.py:60
+#: apps/accounts/models.py:61
 msgid "Nacionalidad o tipo de documento (V, E, J, P)."
 msgstr "Nationality or document type (V, E, J, P)."
 
-#: apps/accounts/models.py:65
+#: apps/accounts/models.py:66
 msgid "Número de cédula/documento"
 msgstr "ID document number"
 
-#: apps/accounts/models.py:66
+#: apps/accounts/models.py:67
 msgid "Número de identificación legal del tutor."
 msgstr "Guardian's legal identification number."
 
-#: apps/accounts/models.py:70
+#: apps/accounts/models.py:71
 msgid "Biografía"
 msgstr "Biography"
 
-#: apps/accounts/models.py:71
+#: apps/accounts/models.py:72
 msgid "Presentación o notas sobre el tutor."
 msgstr "Introduction or notes about the guardian."
 
 #: apps/accounts/models.py:78
-msgid "Ciudad o localidad de residencia del tutor."
-msgstr ""
+#: apps/accounts/templates/accounts/user_profile.html:220
+msgid "Estado"
+msgstr "State"
 
-#: apps/accounts/models.py:83 apps/pets/models.py:402
+#: apps/accounts/models.py:79
+msgid "Estado o entidad federal de residencia."
+msgstr "State or federal entity of residence."
+
+#: apps/accounts/models.py:85
+#: apps/accounts/templates/accounts/user_profile.html:228
+msgid "Municipio"
+msgstr "Municipality"
+
+#: apps/accounts/models.py:86
+msgid "Municipio de residencia."
+msgstr "Municipality of residence."
+
+#: apps/accounts/models.py:91
+msgid "Parroquia / Urbanización / Sector"
+msgstr "Parish / Neighborhood / Sector"
+
+#: apps/accounts/models.py:92
+msgid "Parroquia, urbanización o sector de residencia habitual."
+msgstr "Parish, neighborhood or habitual residential sector."
+
+#: apps/accounts/models.py:97 apps/pets/models.py:402
 msgid "Latitud"
-msgstr ""
+msgstr "Latitude"
 
-#: apps/accounts/models.py:84
+#: apps/accounts/models.py:98
 msgid "Coordenada geográfica de latitud."
-msgstr ""
+msgstr "Geographical latitude coordinate."
 
-#: apps/accounts/models.py:89 apps/pets/models.py:407
+#: apps/accounts/models.py:103 apps/pets/models.py:407
 msgid "Longitud"
-msgstr ""
+msgstr "Longitude"
 
-#: apps/accounts/models.py:90
+#: apps/accounts/models.py:104
 msgid "Coordenada geográfica de longitud."
-msgstr ""
+msgstr "Geographical longitude coordinate."
 
-#: apps/accounts/models.py:95 apps/pets/models.py:125
-#: apps/pets/templates/pets/match_feed.html:187
+#: apps/accounts/models.py:109 apps/pets/models.py:125
+#: apps/pets/templates/pets/match_feed.html:191
 #: apps/pets/templates/pets/pet_management.html:304
-#: apps/pets/templates/pets/pet_management.html:576
+#: apps/pets/templates/pets/pet_management.html:580
 msgid "Fecha de nacimiento"
 msgstr "Birth date"
 
-#: apps/accounts/models.py:96
+#: apps/accounts/models.py:110
 msgid "Fecha de nacimiento del tutor."
 msgstr "Guardian's birth date."
 
-#: apps/accounts/models.py:101
-#: apps/accounts/templates/accounts/user_profile.html:226
+#: apps/accounts/models.py:115
+#: apps/accounts/templates/accounts/user_profile.html:245
 msgid "Masculino"
 msgstr "Male"
 
-#: apps/accounts/models.py:102
-#: apps/accounts/templates/accounts/user_profile.html:227
+#: apps/accounts/models.py:116
+#: apps/accounts/templates/accounts/user_profile.html:246
 msgid "Femenino"
 msgstr "Female"
 
-#: apps/accounts/models.py:103
-#: apps/accounts/templates/accounts/user_profile.html:228
+#: apps/accounts/models.py:117
+#: apps/accounts/templates/accounts/user_profile.html:247
 #: apps/pets/templates/pets/pet_management.html:275
-#: apps/pets/templates/pets/pet_management.html:883 apps/pets/views.py:180
+#: apps/pets/templates/pets/pet_management.html:902 apps/pets/views.py:180
 msgid "Otro"
 msgstr "Other"
 
-#: apps/accounts/models.py:106
-#: apps/accounts/templates/accounts/user_profile.html:225
+#: apps/accounts/models.py:120
+#: apps/accounts/templates/accounts/user_profile.html:244
 msgid "Género"
 msgstr "Gender"
 
-#: apps/accounts/models.py:107
+#: apps/accounts/models.py:121
 msgid "Género o identidad del tutor."
 msgstr "Guardian's gender or identity."
 
-#: apps/accounts/models.py:114
-msgid "Puntuación promedio del tutor (1.00 a 5.00)."
-msgstr "Average guardian score (1.00 to 5.00)."
-
-#: apps/accounts/models.py:118
-msgid "Citas completadas"
-msgstr "Completed meetups"
-
-#: apps/accounts/models.py:119
-msgid "Total de citas de socialización o cruza concretadas."
-msgstr "Total completed socialization or breeding meetups."
-
-#: apps/accounts/models.py:124
-#: apps/accounts/templates/accounts/user_profile.html:235
+#: apps/accounts/models.py:126
+#: apps/accounts/templates/accounts/user_profile.html:254
 msgid "Color favorito"
 msgstr "Favorite color"
 
-#: apps/accounts/models.py:125
+#: apps/accounts/models.py:127
 msgid "Color preferido para personalización de perfil."
 msgstr "Preferred color for profile customization."
 
-#: apps/accounts/models.py:130
-#: apps/accounts/templates/accounts/user_profile.html:243
+#: apps/accounts/models.py:132
+#: apps/accounts/templates/accounts/user_profile.html:262
 msgid "Libro favorito"
 msgstr "Favorite book"
 
-#: apps/accounts/models.py:131
+#: apps/accounts/models.py:133
 msgid "Libro favorito para afinidad cultural."
 msgstr "Favorite book for cultural affinity."
 
-#: apps/accounts/models.py:136
-#: apps/accounts/templates/accounts/user_profile.html:251
+#: apps/accounts/models.py:138
+#: apps/accounts/templates/accounts/user_profile.html:270
 msgid "Música favorita"
 msgstr "Favorite music"
 
-#: apps/accounts/models.py:137
+#: apps/accounts/models.py:139
 msgid "Género o banda favorita."
 msgstr "Favorite genre or band."
 
-#: apps/accounts/models.py:142
-#: apps/accounts/templates/accounts/user_profile.html:259
+#: apps/accounts/models.py:144
+#: apps/accounts/templates/accounts/user_profile.html:278
 msgid "Videojuego favorito"
 msgstr "Favorite video game"
 
-#: apps/accounts/models.py:143
+#: apps/accounts/models.py:145
 msgid "Videojuego preferido."
 msgstr "Favorite video game."
 
-#: apps/accounts/models.py:147
+#: apps/accounts/models.py:149
 msgid "Perfil de usuario"
 msgstr "User profile"
 
-#: apps/accounts/models.py:148
+#: apps/accounts/models.py:150
 msgid "Perfiles de usuario"
 msgstr "User profiles"
 
-#: apps/accounts/models.py:184 apps/pets/models.py:309
+#: apps/accounts/models.py:219 apps/pets/models.py:309
 msgid "Pendiente"
 msgstr "Pending"
 
-#: apps/accounts/models.py:185
+#: apps/accounts/models.py:220
 msgid "Revisado"
 msgstr "Reviewed"
 
-#: apps/accounts/models.py:186
+#: apps/accounts/models.py:221
 msgid "Acción tomada"
 msgstr "Action taken"
 
-#: apps/accounts/models.py:187
+#: apps/accounts/models.py:222
 msgid "Descartado"
 msgstr "Dismissed"
 
-#: apps/accounts/models.py:193
+#: apps/accounts/models.py:228
 msgid "Reportado por"
 msgstr "Reported by"
 
-#: apps/accounts/models.py:194
+#: apps/accounts/models.py:229
 msgid "Usuario tutor que emitió la denuncia."
 msgstr "Guardian user who submitted the report."
 
-#: apps/accounts/models.py:200
+#: apps/accounts/models.py:235
 msgid "Usuario reportado"
 msgstr "Reported user"
 
-#: apps/accounts/models.py:201
+#: apps/accounts/models.py:236
 msgid "Usuario denunciado."
 msgstr "Reported user."
 
-#: apps/accounts/models.py:209
+#: apps/accounts/models.py:244
 msgid "Mascota reportada"
 msgstr "Reported pet"
 
-#: apps/accounts/models.py:210
+#: apps/accounts/models.py:245
 msgid "Mascota específica sobre la que recae el reporte, si aplica."
 msgstr "Specific pet involved in the report, if applicable."
 
-#: apps/accounts/models.py:213
+#: apps/accounts/models.py:248
 msgid "Motivo del reporte"
 msgstr "Report reason"
 
-#: apps/accounts/models.py:214
+#: apps/accounts/models.py:249
 msgid "Explicación detallada de la falta o incidente."
 msgstr "Detailed explanation of the misconduct or incident."
 
-#: apps/accounts/models.py:220
+#: apps/accounts/models.py:255
 msgid "Estado de revisión"
 msgstr "Review status"
 
-#: apps/accounts/models.py:224
+#: apps/accounts/models.py:259
 msgid "Notas del administrador"
 msgstr "Admin notes"
 
-#: apps/accounts/models.py:225
+#: apps/accounts/models.py:260
 msgid "Observaciones internas de moderación."
 msgstr "Internal moderation remarks."
 
-#: apps/accounts/models.py:229
+#: apps/accounts/models.py:264
 msgid "Reporte de usuario"
 msgstr "User report"
 
-#: apps/accounts/models.py:230
+#: apps/accounts/models.py:265
 msgid "Reportes de usuarios"
 msgstr "User reports"
 
@@ -574,7 +589,7 @@ msgstr "Looking for dates"
 
 #: apps/accounts/templates/accounts/user_profile.html:122
 #: apps/accounts/templates/accounts/user_profile.html:150
-#: apps/pets/templates/pets/pet_select.html:106
+#: apps/pets/templates/pets/pet_select.html:98
 msgid "Editar perfil"
 msgstr "Edit profile"
 
@@ -584,8 +599,8 @@ msgstr "Walks only"
 
 #: apps/accounts/templates/accounts/user_profile.html:157
 #: apps/pets/templates/pets/pet_management.html:88
-#: apps/pets/templates/pets/pet_select.html:121
-#: apps/pets/templates/pets/pet_select.html:211
+#: apps/pets/templates/pets/pet_select.html:112
+#: apps/pets/templates/pets/pet_select.html:206
 msgid "Registrar nueva mascota"
 msgstr "Register new pet"
 
@@ -607,36 +622,36 @@ msgid "Teléfono de contacto"
 msgstr "Contact phone"
 
 #: apps/accounts/templates/accounts/user_profile.html:210
-msgid "Ciudad / región"
-msgstr "City / region"
-
-#: apps/accounts/templates/accounts/user_profile.html:218
 msgid "Fecha de cumpleaños"
 msgstr "Birth date"
 
-#: apps/accounts/templates/accounts/user_profile.html:268
+#: apps/accounts/templates/accounts/user_profile.html:236
+msgid "Parroquia / Sector"
+msgstr "Parish / Sector"
+
+#: apps/accounts/templates/accounts/user_profile.html:287
 #: apps/pets/models.py:138
 msgid "Descripción"
 msgstr "Bio / description"
 
-#: apps/accounts/templates/accounts/user_profile.html:273
+#: apps/accounts/templates/accounts/user_profile.html:292
 msgid "Escribe una breve descripción sobre ti y tus mascotas..."
 msgstr "Write a brief description about you and your pets..."
 
-#: apps/accounts/templates/accounts/user_profile.html:274
+#: apps/accounts/templates/accounts/user_profile.html:293
 msgid "Me gusta pasar el día con mis mascotas y salir a pasear."
-msgstr ""
+msgstr "I like spending the day with my pets and going for walks."
 
-#: apps/accounts/templates/accounts/user_profile.html:276
+#: apps/accounts/templates/accounts/user_profile.html:295
 msgid ""
 "Comparte un poco sobre tu rutina o lo que te gusta hacer con tus mascotas."
 msgstr "Share a bit about your routine or what you like to do with your pets."
 
-#: apps/accounts/templates/accounts/user_profile.html:283
+#: apps/accounts/templates/accounts/user_profile.html:302
 msgid "Guardar información personal"
 msgstr "Save personal information"
 
-#: apps/accounts/templates/accounts/user_profile.html:287
+#: apps/accounts/templates/accounts/user_profile.html:306
 msgid "Los cambios se guardan al presionar el botón"
 msgstr "Changes are saved when clicking the button"
 
@@ -663,11 +678,9 @@ msgstr ""
 msgid "Por favor, ingresa un correo electrónico válido para continuar."
 msgstr "Please enter a valid email address to continue."
 
-#: apps/accounts/views.py:210
-#, fuzzy
-#| msgid "La mascota %(name)s ha sido eliminada exitosamente."
+#: apps/accounts/views.py:214
 msgid "Tu perfil ha sido actualizado exitosamente."
-msgstr "Pet %(name)s has been successfully deleted."
+msgstr "Your profile has been updated successfully."
 
 #: apps/core/templates/core/home.html:4
 msgid "Inicio - Bienvenida"
@@ -844,31 +857,33 @@ msgid "Catálogo de especies"
 msgstr "Species catalog"
 
 #: apps/pets/models.py:75 apps/pets/models.py:253
-#: apps/pets/templates/pets/match_interested.html:218
+#: apps/pets/templates/pets/match_interested.html:222
 #: apps/pets/templates/pets/pet_management.html:284
-#: apps/pets/templates/pets/pet_management.html:884 apps/pets/views.py:184
+#: apps/pets/templates/pets/pet_management.html:891
+#: apps/pets/templates/pets/pet_management.html:903 apps/pets/views.py:184
 #: templates/components/components_palette.html:16
 msgid "Macho"
 msgstr "Male"
 
 #: apps/pets/models.py:76 apps/pets/models.py:255
-#: apps/pets/templates/pets/match_interested.html:215
+#: apps/pets/templates/pets/match_interested.html:219
 #: apps/pets/templates/pets/pet_management.html:285
-#: apps/pets/templates/pets/pet_management.html:884 apps/pets/views.py:184
+#: apps/pets/templates/pets/pet_management.html:891
+#: apps/pets/templates/pets/pet_management.html:903 apps/pets/views.py:184
 #: templates/components/components_palette.html:17
 msgid "Hembra"
 msgstr "Female"
 
-#: apps/pets/models.py:83 apps/pets/templates/pets/pet_management.html:905
+#: apps/pets/models.py:83 apps/pets/templates/pets/pet_management.html:924
 msgid "Cruza responsable"
 msgstr "Responsible breeding"
 
-#: apps/pets/models.py:84 apps/pets/templates/pets/pet_management.html:906
+#: apps/pets/models.py:84 apps/pets/templates/pets/pet_management.html:925
 msgid "Socialización"
 msgstr "Socialization"
 
 #: apps/pets/models.py:85 apps/pets/templates/pets/pet_management.html:522
-#: apps/pets/templates/pets/pet_management.html:904
+#: apps/pets/templates/pets/pet_management.html:923
 msgid "Cruza y socialización"
 msgstr "Breeding and socialization"
 
@@ -1039,9 +1054,9 @@ msgstr "Requested pet"
 msgid "Estado de la solicitud"
 msgstr "Request status"
 
-#: apps/pets/models.py:333 apps/pets/templates/pets/match_interested.html:156
-#: apps/pets/templates/pets/match_interested.html:261
-#: apps/pets/templates/pets/match_interested.html:438
+#: apps/pets/models.py:333 apps/pets/templates/pets/match_interested.html:158
+#: apps/pets/templates/pets/match_interested.html:265
+#: apps/pets/templates/pets/match_interested.html:442
 msgid "Nota de solicitud"
 msgstr "Request note"
 
@@ -1151,81 +1166,81 @@ msgid "Cambiar"
 msgstr "Change"
 
 #: apps/pets/templates/pets/match_feed.html:126
-#: apps/pets/templates/pets/match_feed.html:527
+#: apps/pets/templates/pets/match_feed.html:539
 #: apps/pets/templates/pets/pet_management.html:514
 msgid "compatible"
 msgstr "compatible"
 
-#: apps/pets/templates/pets/match_feed.html:172
-#: apps/pets/templates/pets/pet_management.html:563
+#: apps/pets/templates/pets/match_feed.html:176
+#: apps/pets/templates/pets/pet_management.html:567
 msgid "Personalidad y temperamento"
 msgstr "Personality and temperament"
 
-#: apps/pets/templates/pets/match_feed.html:195
+#: apps/pets/templates/pets/match_feed.html:199
 msgid "Peso actual"
 msgstr "Current weight"
 
-#: apps/pets/templates/pets/match_feed.html:203
+#: apps/pets/templates/pets/match_feed.html:207
 #: apps/pets/templates/pets/pet_management.html:318
-#: apps/pets/templates/pets/pet_management.html:896
-#: apps/pets/templates/pets/pet_management.html:901
+#: apps/pets/templates/pets/pet_management.html:915
+#: apps/pets/templates/pets/pet_management.html:920
 msgid "Certificado FCI"
 msgstr "FCI Certified"
 
-#: apps/pets/templates/pets/match_feed.html:214
+#: apps/pets/templates/pets/match_feed.html:218
 #, python-format
 msgid "Sobre %(name)s"
 msgstr "About %(name)s"
 
-#: apps/pets/templates/pets/match_feed.html:232
+#: apps/pets/templates/pets/match_feed.html:236
 msgid "Tutor verificado"
 msgstr "Verified guardian"
 
-#: apps/pets/templates/pets/match_feed.html:249
+#: apps/pets/templates/pets/match_feed.html:253
 msgid "Pasar candidato"
 msgstr "Pass candidate"
 
-#: apps/pets/templates/pets/match_feed.html:253
+#: apps/pets/templates/pets/match_feed.html:257
 #, python-format
 msgid "Mostrar interés en %(name)s"
 msgstr "Show interest in %(name)s"
 
-#: apps/pets/templates/pets/match_feed.html:257
+#: apps/pets/templates/pets/match_feed.html:261
 msgid "Reportar candidato"
 msgstr "Report candidate"
 
-#: apps/pets/templates/pets/match_feed.html:265
-#: apps/pets/templates/pets/match_feed.html:267
+#: apps/pets/templates/pets/match_feed.html:269
+#: apps/pets/templates/pets/match_feed.html:271
 msgid "Pasar"
 msgstr ""
 
-#: apps/pets/templates/pets/match_feed.html:272
-#: apps/pets/templates/pets/match_feed.html:274
+#: apps/pets/templates/pets/match_feed.html:276
+#: apps/pets/templates/pets/match_feed.html:278
 msgid "Interesado"
 msgstr "Interested"
 
-#: apps/pets/templates/pets/match_feed.html:293
+#: apps/pets/templates/pets/match_feed.html:297
 #, python-format
 msgid "Interesadas en %(name)s"
 msgstr "Interested in %(name)s"
 
-#: apps/pets/templates/pets/match_feed.html:298
+#: apps/pets/templates/pets/match_feed.html:302
 msgid "nuevas"
 msgstr "new"
 
-#: apps/pets/templates/pets/match_feed.html:319
+#: apps/pets/templates/pets/match_feed.html:323
 msgid "Responder con match"
 msgstr "Reply with match"
 
-#: apps/pets/templates/pets/match_feed.html:329
+#: apps/pets/templates/pets/match_feed.html:333
 msgid "Ver todas las solicitudes"
 msgstr "View all requests"
 
-#: apps/pets/templates/pets/match_feed.html:339
+#: apps/pets/templates/pets/match_feed.html:343
 msgid "Normas de cruza responsable"
 msgstr "Responsible breeding standards"
 
-#: apps/pets/templates/pets/match_feed.html:342
+#: apps/pets/templates/pets/match_feed.html:346
 msgid ""
 "Petly promueve únicamente cruzas éticas con certificados sanitarios y "
 "espacios caninos verificados."
@@ -1233,16 +1248,16 @@ msgstr ""
 "Petly only promotes ethical breeding with health certificates and verified "
 "canine spaces."
 
-#: apps/pets/templates/pets/match_feed.html:362
+#: apps/pets/templates/pets/match_feed.html:366
 #: templates/components/confirmation_modal.html:31
 msgid "Cerrar diálogo"
 msgstr "Close dialog"
 
-#: apps/pets/templates/pets/match_feed.html:371
+#: apps/pets/templates/pets/match_feed.html:375
 msgid "¡Es un match!"
 msgstr "It's a match!"
 
-#: apps/pets/templates/pets/match_feed.html:374
+#: apps/pets/templates/pets/match_feed.html:378
 #, python-format
 msgid ""
 "\n"
@@ -1255,73 +1270,73 @@ msgstr ""
 "connecting with %(my_pet)s.\n"
 "            "
 
-#: apps/pets/templates/pets/match_feed.html:403
+#: apps/pets/templates/pets/match_feed.html:407
 #: templates/components/components_palette.html:37
 msgid "Ver solicitudes y notas"
 msgstr "View requests and notes"
 
-#: apps/pets/templates/pets/match_feed.html:407
+#: apps/pets/templates/pets/match_feed.html:411
 msgid "Seguir explorando parejas"
 msgstr "Keep exploring matches"
 
-#: apps/pets/templates/pets/match_feed.html:419
-#: apps/pets/templates/pets/match_interested.html:372
-#: apps/pets/templates/pets/match_interested.html:430
+#: apps/pets/templates/pets/match_feed.html:423
+#: apps/pets/templates/pets/match_interested.html:376
+#: apps/pets/templates/pets/match_interested.html:434
 #: apps/pets/templates/pets/pet_management.html:481
 #: templates/components/messages.html:7
 msgid "Cerrar"
 msgstr "Close"
 
-#: apps/pets/templates/pets/match_feed.html:423
+#: apps/pets/templates/pets/match_feed.html:427
 msgid "Filtros de búsqueda de pareja"
 msgstr "Match search filters"
 
-#: apps/pets/templates/pets/match_feed.html:428
+#: apps/pets/templates/pets/match_feed.html:432
 msgid "Distancia máxima (km)"
 msgstr "Maximum distance (km)"
 
-#: apps/pets/templates/pets/match_feed.html:438
+#: apps/pets/templates/pets/match_feed.html:442
 msgid "Propósito principal"
 msgstr "Main purpose"
 
-#: apps/pets/templates/pets/match_feed.html:440
+#: apps/pets/templates/pets/match_feed.html:444
 msgid "Cruza responsable y socialización"
 msgstr "Responsible breeding and socialization"
 
-#: apps/pets/templates/pets/match_feed.html:441
+#: apps/pets/templates/pets/match_feed.html:445
 msgid "Únicamente cruza con pedigrí"
 msgstr "Only pedigree breeding"
 
-#: apps/pets/templates/pets/match_feed.html:442
+#: apps/pets/templates/pets/match_feed.html:446
 msgid "Únicamente socialización y citas de juego"
 msgstr "Only socialization and playdates"
 
-#: apps/pets/templates/pets/match_feed.html:447
+#: apps/pets/templates/pets/match_feed.html:451
 msgid "Certificación requerida"
 msgstr "Required certification"
 
-#: apps/pets/templates/pets/match_feed.html:450
+#: apps/pets/templates/pets/match_feed.html:454
 msgid "Solo candidatos con certificado FCI o pedigrí"
 msgstr "Only candidates with FCI certificate or pedigree"
 
-#: apps/pets/templates/pets/match_feed.html:456
+#: apps/pets/templates/pets/match_feed.html:460
 msgid "Aplicar filtros"
 msgstr "Apply filters"
 
-#: apps/pets/templates/pets/match_feed.html:570
-#: apps/pets/templates/pets/pet_management.html:642
+#: apps/pets/templates/pets/match_feed.html:582
+#: apps/pets/templates/pets/pet_management.html:646
 msgid "Mostrar interés en"
 msgstr "Show interest in"
 
-#: apps/pets/templates/pets/match_feed.html:630
+#: apps/pets/templates/pets/match_feed.html:642
 msgid "¿Deseas reportar el perfil de"
 msgstr "Do you want to report the profile of"
 
-#: apps/pets/templates/pets/match_feed.html:630
+#: apps/pets/templates/pets/match_feed.html:642
 msgid "por contenido o comportamiento inapropiado?"
 msgstr "for inappropriate content or behavior?"
 
-#: apps/pets/templates/pets/match_feed.html:631
+#: apps/pets/templates/pets/match_feed.html:643
 msgid ""
 "El reporte ha sido enviado al equipo de administración para su revisión."
 msgstr ""
@@ -1406,58 +1421,58 @@ msgstr "Most recent"
 msgid "Ver más información de %(name)s"
 msgstr "More information"
 
-#: apps/pets/templates/pets/match_interested.html:138
+#: apps/pets/templates/pets/match_interested.html:140
 msgid "Match"
 msgstr "Match"
 
-#: apps/pets/templates/pets/match_interested.html:154
+#: apps/pets/templates/pets/match_interested.html:156
 msgid "Agendar cita"
 msgstr "Schedule meetup"
 
-#: apps/pets/templates/pets/match_interested.html:158
+#: apps/pets/templates/pets/match_interested.html:160
 msgid "Descartar solicitud"
 msgstr "Dismiss request"
 
-#: apps/pets/templates/pets/match_interested.html:163
+#: apps/pets/templates/pets/match_interested.html:165
 #, fuzzy
 #| msgid "Guardar información personal"
 msgid "Desplegar información completa"
 msgstr "Save personal information"
 
-#: apps/pets/templates/pets/match_interested.html:205
-#: apps/pets/templates/pets/match_interested.html:206
+#: apps/pets/templates/pets/match_interested.html:209
+#: apps/pets/templates/pets/match_interested.html:210
 msgid "Plegar tarjeta"
 msgstr ""
 
-#: apps/pets/templates/pets/match_interested.html:259
+#: apps/pets/templates/pets/match_interested.html:263
 msgid "Concertar encuentro"
 msgstr "Schedule meetup"
 
-#: apps/pets/templates/pets/match_interested.html:265
+#: apps/pets/templates/pets/match_interested.html:269
 msgid "Negar interés"
 msgstr "Dismiss interest"
 
-#: apps/pets/templates/pets/match_interested.html:281
+#: apps/pets/templates/pets/match_interested.html:285
 msgid "No se encontraron pretendientes en esta categoría"
 msgstr "No suitors found in this category"
 
-#: apps/pets/templates/pets/match_interested.html:282
+#: apps/pets/templates/pets/match_interested.html:286
 msgid "Prueba cambiando el filtro para ver más candidatos disponibles."
 msgstr "Try changing the filter to see more available candidates."
 
-#: apps/pets/templates/pets/match_interested.html:300
+#: apps/pets/templates/pets/match_interested.html:304
 msgid "Citas confirmadas"
 msgstr "Confirmed meetups"
 
-#: apps/pets/templates/pets/match_interested.html:303
+#: apps/pets/templates/pets/match_interested.html:307
 msgid "Citas activas"
 msgstr "Active meetups"
 
-#: apps/pets/templates/pets/match_interested.html:333
+#: apps/pets/templates/pets/match_interested.html:337
 msgid "Ver detalles"
 msgstr "View details"
 
-#: apps/pets/templates/pets/match_interested.html:344
+#: apps/pets/templates/pets/match_interested.html:348
 msgid ""
 "Llega con 10 minutos de anticipación al espacio verificado y lleva la "
 "cartilla de vacunación al día."
@@ -1465,89 +1480,89 @@ msgstr ""
 "Arrive 10 minutes early at the verified location and make sure vaccination "
 "cards are up to date."
 
-#: apps/pets/templates/pets/match_interested.html:351
+#: apps/pets/templates/pets/match_interested.html:355
 msgid "¿Deseas seguir viendo más mascotas compatibles?"
 msgstr "Do you want to keep seeing more compatible pets?"
 
-#: apps/pets/templates/pets/match_interested.html:353
-#: apps/pets/templates/pets/pet_select.html:149
-#: apps/pets/templates/pets/pet_select.html:216
+#: apps/pets/templates/pets/match_interested.html:357
+#: apps/pets/templates/pets/pet_select.html:140
+#: apps/pets/templates/pets/pet_select.html:211
 msgid "Continuar a buscar pareja"
 msgstr "Continue to find a match"
 
-#: apps/pets/templates/pets/match_interested.html:380
+#: apps/pets/templates/pets/match_interested.html:384
 msgid "Concertar encuentro seguro"
 msgstr "Schedule safe meetup"
 
-#: apps/pets/templates/pets/match_interested.html:383
+#: apps/pets/templates/pets/match_interested.html:387
 msgid "Cita con"
 msgstr "Meetup with"
 
-#: apps/pets/templates/pets/match_interested.html:390
+#: apps/pets/templates/pets/match_interested.html:394
 msgid "Fecha propuesta"
 msgstr "Proposed date"
 
-#: apps/pets/templates/pets/match_interested.html:395
+#: apps/pets/templates/pets/match_interested.html:399
 msgid "Hora estimada"
 msgstr "Estimated time"
 
-#: apps/pets/templates/pets/match_interested.html:400
+#: apps/pets/templates/pets/match_interested.html:404
 msgid "Lugar de encuentro canino verificado"
 msgstr "Verified canine meetup spot"
 
-#: apps/pets/templates/pets/match_interested.html:406
+#: apps/pets/templates/pets/match_interested.html:410
 msgid "Parque España (Zona canina verificada)"
 msgstr "España Park (verified canine zone)"
 
-#: apps/pets/templates/pets/match_interested.html:407
+#: apps/pets/templates/pets/match_interested.html:411
 msgid "Parque del Este (Área de recreación canina)"
 msgstr "Parque del Este (canine recreation area)"
 
-#: apps/pets/templates/pets/match_interested.html:408
+#: apps/pets/templates/pets/match_interested.html:412
 msgid "Parque Vizcaya (Espacio cercado)"
 msgstr "Vizcaya Park (fenced space)"
 
-#: apps/pets/templates/pets/match_interested.html:417
-#: apps/pets/templates/pets/match_interested.html:449
+#: apps/pets/templates/pets/match_interested.html:421
+#: apps/pets/templates/pets/match_interested.html:453
 #: templates/components/confirmation_modal.html:66
 msgid "Cancelar"
 msgstr "Cancel"
 
-#: apps/pets/templates/pets/match_interested.html:419
+#: apps/pets/templates/pets/match_interested.html:423
 msgid "Confirmar cita"
 msgstr "Confirm meetup"
 
-#: apps/pets/templates/pets/match_interested.html:441
+#: apps/pets/templates/pets/match_interested.html:445
 msgid "Nota para el tutor"
 msgstr "Note for guardian"
 
-#: apps/pets/templates/pets/match_interested.html:447
+#: apps/pets/templates/pets/match_interested.html:451
 msgid "Escribe una nota sobre acuerdos de cruza o socialización..."
 msgstr "Write a note about breeding agreements or socialization..."
 
-#: apps/pets/templates/pets/match_interested.html:451
+#: apps/pets/templates/pets/match_interested.html:455
 msgid "Guardar nota"
 msgstr "Save note"
 
-#: apps/pets/templates/pets/match_interested.html:548
+#: apps/pets/templates/pets/match_interested.html:552
 msgid "¡Cita agendada con éxito! Se ha notificado al tutor de la mascota."
 msgstr "Meetup scheduled successfully! The pet guardian has been notified."
 
-#: apps/pets/templates/pets/match_interested.html:554
+#: apps/pets/templates/pets/match_interested.html:558
 msgid "¡Nota guardada exitosamente!"
 msgstr "Note saved successfully!"
 
-#: apps/pets/templates/pets/match_interested.html:559
+#: apps/pets/templates/pets/match_interested.html:563
 msgid "¿Deseas negar el interés de"
 msgstr "Do you want to dismiss interest from"
 
-#: apps/pets/templates/pets/match_interested.html:560
+#: apps/pets/templates/pets/match_interested.html:564
 msgid "Se ha descartado la solicitud de"
 msgstr "The request has been dismissed for"
 
 #: apps/pets/templates/pets/pet_management.html:6
 #: apps/pets/templates/pets/pet_management.html:22
-#: apps/pets/templates/pets/pet_select.html:130
+#: apps/pets/templates/pets/pet_select.html:121
 msgid "Registrar mascota"
 msgstr "Register pet"
 
@@ -1570,7 +1585,7 @@ msgstr "New entry"
 
 #: apps/pets/templates/pets/pet_management.html:61
 #: apps/pets/templates/pets/pet_management.html:132
-#: apps/pets/templates/pets/pet_management.html:779
+#: apps/pets/templates/pets/pet_management.html:783
 msgid "Nueva mascota"
 msgstr "New pet"
 
@@ -1580,7 +1595,7 @@ msgid "Subir nueva foto"
 msgstr "Upload new photo"
 
 #: apps/pets/templates/pets/pet_management.html:135
-#: apps/pets/templates/pets/pet_management.html:785
+#: apps/pets/templates/pets/pet_management.html:789
 msgid "Raza por definir"
 msgstr "Breed to be defined"
 
@@ -1653,12 +1668,12 @@ msgid "Ej. Toby"
 msgstr "E.g. Toby"
 
 #: apps/pets/templates/pets/pet_management.html:273
-#: apps/pets/templates/pets/pet_management.html:883 apps/pets/views.py:180
+#: apps/pets/templates/pets/pet_management.html:902 apps/pets/views.py:180
 msgid "Perro"
 msgstr "Dog"
 
 #: apps/pets/templates/pets/pet_management.html:274
-#: apps/pets/templates/pets/pet_management.html:883 apps/pets/views.py:178
+#: apps/pets/templates/pets/pet_management.html:902 apps/pets/views.py:178
 msgid "Gato"
 msgstr "Cat"
 
@@ -1679,12 +1694,12 @@ msgid "Pedigrí y certificado"
 msgstr "Pedigree and certificate"
 
 #: apps/pets/templates/pets/pet_management.html:319
-#: apps/pets/templates/pets/pet_management.html:897
+#: apps/pets/templates/pets/pet_management.html:916
 msgid "En trámite"
 msgstr "In progress"
 
 #: apps/pets/templates/pets/pet_management.html:320
-#: apps/pets/templates/pets/pet_management.html:898
+#: apps/pets/templates/pets/pet_management.html:917
 msgid "Sin pedigrí"
 msgstr "Without pedigree"
 
@@ -1728,7 +1743,7 @@ msgid "Descripción y biografía"
 msgstr "Description and biography"
 
 #: apps/pets/templates/pets/pet_management.html:401
-#: apps/pets/templates/pets/pet_management.html:773
+#: apps/pets/templates/pets/pet_management.html:777
 msgid "caracteres"
 msgstr "characters"
 
@@ -1816,43 +1831,43 @@ msgstr "Preview in match finder"
 msgid "Así verán otros tutores la tarjeta de tu mascota en buscar pareja"
 msgstr "This is how other guardians will see your pet's card in find a match"
 
-#: apps/pets/templates/pets/pet_management.html:551
+#: apps/pets/templates/pets/pet_management.html:555
 msgid "Tu mascota"
 msgstr "Your pet"
 
-#: apps/pets/templates/pets/pet_management.html:584
+#: apps/pets/templates/pets/pet_management.html:588
 msgid "Especie / género"
 msgstr "Species / gender"
 
-#: apps/pets/templates/pets/pet_management.html:592
+#: apps/pets/templates/pets/pet_management.html:596
 msgid "Certificación"
 msgstr "Certification"
 
-#: apps/pets/templates/pets/pet_management.html:603
+#: apps/pets/templates/pets/pet_management.html:607
 msgid "Sobre"
 msgstr "About"
 
-#: apps/pets/templates/pets/pet_management.html:618
+#: apps/pets/templates/pets/pet_management.html:622
 msgid "Tú (tutor verificado)"
 msgstr "You (verified guardian)"
 
-#: apps/pets/templates/pets/pet_management.html:621
+#: apps/pets/templates/pets/pet_management.html:625
 msgid "Perfil oficial en PetMatch"
 msgstr "Official profile on PetMatch"
 
-#: apps/pets/templates/pets/pet_management.html:629
+#: apps/pets/templates/pets/pet_management.html:633
 msgid "Tu perfil"
 msgstr "Your profile"
 
-#: apps/pets/templates/pets/pet_management.html:652
+#: apps/pets/templates/pets/pet_management.html:656
 msgid "Cerrar vista previa"
 msgstr "Close preview"
 
-#: apps/pets/templates/pets/pet_management.html:788
+#: apps/pets/templates/pets/pet_management.html:792
 msgid "3 años"
 msgstr "3 years"
 
-#: apps/pets/templates/pets/pet_management.html:907
+#: apps/pets/templates/pets/pet_management.html:926
 msgid "Perfil registrado"
 msgstr "Registered profile"
 
@@ -1868,28 +1883,28 @@ msgstr "Select active pet"
 msgid "¿Con qué mascota deseas buscar pareja hoy?"
 msgstr "Which pet do you want to find a match for today?"
 
-#: apps/pets/templates/pets/pet_select.html:64
+#: apps/pets/templates/pets/pet_select.html:57
 msgid "Inactiva"
 msgstr "Inactive"
 
-#: apps/pets/templates/pets/pet_select.html:75
-#: apps/pets/templates/pets/pet_select.html:195
+#: apps/pets/templates/pets/pet_select.html:68
+#: apps/pets/templates/pets/pet_select.html:189
 msgid "Buscando pareja activo"
 msgstr "Actively seeking a match"
 
-#: apps/pets/templates/pets/pet_select.html:79
+#: apps/pets/templates/pets/pet_select.html:72
 msgid "Pedigrí certificado"
 msgstr "Certified pedigree"
 
-#: apps/pets/templates/pets/pet_select.html:87
+#: apps/pets/templates/pets/pet_select.html:80
 msgid "Seleccionado actualmente"
 msgstr "Currently selected"
 
-#: apps/pets/templates/pets/pet_select.html:90
+#: apps/pets/templates/pets/pet_select.html:83
 msgid "Seleccionar a "
 msgstr "Select "
 
-#: apps/pets/templates/pets/pet_select.html:124
+#: apps/pets/templates/pets/pet_select.html:115
 msgid ""
 "Añade otro perro o gato a tu cuenta familiar para gestionar sus "
 "pretendientes, pedigrí y compatibilidad genética."
@@ -1897,19 +1912,19 @@ msgstr ""
 "Add another dog or cat to your family account to manage their suitors, "
 "pedigree, and genetic compatibility."
 
-#: apps/pets/templates/pets/pet_select.html:140
+#: apps/pets/templates/pets/pet_select.html:131
 msgid "Acciones inmediatas"
 msgstr "Immediate actions"
 
-#: apps/pets/templates/pets/pet_select.html:145
+#: apps/pets/templates/pets/pet_select.html:136
 #, python-format
 msgid ""
 "Continuar flujo con <span id=\"desktop-action-pet-name\">%(name)s</span>"
 msgstr ""
 "Continue flow with <span id=\"desktop-action-pet-name\">%(name)s</span>"
 
-#: apps/pets/templates/pets/pet_select.html:152
-#: apps/pets/templates/pets/pet_select.html:219
+#: apps/pets/templates/pets/pet_select.html:143
+#: apps/pets/templates/pets/pet_select.html:214
 msgid "Ver mascotas interesadas"
 msgstr "View interested pets"
 
@@ -2124,6 +2139,15 @@ msgstr "Mobile navigation"
 #: templates/components/navbar_public.html:27
 msgid "Registrarse"
 msgstr "Sign up"
+
+#~ msgid "Ciudad"
+#~ msgstr "City"
+
+#~ msgid "Puntuación promedio del tutor (1.00 a 5.00)."
+#~ msgstr "Average guardian score (1.00 to 5.00)."
+
+#~ msgid "Total de citas de socialización o cruza concretadas."
+#~ msgstr "Total completed socialization or breeding meetups."
 
 #~ msgid "Miembro desde feb. 2026"
 #~ msgstr "Member since Feb 2026"

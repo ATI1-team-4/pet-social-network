@@ -204,14 +204,6 @@
                             {% include 'components/input.html' with name="phone" id="profile-phone" type="tel" value=request.user.profile.phone_number placeholder="+58 424 123 4567" icon="phone" %}
                         </div>
 
-                        <!-- Ciudad / Región -->
-                        <div class="flex flex-col gap-1.5">
-                            <label for="profile-city" class="text-xs font-semibold text-neutral-700">
-                                {% translate "Ciudad / región" %}
-                            </label>
-                            {% include 'components/input.html' with name="city" id="profile-city" value=request.user.profile.city placeholder="Caracas, Venezuela" icon="location" %}
-                        </div>
-
                         <!-- Fecha de Cumpleaños -->
                         <div class="flex flex-col gap-1.5">
                             <label for="profile-birth-date" class="text-xs font-semibold text-neutral-700">
@@ -220,8 +212,35 @@
                             {% include 'components/input.html' with name="birth_date" id="profile-birth-date" type="date" value=request.user.profile.birth_date|date:"Y-m-d" icon="calendar" %}
                         </div>
 
+                        <!-- Bloque de Ubicación: Estado, Municipio y Parroquia / Sector -->
+                        <div class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+                            <!-- Estado -->
+                            <div class="flex flex-col gap-1.5">
+                                <label for="profile-state" class="text-xs font-semibold text-neutral-700">
+                                    {% translate "Estado" %}
+                                </label>
+                                {% include 'components/input.html' with name="state" id="profile-state" value=request.user.profile.state placeholder="Ej. Miranda" icon="location" %}
+                            </div>
+
+                            <!-- Municipio -->
+                            <div class="flex flex-col gap-1.5">
+                                <label for="profile-municipality" class="text-xs font-semibold text-neutral-700">
+                                    {% translate "Municipio" %}
+                                </label>
+                                {% include 'components/input.html' with name="municipality" id="profile-municipality" value=request.user.profile.municipality placeholder="Ej. Chacao" icon="location" %}
+                            </div>
+
+                            <!-- Parroquia / Urbanización / Sector -->
+                            <div class="flex flex-col gap-1.5">
+                                <label for="profile-neighborhood" class="text-xs font-semibold text-neutral-700">
+                                    {% translate "Parroquia / Sector" %}
+                                </label>
+                                {% include 'components/input.html' with name="neighborhood" id="profile-neighborhood" value=request.user.profile.neighborhood placeholder="Ej. Los Palos Grandes" icon="location" %}
+                            </div>
+                        </div>
+
                         <!-- Selector de Género -->
-                        <div class="flex flex-col gap-1.5">
+                        <div class="flex flex-col gap-1.5 sm:col-span-2">
                             <label class="text-xs font-semibold text-neutral-700">{% translate "Género" %}</label>
                             {% translate "Masculino" as txt_masculino %}
                             {% translate "Femenino" as txt_femenino %}

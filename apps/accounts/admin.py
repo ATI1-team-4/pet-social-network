@@ -27,13 +27,23 @@ class UserProfileInline(admin.StackedInline):
     fields = (
         ('id_type', 'id_number'),
         ('phone_prefix', 'phone_number'),
-        ('city', 'latitude', 'longitude'),
+        ('state', 'municipality', 'neighborhood'),
+        ('latitude', 'longitude'),
         ('birth_date', 'gender'),
-        ('rating', 'completed_meetings_count'),
+        ('get_rating_display', 'get_meetings_display'),
         ('favorite_color', 'favorite_book'),
         ('favorite_music', 'favorite_videogame'),
         'bio',
     )
+    readonly_fields = ('get_rating_display', 'get_meetings_display')
+
+    @admin.display(description=_('Calificación'))
+    def get_rating_display(self, obj):
+        return obj.rating if obj else '-'
+
+    @admin.display(description=_('Citas completadas'))
+    def get_meetings_display(self, obj):
+        return obj.completed_meetings_count if obj else 0
 
 
 # Re-registrar UserAdmin para incluir perfil y mascotas
@@ -55,7 +65,7 @@ class CustomUserAdmin(BaseUserAdmin):
     )
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
 
-    @admin.display(description=_('Ciudad'))
+    @admin.display(description=_('Ciudad / Ubicación'))
     def get_city(self, obj):
         return obj.profile.city if hasattr(obj, 'profile') else '-'
 
@@ -68,9 +78,11 @@ class CustomUserAdmin(BaseUserAdmin):
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = (
         'user',
-        'city',
-        'rating',
-        'completed_meetings_count',
+        'state',
+        'municipality',
+        'neighborhood',
+        'get_rating',
+        'get_completed_meetings',
         'id_type',
         'id_number',
         'phone_prefix',
@@ -83,9 +95,19 @@ class UserProfileAdmin(admin.ModelAdmin):
         'user__first_name',
         'user__last_name',
         'id_number',
-        'city',
+        'state',
+        'municipality',
+        'neighborhood',
     )
-    list_filter = ('id_type', 'city', 'created_at')
+    list_filter = ('id_type', 'state', 'municipality', 'created_at')
+
+    @admin.display(description=_('Calificación'))
+    def get_rating(self, obj):
+        return obj.rating
+
+    @admin.display(description=_('Citas completadas'))
+    def get_completed_meetings(self, obj):
+        return obj.completed_meetings_count
 
 
 @admin.register(UserReport)

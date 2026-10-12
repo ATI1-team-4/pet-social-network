@@ -175,7 +175,11 @@ def profile_save_view(request):
         user.save()
 
     profile.phone_number = request.POST.get('phone', profile.phone_number).strip()
-    profile.city = request.POST.get('city', profile.city).strip()
+    profile.state = request.POST.get('state', profile.state).strip()
+    profile.municipality = request.POST.get('municipality', profile.municipality).strip()
+    profile.neighborhood = request.POST.get('neighborhood', profile.neighborhood).strip()
+    if 'city' in request.POST and not request.POST.get('municipality'):
+        profile.municipality = request.POST.get('city', '').strip()
 
     birth_date_val = request.POST.get('birth_date', '').strip()
     if birth_date_val:
