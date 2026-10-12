@@ -54,14 +54,14 @@ class PetModelTests(TestCase):
         self.assertTrue(self.pet.is_macho)
         self.assertFalse(self.pet.is_hembra)
         self.assertEqual(self.pet.gender, 'M')
-        self.assertEqual(self.pet.gender_symbol, '♂')
+        self.assertEqual(self.pet.gender_icon, 'male')
         self.assertEqual(self.pet.gender_label, 'Macho')
 
         female_pet = Pet(gender=Pet.Gender.HEMBRA)
         self.assertTrue(female_pet.is_hembra)
         self.assertFalse(female_pet.is_macho)
         self.assertEqual(female_pet.gender, 'H')
-        self.assertEqual(female_pet.gender_symbol, '♀')
+        self.assertEqual(female_pet.gender_icon, 'female')
         self.assertEqual(female_pet.gender_label, 'Hembra')
 
     def test_pet_age_calculations(self):

@@ -244,8 +244,8 @@ class Pet(TimeStampedModel):
         return self.gender in (self.Gender.HEMBRA, 'H', 'hembra', 'F')
 
     @property
-    def gender_symbol(self):
-        return '♂' if self.is_macho else '♀'
+    def gender_icon(self):
+        return 'male' if self.is_macho else 'female'
 
     @property
     def gender_label(self):

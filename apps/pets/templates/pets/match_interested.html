@@ -131,9 +131,11 @@
                                     <h2 class="title-h5 text-neutral-900 font-bold leading-tight group-hover:text-petly-coral transition-colors">
                                         {{ suitor.name }}
                                     </h2>
-                                    <span class="text-sm font-bold text-petly-coral">
-                                        {{ suitor.gender_symbol }}
-                                    </span>
+                                    {% if suitor.is_hembra or suitor.gender == 'H' or suitor.gender == 'hembra' %}
+                                        {% include 'components/icon.html' with name="female" class="w-3.5 h-3.5 text-petly-coral" %}
+                                    {% else %}
+                                        {% include 'components/icon.html' with name="male" class="w-3.5 h-3.5 text-sky-600" %}
+                                    {% endif %}
                                     <span class="badge-tag text-[10px] font-bold py-0.5 px-2">
                                         {{ suitor.match_percentage }} {% translate "Match" %}
                                     </span>
@@ -185,9 +187,11 @@
                                             <h2 class="title-h3 text-neutral-900 font-bold leading-tight">
                                                 {{ suitor.name }}
                                             </h2>
-                                            <span class="text-sm font-bold text-petly-coral">
-                                                {{ suitor.gender_symbol }}
-                                            </span>
+                                            {% if suitor.is_hembra or suitor.gender == 'H' or suitor.gender == 'hembra' %}
+                                                {% include 'components/icon.html' with name="female" class="w-4 h-4 text-petly-coral" %}
+                                            {% else %}
+                                                {% include 'components/icon.html' with name="male" class="w-4 h-4 text-sky-600" %}
+                                            {% endif %}
                                             <span class="text-neutral-400">•</span>
                                             <span class="text-xs font-semibold text-neutral-600">
                                                 {{ suitor.breed }}
