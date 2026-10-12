@@ -48,7 +48,7 @@ cd pet-social-network
 # 2. Construir las imágenes y levantar los servicios en segundo plano
 docker compose up -d --build
 
-# 3. Aplicar las migraciones (obligatorio la primera vez que se inicia el proyecto)
+# 3. Aplicar las migraciones (obligatorio la primera vez que se inicia el proyecto o cada vez que cambien/se agreguen migraciones)
 docker compose exec web python manage.py migrate
 
 # 4. Poblar datos iniciales de prueba (mascotas, solicitudes de match y citas)
@@ -58,8 +58,8 @@ docker compose exec web python manage.py seed_pets
 La aplicación estará lista y accesible en [http://localhost:8000/](http://localhost:8000/).
 
 > [!NOTE]
-> **Migraciones iniciales y persistencia en el volumen de Docker:**
-> - La ejecución del comando de migraciones (`python manage.py migrate`) es **estrictamente obligatoria la primera vez** que levantas el proyecto para inicializar el archivo `db.sqlite3` con todas las tablas del sistema dentro del volumen.
+> **Migraciones de base de datos y persistencia en el volumen de Docker:**
+> - La ejecución del comando de migraciones (`python manage.py migrate`) es **estrictamente obligatoria la primera vez** que levantas el proyecto para inicializar el archivo `db.sqlite3` con todas las tablas del sistema dentro del volumen, así como **cada vez que se agreguen, modifiquen o reciban cambios en las migraciones** (ej. tras hacer `git pull` de una rama con actualizaciones en los modelos).
 > - **Carga automática de roles y usuarios:** Al aplicar las migraciones, el sistema crea automáticamente los roles de seguridad (`Tutor` y `Administrador`) y las cuentas de prueba de todos los desarrolladores con la contraseña `123456789`, por lo que **no es necesario crear usuarios ni superusuarios manualmente**.
 > - La base de datos SQLite vive y se resguarda dentro del **volumen administrado por Docker (`petly_db_data`)**, el cual opera de forma totalmente aislada de tu sistema de archivos local.
 > - Aunque elimines archivos en tu máquina anfitriona o no exista una carpeta local `data/`, **la base de datos dentro del volumen NO se borra ni se ve afectada**.
@@ -142,7 +142,7 @@ source .venv/bin/activate
 # 2. Instalar dependencias
 pip install -r requirements.txt
 
-# 3. Aplicar migraciones
+# 3. Aplicar migraciones (la primera vez o cada vez que cambien las migraciones)
 python manage.py migrate
 
 # 4. Poblar datos iniciales de prueba (mascotas, matches y citas)
