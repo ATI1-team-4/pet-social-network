@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import resolve, reverse
@@ -13,6 +15,50 @@ class PetsViewsTests(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='edwyn')
         self.client.force_login(self.user)
+        from apps.pets.models import Pet, PetSpecies
+
+        self.species = PetSpecies.objects.create(name='Perro', slug='perro', icon_name='dog')
+        self.pet_toby = Pet.objects.create(
+            owner=self.user,
+            name='Toby',
+            species=self.species,
+            breed='Bulldog Francés',
+            gender=Pet.Gender.MACHO,
+            birth_date='2022-04-15',
+            is_active_for_match=True,
+            profile_color='coral',
+        )
+        self.pet_luna = Pet.objects.create(
+            owner=self.user,
+            name='Luna',
+            species=self.species,
+            breed='Golden Retriever',
+            gender=Pet.Gender.HEMBRA,
+            birth_date='2021-06-20',
+            is_active_for_match=True,
+            profile_color='lilac',
+        )
+        sofia = User.objects.get(username='sofia')
+        self.cand_bella = Pet.objects.create(
+            owner=sofia,
+            name='Bella',
+            species=self.species,
+            breed='Pastor Australiano',
+            gender=Pet.Gender.HEMBRA,
+            birth_date='2022-10-12',
+            is_active_for_match=True,
+            profile_color='coral',
+        )
+        self.cand_simba = Pet.objects.create(
+            owner=sofia,
+            name='Simba',
+            species=self.species,
+            breed='Golden Retriever',
+            gender=Pet.Gender.MACHO,
+            birth_date='2022-05-10',
+            is_active_for_match=True,
+            profile_color='coral',
+        )
 
     def test_unauthenticated_user_redirected_to_login(self):
         """Verifica que un usuario no autenticado sea redirigido a login al intentar acceder a la app."""
@@ -43,6 +89,24 @@ class PetsViewsTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'pets/pet_select.html')
+        self.assertIn('pets', response.context)
+        self.assertIn('active_pet', response.context)
+        self.assertContains(response, 'Toby')
+        self.assertContains(response, 'Luna')
+
+        # Probar selección explícita mediante parámetro GET
+        response_luna = self.client.get(url + '?selected=luna')
+        self.assertEqual(response_luna.status_code, 200)
+        self.assertEqual(response_luna.context['active_pet']['name'], 'Luna')
+
+        # Verificar que otro usuario sólo ve sus propias mascotas y no las de edwyn
+        sofia = User.objects.get(username='sofia')
+        self.client.force_login(sofia)
+        response_sofia = self.client.get(url)
+        self.assertEqual(response_sofia.status_code, 200)
+        self.assertContains(response_sofia, 'Bella')
+        self.assertContains(response_sofia, 'Simba')
+        self.assertNotContains(response_sofia, 'Toby')
 
     def test_match_feed_url_and_view(self):
         url = reverse('pets:match_feed')
@@ -135,6 +199,107 @@ class PetsViewsTests(TestCase):
         response_post = self.client.post(url)
         self.assertRedirects(response_post, reverse('pets:pet_management'))
         self.assertFalse(Pet.objects.filter(id=pet.id).exists())
+
+    def test_pet_toggle_goal_view(self):
+        """Verifica la actualización asíncrona de objetivos en PetMatch (matching, socializing, adoption)."""
+        url = reverse('pets:pet_toggle_goal')
+
+        # Rechazar solicitudes GET
+        response_get = self.client.get(url)
+        self.assertEqual(response_get.status_code, 405)
+
+        # Desactivar buscando pareja
+        response_matching = self.client.post(
+            url,
+            json.dumps({'pet_id': self.pet_toby.id, 'goal': 'is_matching', 'value': False}),
+            content_type='application/json',
+        )
+        self.assertEqual(response_matching.status_code, 200)
+        self.pet_toby.refresh_from_db()
+        self.assertFalse(self.pet_toby.is_matching)
+        self.assertFalse(self.pet_toby.is_active_for_match)
+
+        # Activar en adopción
+        response_adoption = self.client.post(
+            url,
+            json.dumps({'pet_id': self.pet_toby.id, 'goal': 'is_adoption', 'value': True}),
+            content_type='application/json',
+        )
+        self.assertEqual(response_adoption.status_code, 200)
+        self.pet_toby.refresh_from_db()
+        self.assertTrue(self.pet_toby.is_adoption)
+        self.assertTrue(self.pet_toby.is_for_adoption)
+
+        # Desactivar buscando socializar
+        response_social = self.client.post(
+            url,
+            json.dumps({'pet_id': self.pet_toby.id, 'goal': 'is_socializing', 'value': False}),
+            content_type='application/json',
+        )
+        self.assertEqual(response_social.status_code, 200)
+        self.pet_toby.refresh_from_db()
+        self.assertFalse(self.pet_toby.is_socializing)
+
+        # Mascota ajena no modificable
+        sofia = User.objects.get(username='sofia')
+        self.client.force_login(sofia)
+        response_forbidden = self.client.post(
+            url,
+            json.dumps({'pet_id': self.pet_toby.id, 'goal': 'is_matching', 'value': True}),
+            content_type='application/json',
+        )
+        self.assertEqual(response_forbidden.status_code, 404)
+
+    def test_pet_update_certificate_view(self):
+        """Verifica la actualización asíncrona del tipo de pedigrí y certificado (fci, tramite, sin_pedigri)."""
+        url = reverse('pets:pet_update_certificate')
+
+        # Rechazar solicitudes GET
+        response_get = self.client.get(url)
+        self.assertEqual(response_get.status_code, 405)
+
+        # Cambiar a 'tramite'
+        response_tramite = self.client.post(
+            url,
+            json.dumps({'pet_id': self.pet_toby.id, 'certificate': 'tramite'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response_tramite.status_code, 200)
+        self.pet_toby.refresh_from_db()
+        self.assertEqual(self.pet_toby.certificate, 'tramite')
+        self.assertEqual(self.pet_toby.certificate_type, 'En trámite')
+
+        # Cambiar a 'sin_pedigri'
+        response_sin = self.client.post(
+            url,
+            json.dumps({'pet_id': self.pet_toby.id, 'certificate': 'sin_pedigri'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response_sin.status_code, 200)
+        self.pet_toby.refresh_from_db()
+        self.assertEqual(self.pet_toby.certificate, 'sin_pedigri')
+        self.assertEqual(self.pet_toby.certificate_type, 'Sin pedigrí')
+
+        # Cambiar a 'fci'
+        response_fci = self.client.post(
+            url,
+            json.dumps({'pet_id': self.pet_toby.id, 'certificate': 'fci'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response_fci.status_code, 200)
+        self.pet_toby.refresh_from_db()
+        self.assertEqual(self.pet_toby.certificate, 'fci')
+        self.assertEqual(self.pet_toby.certificate_type, 'Certificado FCI')
+
+        # Mascota ajena
+        sofia = User.objects.get(username='sofia')
+        self.client.force_login(sofia)
+        response_forbidden = self.client.post(
+            url,
+            json.dumps({'pet_id': self.pet_toby.id, 'certificate': 'tramite'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response_forbidden.status_code, 404)
 
     def test_pet_set_active_view(self):
         """Verifica que la vista dedicada pet_set_active_view guarde en sesión y redirija al feed."""

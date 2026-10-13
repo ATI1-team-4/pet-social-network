@@ -176,18 +176,18 @@
                         {% translate 'Lila' as name_lilac %}
                         {% translate 'Color lila' as aria_lilac %}
                         {% if active_pet.profile_color == 'lilac' %}
-                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-purple-800" icon_wrapper_class="color-check" onclick="selectProfileColor('lilac', 'Lila')" aria_label=aria_lilac attrs='data-color="lilac" data-color-name="'|add:name_lilac|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#E9D5FF] flex items-center justify-center transition-all cursor-pointer shadow-xs ring-3 ring-offset-2 ring-[#C084FC]" %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-white" icon_wrapper_class="color-check" onclick="selectProfileColor('lilac', 'Lila')" aria_label=aria_lilac attrs='data-color="lilac" data-color-name="'|add:name_lilac|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#8A4AF3] flex items-center justify-center transition-all cursor-pointer shadow-xs ring-3 ring-offset-2 ring-[#8A4AF3]" %}
                         {% else %}
-                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-purple-800" icon_wrapper_class="color-check hidden" onclick="selectProfileColor('lilac', 'Lila')" aria_label=aria_lilac attrs='data-color="lilac" data-color-name="'|add:name_lilac|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#E9D5FF] flex items-center justify-center transition-all cursor-pointer shadow-xs" %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-white" icon_wrapper_class="color-check hidden" onclick="selectProfileColor('lilac', 'Lila')" aria_label=aria_lilac attrs='data-color="lilac" data-color-name="'|add:name_lilac|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#8A4AF3] flex items-center justify-center transition-all cursor-pointer shadow-xs" %}
                         {% endif %}
 
                         <!-- Muestra: Verde Menta -->
                         {% translate 'Menta' as name_mint %}
                         {% translate 'Color verde menta' as aria_mint %}
                         {% if active_pet.profile_color == 'mint' %}
-                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-emerald-900" icon_wrapper_class="color-check" onclick="selectProfileColor('mint', 'Menta')" aria_label=aria_mint attrs='data-color="mint" data-color-name="'|add:name_mint|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#8FFFB4] flex items-center justify-center transition-all cursor-pointer shadow-xs ring-3 ring-offset-2 ring-[#34D399]" %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-emerald-950" icon_wrapper_class="color-check" onclick="selectProfileColor('mint', 'Menta')" aria_label=aria_mint attrs='data-color="mint" data-color-name="'|add:name_mint|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#8FFFB4] flex items-center justify-center transition-all cursor-pointer shadow-xs ring-3 ring-offset-2 ring-[#34D399]" %}
                         {% else %}
-                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-emerald-900" icon_wrapper_class="color-check hidden" onclick="selectProfileColor('mint', 'Menta')" aria_label=aria_mint attrs='data-color="mint" data-color-name="'|add:name_mint|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#8FFFB4] flex items-center justify-center transition-all cursor-pointer shadow-xs" %}
+                            {% include 'components/button.html' with variant="custom" icon="check" icon_class="w-5 h-5 text-emerald-950" icon_wrapper_class="color-check hidden" onclick="selectProfileColor('mint', 'Menta')" aria_label=aria_mint attrs='data-color="mint" data-color-name="'|add:name_mint|add:'"' class="color-swatch relative w-12 h-12 rounded-full bg-[#8FFFB4] flex items-center justify-center transition-all cursor-pointer shadow-xs" %}
                         {% endif %}
 
                         <!-- Muestra: Melocotón -->
@@ -218,7 +218,7 @@
                             <span class="text-xs font-semibold text-neutral-800">
                                 {% translate "Buscando pareja" %}
                             </span>
-                            {% include 'components/toggle.html' with id="toggle-matching" name="is_matching" checked=active_pet.is_matching|default:True %}
+                            {% include 'components/toggle.html' with id="toggle-matching" name="is_matching" checked=active_pet.is_matching onchange="handleGoalToggle('is_matching', this.checked)" %}
                         </div>
 
                         <!-- Toggle 2: Buscando Socializar -->
@@ -226,7 +226,7 @@
                             <span class="text-xs font-semibold text-neutral-800">
                                 {% translate "Buscando socializar" %}
                             </span>
-                            {% include 'components/toggle.html' with id="toggle-socializing" name="is_socializing" checked=active_pet.is_socializing|default:True %}
+                            {% include 'components/toggle.html' with id="toggle-socializing" name="is_socializing" checked=active_pet.is_socializing onchange="handleGoalToggle('is_socializing', this.checked)" %}
                         </div>
 
                         <!-- Toggle 3: En Adopción -->
@@ -234,7 +234,7 @@
                             <span class="text-xs font-semibold text-neutral-800">
                                 {% translate "En adopción" %}
                             </span>
-                            {% include 'components/toggle.html' with id="toggle-adoption" name="is_adoption" checked=active_pet.is_adoption|default:False %}
+                            {% include 'components/toggle.html' with id="toggle-adoption" name="is_adoption" checked=active_pet.is_adoption onchange="handleGoalToggle('is_adoption', this.checked)" %}
                         </div>
                     </div>
                 </div>
@@ -318,7 +318,7 @@
                             {% translate "Certificado FCI" as cert_fci %}
                             {% translate "En trámite" as cert_tramite %}
                             {% translate "Sin pedigrí" as cert_sin_pedigri %}
-                            {% include 'components/segmented.html' with name="certificate" input_id="input-certificate" text_1=cert_fci value_1="fci" text_2=cert_tramite value_2="tramite" text_3=cert_sin_pedigri value_3="sin_pedigri" active_value=active_pet.certificate|default:"fci" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center text-center" %}
+                            {% include 'components/segmented.html' with name="certificate" input_id="input-certificate" text_1=cert_fci value_1="fci" onclick_1="handleCertificateChange('fci')" text_2=cert_tramite value_2="tramite" onclick_2="handleCertificateChange('tramite')" text_3=cert_sin_pedigri value_3="sin_pedigri" onclick_3="handleCertificateChange('sin_pedigri')" active_value=active_pet.certificate|default:"fci" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center text-center" %}
                         </div>
 
                     </div>
@@ -640,9 +640,9 @@
                             {% include 'components/icon.html' with name="close" class="w-4 h-4 text-neutral-400" %}
                         </div>
                         <div id="modal-preview-btn-like"
-                             class="flex-1 py-2 px-3 rounded-full text-white text-xs sm:text-sm font-bold shadow-md inline-flex items-center justify-center gap-1.5 select-none"
-                             style="background-color: #FA7D82;">
-                            {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-white" %}
+                             class="flex-1 py-2 px-3 rounded-full {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}text-neutral-900{% else %}text-white{% endif %} text-xs sm:text-sm font-bold shadow-md inline-flex items-center justify-center gap-1.5 select-none"
+                             style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; color: {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}#171717{% else %}#ffffff{% endif %};">
+                            {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5" %}
                             <span class="truncate">{% translate "Mostrar interés en" %} <span id="modal-preview-btn-name">{{ active_pet.name|default:"Toby" }}</span></span>
                         </div>
                     </div>
@@ -666,7 +666,7 @@
     // Configuración reactiva del perfil de mascota
     const COLOR_HEX_MAP = {
         coral: '#FA7D82',
-        lilac: '#E9D5FF',
+        lilac: '#8A4AF3',
         mint: '#8FFFB4',
         peach: '#FFDAD9'
     };
@@ -723,12 +723,12 @@
             if (isMatch) {
                 swatch.classList.add('ring-3', 'ring-offset-2');
                 if (colorKey === 'coral') swatch.classList.add('ring-[#FA7D82]');
-                if (colorKey === 'lilac') swatch.classList.add('ring-[#C084FC]');
+                if (colorKey === 'lilac') swatch.classList.add('ring-[#8A4AF3]');
                 if (colorKey === 'mint') swatch.classList.add('ring-[#34D399]');
                 if (colorKey === 'peach') swatch.classList.add('ring-[#FB7185]');
                 if (check) check.classList.remove('hidden');
             } else {
-                swatch.classList.remove('ring-3', 'ring-offset-2', 'ring-[#FA7D82]', 'ring-[#C084FC]', 'ring-[#34D399]', 'ring-[#FB7185]');
+                swatch.classList.remove('ring-3', 'ring-offset-2', 'ring-[#FA7D82]', 'ring-[#8A4AF3]', 'ring-[#34D399]', 'ring-[#FB7185]', 'ring-[#C084FC]');
                 if (check) check.classList.add('hidden');
             }
         });
@@ -946,7 +946,16 @@
         const tutorAvatar = document.getElementById('modal-preview-tutor-avatar');
         if (tutorAvatar) tutorAvatar.style.backgroundColor = hex;
         const btnLike = document.getElementById('modal-preview-btn-like');
-        if (btnLike) btnLike.style.backgroundColor = hex;
+        if (btnLike) {
+            btnLike.style.backgroundColor = hex;
+            const isDark = (color === 'peach' || color === 'mint');
+            btnLike.style.color = isDark ? '#171717' : '#ffffff';
+            const icon = btnLike.querySelector('span[style*="mask-image"], .bg-current');
+            if (icon) {
+                icon.style.color = isDark ? '#171717' : '#ffffff';
+                icon.style.backgroundColor = isDark ? '#171717' : '#ffffff';
+            }
+        }
         const cardBody = document.getElementById('modal-preview-card-body');
         if (cardBody) cardBody.style.background = `linear-gradient(180deg, #ffffff 65%, ${hex}18 100%)`;
         const metricsBox = document.getElementById('modal-preview-metrics-box');
@@ -966,10 +975,110 @@
         openModal('modal-pet-preview');
     }
 
-    // Inicializar contador al cargar
+    // Actualización asíncrona inmediata de objetivos en PetMatch
+    async function handleGoalToggle(goalName, isChecked) {
+        const petId = document.getElementById('form-pet-id')?.value;
+
+        // Si es una mascota nueva aún no creada, solo se persistirá al enviar el formulario
+        if (!petId) {
+            return;
+        }
+
+        try {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            const response = await fetch("{% url 'pets:pet_toggle_goal' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    pet_id: petId,
+                    goal: goalName,
+                    value: isChecked,
+                }),
+            });
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                showGoalToast('{% translate "Objetivo actualizado exitosamente" %}', 'success');
+            } else {
+                showGoalToast(result.message || '{% translate "Error al actualizar" %}', 'error');
+            }
+        } catch (error) {
+            console.error('Error al actualizar objetivo:', error);
+            showGoalToast('{% translate "No se pudo guardar el cambio." %}', 'error');
+        }
+    }
+
+    // Notificación toast visual reactiva
+    function showGoalToast(message, type = 'success') {
+        let toast = document.getElementById('goal-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'goal-toast';
+            document.body.appendChild(toast);
+        }
+
+        if (type === 'success') {
+            toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl shadow-xl border text-xs font-semibold transition-all duration-300 bg-emerald-50 border-emerald-300 text-emerald-800 opacity-100 translate-y-0';
+            toast.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> <span>${message}</span>`;
+        } else {
+            toast.className = 'fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl shadow-xl border text-xs font-semibold transition-all duration-300 bg-rose-50 border-rose-300 text-rose-800 opacity-100 translate-y-0';
+            toast.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> <span>${message}</span>`;
+        }
+
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', 'translate-y-3');
+        }, 2500);
+    }
+
+    // Actualización asíncrona inmediata de pedigrí y certificado
+    async function handleCertificateChange(newCertValue) {
+        const petId = document.getElementById('form-pet-id')?.value;
+        if (!petId) return;
+
+        try {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            const response = await fetch("{% url 'pets:pet_update_certificate' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    pet_id: petId,
+                    certificate: newCertValue,
+                }),
+            });
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                showGoalToast('{% translate "Certificado actualizado exitosamente" %}', 'success');
+            } else {
+                showGoalToast(result.message || '{% translate "Error al actualizar" %}', 'error');
+            }
+        } catch (error) {
+            console.error('Error al actualizar certificado:', error);
+            showGoalToast('{% translate "No se pudo guardar el certificado." %}', 'error');
+        }
+    }
+
+    // Inicializar listeners al cargar
     document.addEventListener('DOMContentLoaded', () => {
         const textarea = document.getElementById('pet-description-input');
         if (textarea) updateCharCount(textarea);
+
+        const certInput = document.getElementById('input-certificate');
+        if (certInput) {
+            certInput.addEventListener('change', (e) => {
+                handleCertificateChange(e.target.value);
+            });
+        }
     });
 </script>
 {% endblock %}

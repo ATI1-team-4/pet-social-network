@@ -654,6 +654,14 @@ input[type="password"]::-ms-clear {
   background-color: var(--pet-color) !important;
   box-shadow: 0 10px 24px -4px var(--pet-color-shadow) !important;
 }
+.btn-pet-dynamic-like.text-neutral-900,
+.btn-pet-dynamic-like.text-neutral-900 * {
+  color: #171717 !important;
+}
+.btn-pet-dynamic-like.text-white,
+.btn-pet-dynamic-like.text-white * {
+  color: #ffffff !important;
+}
 .btn-pet-quick-match {
   background-color: var(--pet-color-badge) !important;
   color: var(--pet-color) !important;
