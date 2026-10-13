@@ -98,7 +98,13 @@ class PetModelTests(TestCase):
         self.assertEqual(self.pet.profile_color_hex, '#FA7D82')
 
         self.pet.profile_color = Pet.ProfileColor.LILAC
-        self.assertEqual(self.pet.profile_color_hex, '#E9D5FF')
+        self.assertEqual(self.pet.profile_color_hex, '#8A4AF3')
+
+        self.pet.profile_color = Pet.ProfileColor.PEACH
+        self.assertEqual(self.pet.profile_color_hex, '#FFDAD9')
+
+        self.pet.profile_color = Pet.ProfileColor.MINT
+        self.assertEqual(self.pet.profile_color_hex, '#8FFFB4')
 
     def test_pet_pedigree_flag(self):
         self.assertTrue(self.pet.has_pedigree)

@@ -36,7 +36,8 @@
                     <div id="desktop-pet-card-{{ pet.id }}"
                          data-pet-id="{{ pet.id }}"
                          data-pet-name="{{ pet.name }}"
-                         class="desktop-pet-card card-petly p-5 bg-white rounded-3xl transition-all relative flex items-center justify-between gap-5 shadow-xs {% if pet.is_selected %}border-2 border-petly-coral ring-2 ring-petly-coral/20{% else %}border border-neutral-300/80 hover:border-neutral-400{% endif %}">
+                         onclick="selectActivePet('{{ pet.id }}', '{{ pet.name }}')"
+                         class="desktop-pet-card card-petly p-5 bg-white rounded-3xl transition-all relative flex items-center justify-between gap-5 shadow-xs cursor-pointer {% if pet.is_selected %}border-2 border-petly-coral ring-2 ring-petly-coral/20{% else %}border border-neutral-300/80 hover:border-neutral-400{% endif %}">
 
                         <div class="flex items-center gap-5 flex-1 min-w-0">
                             <!-- Fotografía cuadrada redondeada -->
@@ -133,14 +134,15 @@
                     </div>
 
                     <h2 class="title-h4 text-neutral-900 font-bold">
-                        {% blocktranslate with name=active_pet.name|default:"Toby" %}Continuar flujo con <span id="desktop-action-pet-name">{{ name }}</span>{% endblocktranslate %}
+                        {% blocktranslate with name=active_pet.name|default:"Mascota" %}Continuar flujo con <span id="desktop-action-pet-name">{{ name }}</span>{% endblocktranslate %}
                     </h2>
 
                     <div class="space-y-3 pt-2">
                         {% include 'components/button.html' with text=_("Continuar a buscar pareja") type="submit" variant="primary" class="w-full py-3.5 text-sm font-bold shadow-md justify-center" icon="heart" %}
 
                         {% url 'pets:match_interested' as match_interested_url %}
-                        {% include 'components/button.html' with text=_("Ver mascotas interesadas")|add:" ("|add:interested_count|default:"4"|stringformat:"s"|add:")" href=match_interested_url variant="secondary" icon="users" class="w-full py-3 text-sm font-semibold justify-center bg-petly-blue hover:bg-petly-ice text-neutral-800 no-underline shadow-xs" %}
+                        {% blocktranslate with count=interested_count asvar interested_btn_label %}Ver mascotas interesadas ({{ count }}){% endblocktranslate %}
+                        {% include 'components/button.html' with text=interested_btn_label href=match_interested_url variant="secondary" icon="users" class="w-full py-3 text-sm font-semibold justify-center bg-petly-blue hover:bg-petly-ice text-neutral-800 no-underline shadow-xs" %}
                     </div>
                 </div>
             </div>
@@ -211,7 +213,8 @@
                 {% include 'components/button.html' with text=_("Continuar a buscar pareja") type="submit" variant="primary" class="w-full py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold shadow-md justify-center" icon="heart" %}
 
                 {% url 'pets:match_interested' as match_interested_url %}
-                {% include 'components/button.html' with text=_("Ver mascotas interesadas")|add:" ("|add:interested_count|default:"4"|stringformat:"s"|add:")" href=match_interested_url variant="secondary" icon="users" class="w-full py-2.5 sm:py-3 text-xs sm:text-sm font-semibold justify-center bg-petly-blue hover:bg-petly-ice text-neutral-800 no-underline shadow-xs" %}
+                {% blocktranslate with count=interested_count asvar interested_btn_label_mob %}Ver mascotas interesadas ({{ count }}){% endblocktranslate %}
+                {% include 'components/button.html' with text=interested_btn_label_mob href=match_interested_url variant="secondary" icon="users" class="w-full py-2.5 sm:py-3 text-xs sm:text-sm font-semibold justify-center bg-petly-blue hover:bg-petly-ice text-neutral-800 no-underline shadow-xs" %}
             </div>
 
         </div>

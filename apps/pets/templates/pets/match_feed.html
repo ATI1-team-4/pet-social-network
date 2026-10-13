@@ -102,13 +102,13 @@
                  Aplica dinámicamente el ancho amplio proporcional a la columna y el acento del tutor activo
             -->
             <div id="discovery-card"
-                 class="relative w-full max-w-2xl lg:max-w-none bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border border-neutral-200/80 mb-8 lg:mb-0 shadow-pet-discovery">
+                 class="relative w-full max-w-2xl lg:max-w-none bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border border-neutral-200/80 mb-8 lg:mb-0 shadow-pet-discovery {% if not current_candidate %}hidden{% endif %}">
 
                 <!-- SECCIÓN 1: FOTOGRAFÍA PRINCIPAL CON GRADIENTE E INFORMACIÓN -->
                 <div class="relative w-full h-80 sm:h-96 md:h-[480px] lg:h-[500px] bg-neutral-100 overflow-hidden">
                     <img id="card-photo"
-                         src="{{ current_candidate.photo_clean_url|default:current_candidate.photo_url }}"
-                         alt="{{ current_candidate.name }}"
+                         src="{{ current_candidate.photo_url|default:'' }}"
+                         alt="{{ current_candidate.name|default:'' }}"
                          class="w-full h-full object-cover object-center select-none transition-transform duration-500">
 
                     <!-- Rayas indicadoras de historias superiores -->
@@ -255,7 +255,11 @@
 
                     <!-- Botón primario central: Mostrar Interés (♥) -->
                     {% blocktranslate with name=current_candidate.name asvar like_btn_text %}Mostrar interés en {{ name }}{% endblocktranslate %}
-                    {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-white" onclick="handleLikeCandidate()" class="btn-pet-dynamic-like select-none flex-1 py-3.5 px-6 rounded-full font-bold text-white shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
+                    {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}
+                        {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-neutral-900" onclick="handleLikeCandidate()" class="btn-pet-dynamic-like select-none flex-1 py-3.5 px-6 rounded-full font-bold text-neutral-900 shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
+                    {% else %}
+                        {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-white" onclick="handleLikeCandidate()" class="btn-pet-dynamic-like select-none flex-1 py-3.5 px-6 rounded-full font-bold text-white shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
+                    {% endif %}
 
                     <!-- Botón secundario: Reporte de candidato con bandera -->
                     {% translate 'Reportar candidato' as aria_report_cand %}
@@ -274,11 +278,36 @@
                     <!-- Botón Circular Me Interesa (♥) -->
                     <div class="flex flex-col items-center gap-1.5">
                         {% translate 'Interesado' as aria_like_mobile %}
-                        {% include 'components/button.html' with id="btn-like-mobile" variant="custom" icon="heart-filled" icon_class="w-7 h-7 text-white" onclick="handleLikeCandidate()" aria_label=aria_like_mobile class="btn-pet-dynamic-like w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-white flex items-center justify-center cursor-pointer" %}
+                        {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}
+                            {% include 'components/button.html' with id="btn-like-mobile" variant="custom" icon="heart-filled" icon_class="w-7 h-7 text-neutral-900" onclick="handleLikeCandidate()" aria_label=aria_like_mobile class="btn-pet-dynamic-like w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-neutral-900 flex items-center justify-center cursor-pointer" %}
+                        {% else %}
+                            {% include 'components/button.html' with id="btn-like-mobile" variant="custom" icon="heart-filled" icon_class="w-7 h-7 text-white" onclick="handleLikeCandidate()" aria_label=aria_like_mobile class="btn-pet-dynamic-like w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-white flex items-center justify-center cursor-pointer" %}
+                        {% endif %}
                         <span class="text-xs font-semibold text-neutral-700">{% translate "Interesado" %}</span>
                     </div>
                 </div>
 
+            </div>
+            
+            <!-- Estado vacío cuando no hay más candidatos por evaluar -->
+            <div id="discovery-empty-state" class="{% if current_candidate %}hidden{% else %}flex{% endif %} flex-col items-center justify-center p-8 sm:p-12 text-center bg-white rounded-3xl border border-neutral-200/80 shadow-md w-full max-w-2xl min-h-[380px] space-y-4">
+                <div class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center text-petly-coral shadow-xs">
+                    {% include 'components/icon.html' with name="sparkles" class="w-8 h-8 text-petly-coral" %}
+                </div>
+                <h3 class="title-h3 font-bold text-neutral-900 text-lg sm:text-xl">
+                    {% translate "¡Has explorado todos los candidatos!" %}
+                </h3>
+                <p class="text-neutral-500 text-xs sm:text-sm max-w-md leading-relaxed">
+                    {% translate "No hay más perfiles compatibles disponibles para evaluar en este momento. Revisa tus solicitudes de interesados o regresa más tarde para descubrir nuevas mascotas." %}
+                </p>
+                <div class="pt-2 flex flex-wrap gap-3 justify-center">
+                    <a href="{% url 'pets:match_feed' %}" class="btn-pet-dynamic-like px-5 py-2.5 rounded-full text-xs font-bold text-white shadow-xs no-underline inline-flex items-center gap-2">
+                        <span>{% translate "Recargar feed" %}</span>
+                    </a>
+                    <a href="{% url 'pets:match_interested' %}" class="px-5 py-2.5 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 no-underline inline-flex items-center gap-1.5 transition-colors">
+                        <span>{% translate "Ver solicitudes pendientes" %}</span>
+                    </a>
+                </div>
             </div>
 
         </div>
@@ -394,7 +423,7 @@
 
             <!-- Avatar de la mascota candidata (Bella / Kira) -->
             <div class="relative z-20 w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-petly-ice -ml-4">
-                <img id="match-candidate-avatar" src="{{ current_candidate.photo_clean_url|default:current_candidate.photo_url }}" alt="{{ current_candidate.name }}" class="w-full h-full object-cover">
+                <img id="match-candidate-avatar" src="{{ current_candidate.photo_url|default:'' }}" alt="{{ current_candidate.name|default:'' }}" class="w-full h-full object-cover">
             </div>
         </div>
 
@@ -485,11 +514,61 @@
         }
     }
 
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
     // Color de acento reactivo de la mascota activa
     const activePetColor = '{{ active_pet.profile_color_hex|default:"#FA7D82" }}';
+    const activePetColorKey = '{{ active_pet.profile_color|default:"coral" }}';
     document.documentElement.style.setProperty('--pet-color', activePetColor);
 
-    // Dataset reactivo de candidatos oficiales según el prototipo
+    // Ajuste de contraste para el botón de mostrar interés: negro para melocotón y verde, blanco para coral y lila
+    const isDarkLikeBtn = (activePetColorKey === 'peach' || activePetColorKey === 'mint');
+    const updateLikeBtnContrast = () => {
+        ['btn-like', 'btn-like-mobile'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            if (isDarkLikeBtn) {
+                btn.classList.remove('text-white');
+                btn.classList.add('text-neutral-900');
+                btn.style.color = '#171717';
+                const icons = btn.querySelectorAll('.bg-current, span[style*="mask-image"]');
+                icons.forEach(ic => {
+                    ic.classList.remove('text-white');
+                    ic.classList.add('text-neutral-900');
+                    ic.style.color = '#171717';
+                    ic.style.backgroundColor = '#171717';
+                });
+            } else {
+                btn.classList.remove('text-neutral-900');
+                btn.classList.add('text-white');
+                btn.style.color = '#ffffff';
+                const icons = btn.querySelectorAll('.bg-current, span[style*="mask-image"]');
+                icons.forEach(ic => {
+                    ic.classList.remove('text-neutral-900');
+                    ic.classList.add('text-white');
+                    ic.style.color = '#ffffff';
+                    ic.style.backgroundColor = '#ffffff';
+                });
+            }
+        });
+    };
+    updateLikeBtnContrast();
+
+    // Dataset reactivo de candidatos dinámicos desde el ORM
     const candidatesRaw = '{{ candidates_json|escapejs }}';
     let CANDIDATES = [];
     try {
@@ -501,8 +580,25 @@
 
     // Actualiza dinámicamente la tarjeta con el candidato en el índice dado
     function renderCandidate(index) {
-        if (!CANDIDATES || CANDIDATES.length === 0) return;
-        const c = CANDIDATES[index % CANDIDATES.length];
+        const card = document.getElementById('discovery-card');
+        const emptyState = document.getElementById('discovery-empty-state');
+
+        if (!CANDIDATES || CANDIDATES.length === 0 || index >= CANDIDATES.length) {
+            if (card) card.classList.add('hidden');
+            if (emptyState) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            }
+            return;
+        }
+
+        if (card) card.classList.remove('hidden');
+        if (emptyState) {
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
+        }
+
+        const c = CANDIDATES[index];
 
         // Foto y atributos visuales
         const photo = document.getElementById('card-photo');
@@ -589,42 +685,109 @@
         if (matchAvatar) matchAvatar.src = c.photo_clean_url || c.photo_url;
     }
 
-    // Acción: Pasar candidato con animación tipo Tinder
+    // Acción: Pasar candidato con animación tipo Tinder y persistencia AJAX
     function handlePassCandidate() {
+        if (!CANDIDATES || currentCandidateIndex >= CANDIDATES.length) return;
+        const c = CANDIDATES[currentCandidateIndex];
         const card = document.getElementById('discovery-card');
+
         if (card) {
             card.classList.add('-translate-x-12', 'opacity-50');
-            setTimeout(() => {
-                currentCandidateIndex = (currentCandidateIndex + 1) % CANDIDATES.length;
-                renderCandidate(currentCandidateIndex);
-                card.classList.remove('-translate-x-12', 'opacity-50');
-            }, 180);
         }
+
+        fetch('{% url "pets:match_pass_candidate" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ candidate_id: c.id })
+        })
+        .then(r => r.json())
+        .catch(err => console.error('Error descartando candidato:', err))
+        .finally(() => {
+            setTimeout(() => {
+                currentCandidateIndex++;
+                renderCandidate(currentCandidateIndex);
+                if (card) card.classList.remove('-translate-x-12', 'opacity-50');
+            }, 180);
+        });
     }
 
-    // Acción: Mostrar Interés y disparar modal de Match
+    // Acción: Mostrar Interés, enviar AJAX y evaluar coincidencia mutua para modal
     function handleLikeCandidate() {
-        const c = CANDIDATES[currentCandidateIndex % CANDIDATES.length];
-        const matchName = document.getElementById('match-candidate-name');
-        if (matchName) matchName.textContent = c.name;
+        if (!CANDIDATES || currentCandidateIndex >= CANDIDATES.length) return;
+        const c = CANDIDATES[currentCandidateIndex];
+        const card = document.getElementById('discovery-card');
 
-        const matchAvatar = document.getElementById('match-candidate-avatar');
-        if (matchAvatar) matchAvatar.src = c.photo_clean_url || c.photo_url;
+        fetch('{% url "pets:match_like_candidate" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ candidate_id: c.id })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (data.is_match) {
+                    const matchName = document.getElementById('match-candidate-name');
+                    if (matchName) matchName.textContent = c.name;
 
-        openModal('modal-match-success');
+                    const matchAvatar = document.getElementById('match-candidate-avatar');
+                    if (matchAvatar) matchAvatar.src = c.photo_clean_url || c.photo_url;
+
+                    openModal('modal-match-success');
+                } else {
+                    // Interés registrado sin reciprocidad todavía -> deslizar tarjeta y avanzar
+                    if (card) card.classList.add('translate-x-12', 'opacity-50');
+                    setTimeout(() => {
+                        currentCandidateIndex++;
+                        renderCandidate(currentCandidateIndex);
+                        if (card) card.classList.remove('translate-x-12', 'opacity-50');
+                    }, 180);
+                }
+            } else {
+                alert(data.message || "{% translate 'No fue posible registrar el interés.' %}");
+            }
+        })
+        .catch(err => {
+            console.error('Error registrando like:', err);
+        });
     }
 
     // Avanzar al siguiente candidato tras celebrar el match
     function nextCandidateAfterMatch() {
         closeModal('modal-match-success');
-        currentCandidateIndex = (currentCandidateIndex + 1) % CANDIDATES.length;
+        currentCandidateIndex++;
         renderCandidate(currentCandidateIndex);
     }
 
     // Match rápido desde la barra lateral de interesados
     function handleSidebarQuickMatch(button) {
         if (!button) return;
-        quickMatchWith(button.getAttribute('data-name'), button.getAttribute('data-photo'));
+        const candidateId = button.getAttribute('data-id');
+        const name = button.getAttribute('data-name');
+        const photoUrl = button.getAttribute('data-photo');
+
+        if (candidateId) {
+            fetch('{% url "pets:match_like_candidate" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ candidate_id: candidateId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                quickMatchWith(name, photoUrl);
+            })
+            .catch(() => quickMatchWith(name, photoUrl));
+        } else {
+            quickMatchWith(name, photoUrl);
+        }
     }
 
     function quickMatchWith(name, photoUrl) {
@@ -637,10 +800,32 @@
         openModal('modal-match-success');
     }
 
+    // Reporte de candidato con confirmación y llamada asíncrona
     function openCandidateReportModal() {
-        const c = CANDIDATES[currentCandidateIndex % CANDIDATES.length];
-        if (confirm(`{% translate "¿Deseas reportar el perfil de" %} ${c.name} {% translate "por contenido o comportamiento inapropiado?" %}`)) {
-            alert(`{% translate "El reporte ha sido enviado al equipo de administración para su revisión." %}`);
+        if (!CANDIDATES || currentCandidateIndex >= CANDIDATES.length) return;
+        const c = CANDIDATES[currentCandidateIndex];
+        const reason = prompt(
+            `{% translate "¿Deseas reportar el perfil de" %} ${c.name}? {% translate "Por favor indica el motivo del reporte:" %}`,
+            "{% translate "Información falsa o contenido inapropiado" %}"
+        );
+        if (reason && reason.trim()) {
+            fetch('{% url "pets:match_report_candidate" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ candidate_id: c.id, reason: reason.trim() })
+            })
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message || "{% translate 'El reporte ha sido enviado al equipo de administración para su revisión.' %}");
+                currentCandidateIndex++;
+                renderCandidate(currentCandidateIndex);
+            })
+            .catch(err => {
+                console.error('Error reportando candidato:', err);
+            });
         }
     }
 </script>

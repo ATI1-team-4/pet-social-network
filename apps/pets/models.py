@@ -170,6 +170,11 @@ class Pet(TimeStampedModel):
         verbose_name=_('Activo para match'),
         help_text=_('Determina si la mascota es visible en el feed de búsqueda de parejas.'),
     )
+    is_for_adoption = models.BooleanField(
+        default=False,
+        verbose_name=_('En adopción'),
+        help_text=_('Determina si la mascota se encuentra disponible para adopción.'),
+    )
     max_search_distance_km = models.PositiveIntegerField(
         default=50,
         verbose_name=_('Distancia máxima de búsqueda (km)'),
@@ -196,6 +201,13 @@ class Pet(TimeStampedModel):
 
     def __str__(self):
         return f'{self.name} ({self.species_label} - {self.breed})'
+
+    def __getitem__(self, key):
+        """Permite acceso estilo diccionario para compatibilidad de vistas y plantillas."""
+        if hasattr(self, key):
+            val = getattr(self, key)
+            return val() if callable(val) else val
+        raise KeyError(key)
 
     @property
     def species_label(self):
@@ -282,7 +294,7 @@ class Pet(TimeStampedModel):
     def profile_color_hex(self):
         color_map = {
             self.ProfileColor.CORAL: '#FA7D82',
-            self.ProfileColor.LILAC: '#E9D5FF',
+            self.ProfileColor.LILAC: '#8A4AF3',
             self.ProfileColor.MINT: '#8FFFB4',
             self.ProfileColor.PEACH: '#FFDAD9',
         }
@@ -297,6 +309,27 @@ class Pet(TimeStampedModel):
         if hasattr(self.owner, 'profile'):
             return self.owner.profile.location_display
         return 'Caracas'
+
+    @property
+    def is_matching(self):
+        return self.is_active_for_match and self.purpose in (self.Purpose.MATING, self.Purpose.BOTH)
+
+    @property
+    def is_socializing(self):
+        return self.purpose in (self.Purpose.PLAY, self.Purpose.BOTH)
+
+    @property
+    def is_adoption(self):
+        return bool(self.is_for_adoption)
+
+    @property
+    def certificate(self):
+        raw = (self.certificate_type or '').lower()
+        if 'tramite' in raw or 'trámite' in raw:
+            return 'tramite'
+        elif 'sin' in raw:
+            return 'sin_pedigri'
+        return 'fci'
 
 
 class MatchRequest(TimeStampedModel):
