@@ -479,3 +479,79 @@ class MatchFeedTests(TestCase):
         p2.save()
 
         self.assertEqual(calculate_candidate_distance_km(self.pet, self.cand_bella), 1.5)
+
+    def test_get_match_candidates_filters_by_max_distance(self):
+        """
+        Verifica que get_match_candidates filtre candidatos según la distancia máxima en km.
+        """
+        p1, _ = UserProfile.objects.get_or_create(user=self.user)
+        p2, _ = UserProfile.objects.get_or_create(user=self.other_user)
+
+        # Chacao vs Las Mercedes (~2.8 km)
+        p1.latitude = 10.4990
+        p1.longitude = -66.8480
+        p1.save()
+
+        p2.latitude = 10.4780
+        p2.longitude = -66.8620
+        p2.save()
+
+        # Tercer tutor lejano en Los Teques (~28 km)
+        far_user = User.objects.create_user(username='far_user', password='password123')
+        p3, _ = UserProfile.objects.get_or_create(user=far_user)
+        p3.latitude = 10.3440
+        p3.longitude = -67.0420
+        p3.save()
+
+        cand_far = Pet.objects.create(
+            owner=far_user,
+            name='Sasha',
+            species=self.species_dog,
+            breed='Labrador',
+            gender=Pet.Gender.HEMBRA,
+            birth_date='2022-03-01',
+            is_active_for_match=True,
+        )
+
+        # Filtro de 5 km: Bella (~2.8 km) debe incluirse, Sasha (~28 km) debe excluirse
+        cand_5km = list(get_match_candidates(self.pet, filters={'max_distance': 5}))
+        self.assertIn(self.cand_bella, cand_5km)
+        self.assertNotIn(cand_far, cand_5km)
+
+        # Filtro de 35 km: Ambas deben incluirse
+        cand_35km = list(get_match_candidates(self.pet, filters={'max_distance': 35}))
+        self.assertIn(self.cand_bella, cand_35km)
+        self.assertIn(cand_far, cand_35km)
+
+        # Filtro de 1 km: Ambas quedan fuera
+        cand_1km = list(get_match_candidates(self.pet, filters={'max_distance': 1}))
+        self.assertNotIn(self.cand_bella, cand_1km)
+        self.assertNotIn(cand_far, cand_1km)
+
+    def test_match_feed_view_applies_max_distance_filter(self):
+        """
+        Verifica que match_feed_view procese el parámetro max_distance, lo almacene en sesión,
+        lo pase al contexto y filtre los candidatos en el template.
+        """
+        self.client.login(username='tutor_feed', password='password123')
+        session = self.client.session
+        session['active_pet_id'] = str(self.pet.id)
+        session.save()
+
+        response = self.client.get(reverse('pets:match_feed') + '?max_distance=15')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['max_distance'], 15)
+        self.assertEqual(self.client.session.get('match_max_distance'), 15)
+        self.assertContains(response, '&lt; 15 km')
+
+    def test_pet_select_view_has_only_action_buttons(self):
+        """
+        Verifica que la pantalla de selección no contenga el selector de pedigrí
+        y conserve los botones de acción inmediata (Continuar a buscar pareja y Ver mascotas interesadas).
+        """
+        self.client.login(username='tutor_feed', password='password123')
+        response = self.client.get(reverse('pets:pet_select'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, '¿Con qué perros deseas buscar pareja?')
+        self.assertContains(response, 'Continuar a buscar pareja')
+        self.assertContains(response, 'Ver mascotas interesadas')

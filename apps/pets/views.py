@@ -751,7 +751,22 @@ def match_feed_view(request):
         pedigree_param = 'both'
     request.session['match_pedigree_preference'] = pedigree_param
 
-    match_filters = {}
+    # Distancia máxima recibida vía GET o almacenada en la sesión
+    raw_max_distance = request.GET.get('max_distance')
+    if raw_max_distance is not None:
+        try:
+            max_distance = int(float(raw_max_distance))
+            if max_distance < 1:
+                max_distance = 1
+            elif max_distance > 50:
+                max_distance = 50
+            request.session['match_max_distance'] = max_distance
+        except (ValueError, TypeError):
+            max_distance = request.session.get('match_max_distance', 5)
+    else:
+        max_distance = request.session.get('match_max_distance', 5)
+
+    match_filters = {'max_distance': max_distance}
     if pedigree_param == 'with_pedigree':
         match_filters['has_pedigree'] = True
     elif pedigree_param == 'without_pedigree':
@@ -796,6 +811,7 @@ def match_feed_view(request):
         'interested_sidebar': interested_sidebar,
         'interested_count': interested_count,
         'pedigree_preference': pedigree_param,
+        'max_distance': max_distance,
     }
     return render(request, 'pets/match_feed.html', context)
 

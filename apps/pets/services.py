@@ -287,6 +287,17 @@ def get_match_candidates(
             )
         if filters.get('purpose'):
             queryset = queryset.filter(purpose=filters['purpose'])
+        if filters.get('max_distance') is not None:
+            try:
+                max_dist = float(filters['max_distance'])
+                eligible_ids = [
+                    cand.id
+                    for cand in queryset
+                    if calculate_candidate_distance_km(active_pet, cand) <= max_dist
+                ]
+                queryset = queryset.filter(id__in=eligible_ids)
+            except (ValueError, TypeError):
+                pass
 
     # Recomendación por raza: candidatos de la misma raza primero
     return queryset.order_by(
