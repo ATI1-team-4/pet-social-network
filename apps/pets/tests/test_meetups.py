@@ -129,17 +129,23 @@ class PetMeetupTests(TestCase):
         self.assertFalse(form_past.is_valid())
         self.assertIn('date', form_past.errors)
 
-        # Fecha hoy con hora ya pasada
-        now = timezone.localtime() if timezone.is_aware(timezone.now()) else datetime.now()
-        past_hour = (now - timedelta(hours=2)).time()
+        # Fecha y hora pasadas, incluso si la resta cruza la medianoche
+        now = (
+            timezone.localtime()
+            if timezone.is_aware(timezone.now())
+            else datetime.now()
+        )
+        past_datetime = now - timedelta(hours=2)
+
         form_past_time = ScheduleMeetupForm(
             data={
-                'date': date.today(),
-                'time': past_hour,
+                'date': past_datetime.date(),
+                'time': past_datetime.time(),
                 'location_name': self.location,
             }
         )
         self.assertFalse(form_past_time.is_valid())
+
 
         # Fecha y hora futuras válidas
         form_future = ScheduleMeetupForm(
