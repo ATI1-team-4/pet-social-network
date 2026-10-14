@@ -130,11 +130,7 @@ class PetMeetupTests(TestCase):
         self.assertIn('date', form_past.errors)
 
         # Fecha y hora pasadas, incluso si la resta cruza la medianoche
-        now = (
-            timezone.localtime()
-            if timezone.is_aware(timezone.now())
-            else datetime.now()
-        )
+        now = timezone.localtime() if timezone.is_aware(timezone.now()) else datetime.now()
         past_datetime = now - timedelta(hours=2)
 
         form_past_time = ScheduleMeetupForm(
@@ -145,7 +141,6 @@ class PetMeetupTests(TestCase):
             }
         )
         self.assertFalse(form_past_time.is_valid())
-
 
         # Fecha y hora futuras válidas
         form_future = ScheduleMeetupForm(
