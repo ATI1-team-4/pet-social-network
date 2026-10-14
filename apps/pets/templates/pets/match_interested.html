@@ -15,12 +15,18 @@
     {% translate "Mascotas interesadas" as current_bc %}
     {% include 'components/breadcrumbs.html' with parent_label=parent_bc parent_url=feed_url current_label=current_bc %}
 
-
     <!-- Banner superior de pretendientes esperando respuesta -->
     <div class="flex items-center gap-2">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-petly-lilac text-petly-purple shadow-xs">
             <span class="w-2 h-2 rounded-full bg-purple-600 animate-pulse"></span>
-            <span>{% blocktranslate count counter=interested_count %}{{ counter }} pretendiente esperando respuesta{% plural %}{{ counter }} pretendientes esperando respuesta{% endblocktranslate %}</span>
+            <span id="banner-interested-text">
+                <span id="counter-banner-interested">{{ tab_counters.interested }}</span>
+                {% if tab_counters.interested == 1 %}
+                    {% translate "pretendiente esperando respuesta" %}
+                {% else %}
+                    {% translate "pretendientes esperando respuesta" %}
+                {% endif %}
+            </span>
         </span>
     </div>
 
@@ -28,30 +34,40 @@
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
             <h1 class="title-h3 sm:title-h2 text-neutral-900 font-bold tracking-tight">
-                {% blocktranslate with name=active_pet.name %}Mascotas interesadas en {{ name }}{% endblocktranslate %}
+                {% if active_pet %}
+                    {% blocktranslate with name=active_pet.name %}Mascotas interesadas en {{ name }}{% endblocktranslate %}
+                {% else %}
+                    {% translate "Bandeja de interesados y solicitudes" %}
+                {% endif %}
             </h1>
             <p class="hidden md:block text-xs sm:text-sm text-neutral-500 max-w-2xl mt-1 leading-relaxed">
-                {% blocktranslate with name=active_pet.name %}
-                Estos tutores han mostrado interés en {{ name }} para cruza responsable o socialización canina. Revisa sus credenciales de salud, compatibilidad y coordina un encuentro seguro en espacios certificados.
-                {% endblocktranslate %}
+                {% if active_pet %}
+                    {% blocktranslate with name=active_pet.name %}
+                    Estos tutores han mostrado interés en {{ name }} para cruza responsable o socialización canina. Revisa sus credenciales de salud, compatibilidad y coordina un encuentro seguro en espacios certificados.
+                    {% endblocktranslate %}
+                {% else %}
+                    {% translate "Gestiona solicitudes recibidas y enviadas para la búsqueda de parejas o socialización canina." %}
+                {% endif %}
             </p>
         </div>
 
         <!-- Selector de mascota activa a la derecha -->
         <div class="flex items-center gap-3 shrink-0">
-            <div class="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white border border-neutral-300 shadow-xs">
-                <div class="relative w-8 h-8 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200">
-                    <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}" class="w-full h-full object-cover">
+            {% if active_pet %}
+                <div class="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white border border-neutral-300 shadow-xs">
+                    <div class="relative w-8 h-8 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200">
+                        <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="text-xs">
+                        <span class="font-bold text-neutral-900 block leading-tight">{{ active_pet.name }}</span>
+                        <span class="text-[11px] text-neutral-500">{{ active_pet.breed }} • {{ active_pet.gender_label }}</span>
+                    </div>
+                    <a href="{% url 'pets:pet_select' %}" class="text-xs font-semibold text-petly-coral hover:underline pl-1 inline-flex items-center gap-0.5" title="{% translate 'Cambiar de mascota activa' %}">
+                        <span>{% translate "Cambiar" %}</span>
+                        <span class="text-xs">⇄</span>
+                    </a>
                 </div>
-                <div class="text-xs">
-                    <span class="font-bold text-neutral-900 block leading-tight">{{ active_pet.name }}</span>
-                    <span class="text-[11px] text-neutral-500">{{ active_pet.breed }} • {{ active_pet.gender_label }}</span>
-                </div>
-                <a href="{% url 'pets:pet_select' %}" class="text-xs font-semibold text-petly-coral hover:underline pl-1 inline-flex items-center gap-0.5" title="{% translate 'Cambiar de mascota activa' %}">
-                    <span>{% translate "Cambiar" %}</span>
-                    <span class="text-xs">⇄</span>
-                </a>
-            </div>
+            {% endif %}
 
             <!-- Botón para volver a explorar parejas en el feed (solo escritorio) -->
             <div class="hidden md:block">
@@ -65,17 +81,45 @@
     <!-- Barra de filtros horizontales y ordenación interactiva -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
         <div class="flex items-center gap-2 overflow-x-auto py-1" id="filter-pills-bar">
-            {% blocktranslate with count=interested_count asvar f_all_label %}Todos ({{ count }}){% endblocktranslate %}
-            {% include 'components/button.html' with text=f_all_label variant="custom" onclick="filterSuitors('all', this)" attrs='data-filter="all"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-[#A53B42] text-white shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
+            <!-- Pestaña Todos -->
+            <button type="button"
+                    onclick="filterSuitors('all', this)"
+                    data-filter="all"
+                    class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-[#A53B42] text-white shadow-xs whitespace-nowrap cursor-pointer transition-all">
+                {% translate "Todos" %} (<span id="counter-all">{{ tab_counters.all }}</span>)
+            </button>
 
-            {% translate "Cruza responsable / pedigrí" as f_breeding_label %}
-            {% include 'components/button.html' with text=f_breeding_label variant="custom" onclick="filterSuitors('breeding', this)" attrs='data-filter="breeding"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
+            <!-- Pestaña Interesados (Recibidas) -->
+            <button type="button"
+                    onclick="filterSuitors('interested', this)"
+                    data-filter="interested"
+                    class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all">
+                {% translate "Interesados" %} (<span id="counter-interested">{{ tab_counters.interested }}</span>)
+            </button>
 
-            {% translate "Citas de socialización" as f_social_label %}
-            {% include 'components/button.html' with text=f_social_label variant="custom" onclick="filterSuitors('social', this)" attrs='data-filter="social"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
+            <!-- Pestaña Mis solicitudes (Enviadas) -->
+            <button type="button"
+                    onclick="filterSuitors('sent', this)"
+                    data-filter="sent"
+                    class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all">
+                {% translate "Mis solicitudes" %} (<span id="counter-sent">{{ tab_counters.sent }}</span>)
+            </button>
 
-            {% translate "Cerca de ti" as f_near_label %}
-            {% include 'components/button.html' with text=f_near_label variant="custom" onclick="filterSuitors('near', this)" attrs='data-filter="near"' class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all" %}
+            <!-- Subfiltro Cruza responsable -->
+            <button type="button"
+                    onclick="filterSuitors('breeding', this)"
+                    data-filter="breeding"
+                    class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all">
+                {% translate "Cruza responsable / pedigrí" %}
+            </button>
+
+            <!-- Subfiltro Socialización -->
+            <button type="button"
+                    onclick="filterSuitors('social', this)"
+                    data-filter="social"
+                    class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all">
+                {% translate "Socialización" %}
+            </button>
         </div>
 
         <div class="flex items-center gap-2 text-xs text-neutral-600 shrink-0">
@@ -103,187 +147,259 @@
         <!-- ============================================== -->
         <div class="lg:col-span-8 space-y-4" id="suitors-list-container">
 
-            <!-- LISTA DE PRETENDIENTES CON DESPLIEGUE INTERACTIVO -->
-            {% for suitor in suitors %}
-                <div class="suitor-card card-petly bg-white border border-neutral-300/80 rounded-3xl shadow-xs hover:shadow-md transition-all {% if forloop.first %}is-expanded p-5 sm:p-6{% else %}p-4 sm:p-5{% endif %}"
-                     id="suitor-card-{{ suitor.id }}"
-                     data-suitor-id="{{ suitor.id }}"
-                     data-name="{{ suitor.name }}"
-                     data-category="{{ suitor.category|default:'breeding' }}"
-                     data-compatibility="{{ suitor.compatibility_val|default:'90' }}"
-                     data-distance="{{ suitor.distance_val|default:'2.5' }}">
+            {% if not suitors %}
+                <!-- Estado vacío global cuando no existen solicitudes -->
+                <div id="suitors-global-empty-state" class="card-petly p-10 bg-white border border-neutral-300/80 rounded-3xl text-center space-y-4">
+                    <div class="w-16 h-16 rounded-full bg-petly-ice flex items-center justify-center text-neutral-400 mx-auto">
+                        {% include 'components/icon.html' with name="inbox" class="w-8 h-8 text-neutral-400" %}
+                    </div>
+                    <div class="space-y-1">
+                        <h2 class="title-h4 font-bold text-neutral-800">{% translate "No hay solicitudes ni interesados pendientes" %}</h2>
+                        <p class="text-xs sm:text-sm text-neutral-500 max-w-md mx-auto">
+                            {% translate "Aún no tienes pretendientes ni solicitudes registradas para tu mascota activa. Explora perfiles compatibles en el feed de emparejamiento para conectar." %}
+                        </p>
+                    </div>
+                    <div class="pt-2">
+                        {% translate "Explorar parejas compatibles" as explore_btn_label %}
+                        {% url 'pets:match_feed' as match_feed_url %}
+                        {% include 'components/button.html' with href=match_feed_url text=explore_btn_label icon="heart-filled" icon_class="w-4 h-4 text-white" class="text-xs px-6 py-2.5 font-bold shadow-md no-underline inline-flex items-center gap-2" %}
+                    </div>
+                </div>
+            {% else %}
+                <!-- LISTA DE PRETENDIENTES CON DATOS REALES DEL ORM -->
+                {% for suitor in suitors %}
+                    <div class="suitor-card card-petly bg-white border border-neutral-300/80 rounded-3xl shadow-xs hover:shadow-md transition-all {% if forloop.first %}is-expanded p-5 sm:p-6{% else %}p-4 sm:p-5{% endif %}"
+                         id="suitor-card-{{ suitor.id }}"
+                         data-suitor-id="{{ suitor.id }}"
+                         data-request-id="{{ suitor.request_id }}"
+                         data-type="{{ suitor.type }}"
+                         data-status="{{ suitor.status }}"
+                         data-name="{{ suitor.name }}"
+                         data-category="{{ suitor.category|default:'breeding' }}"
+                         data-compatibility="{{ suitor.compatibility_val|default:'90' }}"
+                         data-distance="{{ suitor.distance_val|default:'2.5' }}">
 
-                    <!-- VISTA COLAPSADA (Resumen compacto interactivo con avatar y acciones rápidas) -->
-                    <div class="suitor-collapsed-content {% if forloop.first %}hidden{% else %}flex{% endif %} flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer select-none group"
-                         onclick="toggleSuitorCard('suitor-card-{{ suitor.id }}')"
-                         onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleSuitorCard('suitor-card-{{ suitor.id }}'); }"
-                         role="button"
-                         tabindex="0"
-                         aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
-                         aria-label="{% blocktranslate with name=suitor.name %}Ver más información de {{ name }}{% endblocktranslate %}">
-                        <div class="flex items-center gap-4">
-                            <div class="relative w-14 h-14 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200 shadow-xs group-hover:scale-105 transition-transform">
-                                <img src="{{ suitor.photo_url }}" alt="{{ suitor.name }}" class="w-full h-full object-cover">
-                            </div>
-
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h2 class="title-h5 text-neutral-900 font-bold leading-tight group-hover:text-petly-coral transition-colors">
-                                        {{ suitor.name }}
-                                    </h2>
-                                    {% if suitor.is_hembra or suitor.gender == 'H' or suitor.gender == 'hembra' %}
-                                        {% include 'components/icon.html' with name="female" class="w-3.5 h-3.5 text-petly-coral" %}
-                                    {% else %}
-                                        {% include 'components/icon.html' with name="male" class="w-3.5 h-3.5 text-sky-600" %}
-                                    {% endif %}
-                                    <span class="badge-tag text-[10px] font-bold py-0.5 px-2">
-                                        {{ suitor.match_percentage }} {% translate "Match" %}
-                                    </span>
+                        <!-- VISTA COLAPSADA -->
+                        <div class="suitor-collapsed-content {% if forloop.first %}hidden{% else %}flex{% endif %} flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer select-none group"
+                             onclick="toggleSuitorCard('suitor-card-{{ suitor.id }}')"
+                             onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleSuitorCard('suitor-card-{{ suitor.id }}'); }"
+                             role="button"
+                             tabindex="0"
+                             aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                             aria-label="{% blocktranslate with name=suitor.name %}Ver más información de {{ name }}{% endblocktranslate %}">
+                            <div class="flex items-center gap-4">
+                                <div class="relative w-14 h-14 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200 shadow-xs group-hover:scale-105 transition-transform">
+                                    <img src="{{ suitor.photo_url }}" alt="{{ suitor.name }}" class="w-full h-full object-cover">
                                 </div>
-                                <p class="text-caption text-neutral-500 mt-0.5">
-                                    {{ suitor.breed }} • {{ suitor.age }} • {{ suitor.distance }}
-                                </p>
-                                {% if suitor.badge_label %}
-                                    <span class="text-[11px] font-semibold text-petly-coral block mt-0.5">
+
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h2 class="title-h5 text-neutral-900 font-bold leading-tight group-hover:text-petly-coral transition-colors">
+                                            {{ suitor.name }}
+                                        </h2>
+                                        {% if suitor.is_hembra or suitor.gender == 'H' or suitor.gender == 'hembra' %}
+                                            {% include 'components/icon.html' with name="female" class="w-3.5 h-3.5 text-petly-coral" %}
+                                        {% else %}
+                                            {% include 'components/icon.html' with name="male" class="w-3.5 h-3.5 text-sky-600" %}
+                                        {% endif %}
+                                        <span class="badge-tag text-[10px] font-bold py-0.5 px-2">
+                                            {{ suitor.match_percentage }} {% translate "Match" %}
+                                        </span>
+                                    </div>
+                                    <p class="text-caption text-neutral-500 mt-0.5">
+                                        {{ suitor.breed }} • {{ suitor.age }} • {{ suitor.distance }}
+                                    </p>
+                                    <span class="suitor-badge-label text-[11px] font-semibold {% if suitor.status == 'accepted' %}text-emerald-600{% else %}text-petly-coral{% endif %} block mt-0.5" id="card-badge-{{ suitor.request_id }}">
                                         {{ suitor.badge_label }}
                                     </span>
+                                </div>
+                            </div>
+
+                            <!-- Botones de acción secundarios en vista colapsada -->
+                            <div class="flex items-center gap-2 self-end sm:self-center" onclick="event.stopPropagation()">
+                                {% if suitor.is_received and suitor.status == 'pending' %}
+                                    <button type="button"
+                                            onclick="handleAcceptRequest({{ suitor.request_id }}, '{{ suitor.name|escapejs }}')"
+                                            class="btn-accept-request text-xs px-3.5 py-1.5 font-bold rounded-full bg-petly-coral text-white hover:bg-petly-coral/90 shadow-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                                            title="{% translate 'Aceptar solicitud de match' %}">
+                                        {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-white" %}
+                                        <span>{% translate "Aceptar" %}</span>
+                                    </button>
+                                {% elif suitor.status == 'accepted' %}
+                                    <button type="button"
+                                            onclick="openMeetingModal('{{ suitor.name|escapejs }}', '{{ suitor.photo_url|escapejs }}')"
+                                            class="text-xs px-3.5 py-1.5 font-bold rounded-full bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                                            title="{% translate 'Agendar encuentro seguro' %}">
+                                        {% include 'components/icon.html' with name="calendar" class="w-3.5 h-3.5 text-white" %}
+                                        <span>{% translate "Cita" %}</span>
+                                    </button>
                                 {% endif %}
+
+                                <button type="button"
+                                        onclick="openNoteModal({{ suitor.request_id }}, '{{ suitor.name|escapejs }}', '{{ suitor.tutor_signature|escapejs }}', '{{ suitor.quote|escapejs }}')"
+                                        class="w-8 h-8 rounded-full p-0 flex items-center justify-center border border-neutral-300 text-neutral-600 hover:text-petly-coral hover:border-petly-coral/50 shadow-xs cursor-pointer transition-colors"
+                                        title="{% translate 'Enviar mensaje o nota' %}"
+                                        aria-label="{% translate 'Enviar mensaje o nota' %}">
+                                    {% include 'components/icon.html' with name="message-square" class="w-3.5 h-3.5" %}
+                                </button>
+
+                                <button type="button"
+                                        onclick="handleRejectRequest({{ suitor.request_id }}, '{{ suitor.name|escapejs }}')"
+                                        class="w-8 h-8 rounded-full p-0 flex items-center justify-center border border-neutral-300 text-neutral-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 shadow-xs cursor-pointer transition-colors"
+                                        title="{% translate 'Descartar solicitud' %}"
+                                        aria-label="{% translate 'Descartar solicitud' %}">
+                                    {% include 'components/icon.html' with name="trash" class="w-3.5 h-3.5" %}
+                                </button>
+
+                                <!-- Indicador de desplegar información -->
+                                <button type="button"
+                                        onclick="toggleSuitorCard('suitor-card-{{ suitor.id }}')"
+                                        class="w-8 h-8 rounded-full flex items-center justify-center bg-petly-ice text-neutral-500 group-hover:bg-petly-coral/10 group-hover:text-petly-coral transition-colors cursor-pointer"
+                                        title="{% translate 'Desplegar información completa' %}">
+                                    {% include 'components/icon.html' with name="chevron-down" class="w-4 h-4" %}
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Botones de acción secundarios y disparador de despliegue -->
-                        <div class="flex items-center gap-2 self-end sm:self-center">
-                            {% translate "Agendar cita" as schedule_label %}
-                            {% include 'components/button.html' with text=schedule_label variant="primary" icon="calendar" icon_class="w-3.5 h-3.5 text-white" onclick="event.stopPropagation(); openMeetingModal('"|add:suitor.name|add:"', '"|add:suitor.photo_url|add:"')" class="text-xs px-4 py-2 font-bold shadow-xs inline-flex items-center gap-1.5" %}
-                            {% translate "Nota de solicitud" as send_msg_title %}
-                            {% include 'components/button.html' with variant="outline" icon="message-square" icon_class="w-3.5 h-3.5" title=send_msg_title aria_label=send_msg_title onclick="event.stopPropagation(); openNoteModal('"|add:suitor.name|add:"', '"|add:suitor.tutor_signature|add:"')" class="w-8 h-8 rounded-full p-0 flex items-center justify-center border-neutral-300 text-neutral-600 hover:text-petly-coral hover:border-petly-coral/50 shadow-xs cursor-pointer" %}
-                            {% translate "Descartar solicitud" as dismiss_title %}
-                            {% include 'components/button.html' with variant="outline" icon="trash" icon_class="w-3.5 h-3.5" title=dismiss_title aria_label=dismiss_title onclick="event.stopPropagation(); dismissSuitor('"|add:suitor.name|add:"')" class="w-8 h-8 rounded-full p-0 flex items-center justify-center border-neutral-300 text-neutral-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 shadow-xs cursor-pointer" %}
+                        <!-- VISTA DESPLEGADA -->
+                        <div class="suitor-expanded-content {% if forloop.first %}block{% else %}hidden{% endif %}">
+                            <div class="flex flex-col sm:flex-row gap-5 items-stretch">
+                                <!-- Fotografía grande cuadrada redondeada -->
+                                <div class="relative w-full sm:w-72 sm:h-80 rounded-2xl overflow-hidden bg-petly-ice shrink-0 shadow-xs border border-neutral-200">
+                                    <img src="{{ suitor.photo_url }}"
+                                         alt="{{ suitor.name }}"
+                                         class="w-full h-full object-cover select-none">
+                                </div>
 
-                            <!-- Indicador de desplegar información -->
-                            <span class="w-8 h-8 rounded-full flex items-center justify-center bg-petly-ice text-neutral-500 group-hover:bg-petly-coral/10 group-hover:text-petly-coral transition-colors"
-                                  title="{% translate 'Desplegar información completa' %}">
-                                {% include 'components/icon.html' with name="chevron-down" class="w-4 h-4" %}
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- VISTA DESPLEGADA (Información completa con foto grande, biografía, credenciales y opciones) -->
-                    <div class="suitor-expanded-content {% if forloop.first %}block{% else %}hidden{% endif %}">
-                        <div class="flex flex-col sm:flex-row gap-5 items-stretch">
-                            <!-- Fotografía grande cuadrada redondeada -->
-                            <div class="relative w-full sm:w-72 sm:h-80 rounded-2xl overflow-hidden bg-petly-ice shrink-0 shadow-xs border border-neutral-200">
-                                <img src="{{ suitor.photo_url }}"
-                                     alt="{{ suitor.name }}"
-                                     class="w-full h-full object-cover select-none">
-                            </div>
-
-                            <!-- Ficha descriptiva y opciones -->
-                            <div class="flex-1 flex flex-col justify-between space-y-3">
-                                <div>
-                                    <!-- Fila de título, badge de match y botón para plegar -->
-                                    <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
-                                        <div class="flex items-center gap-1.5">
-                                            <h2 class="title-h3 text-neutral-900 font-bold leading-tight">
-                                                {{ suitor.name }}
-                                            </h2>
-                                            {% if suitor.is_hembra or suitor.gender == 'H' or suitor.gender == 'hembra' %}
-                                                {% include 'components/icon.html' with name="female" class="w-4 h-4 text-petly-coral" %}
-                                            {% else %}
-                                                {% include 'components/icon.html' with name="male" class="w-4 h-4 text-sky-600" %}
-                                            {% endif %}
-                                            <span class="text-neutral-400">•</span>
-                                            <span class="text-xs font-semibold text-neutral-600">
-                                                {{ suitor.breed }}
-                                            </span>
+                                <!-- Ficha descriptiva y opciones -->
+                                <div class="flex-1 flex flex-col justify-between space-y-3">
+                                    <div>
+                                        <!-- Fila de título, badge de match y botón para plegar -->
+                                        <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
+                                            <div class="flex items-center gap-1.5">
+                                                <h2 class="title-h3 text-neutral-900 font-bold leading-tight">
+                                                    {{ suitor.name }}
+                                                </h2>
+                                                {% if suitor.is_hembra or suitor.gender == 'H' or suitor.gender == 'hembra' %}
+                                                    {% include 'components/icon.html' with name="female" class="w-4 h-4 text-petly-coral" %}
+                                                {% else %}
+                                                    {% include 'components/icon.html' with name="male" class="w-4 h-4 text-sky-600" %}
+                                                {% endif %}
+                                                <span class="text-neutral-400">•</span>
+                                                <span class="text-xs font-semibold text-neutral-600">
+                                                    {{ suitor.breed }}
+                                                </span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="suitor-badge-label-expanded badge-tag text-[11px] font-semibold py-1 px-2.5 {% if suitor.status == 'accepted' %}bg-emerald-50 text-emerald-700 border-emerald-200{% endif %}" id="expanded-badge-{{ suitor.request_id }}">
+                                                    {{ suitor.badge_label }}
+                                                </span>
+                                                <button type="button"
+                                                        onclick="toggleSuitorCard('suitor-card-{{ suitor.id }}')"
+                                                        class="w-7 h-7 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
+                                                        title="{% translate 'Plegar tarjeta' %}"
+                                                        aria-label="{% translate 'Plegar tarjeta' %}">
+                                                    {% include 'components/icon.html' with name="chevron-up" class="w-4 h-4" %}
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            {% if suitor.recent_label %}
-                                                <span class="hidden sm:inline-flex badge-tag text-[11px] font-semibold py-1 px-2.5">
-                                                    {{ suitor.recent_label }}
+
+                                        <!-- Insignias de salud, certificado y temperamento -->
+                                        <div class="flex flex-wrap items-center gap-1.5 mb-3">
+                                            {% if suitor.gender == 'hembra' %}
+                                                {% translate "Hembra" as female_label %}
+                                                {% include 'components/badge.html' with text=female_label variant="female" icon="female" class="text-xs py-0.5 px-2.5" %}
+                                            {% else %}
+                                                {% translate "Macho" as male_label %}
+                                                {% include 'components/badge.html' with text=male_label variant="male" icon="male" class="text-xs py-0.5 px-2.5" %}
+                                            {% endif %}
+
+                                            {% if suitor.birth_date %}
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-petly-ice text-neutral-700">
+                                                    {% include 'components/icon.html' with name="calendar" class="w-3 h-3 text-neutral-500" %}
+                                                    <span>{{ suitor.birth_date }}</span>
                                                 </span>
                                             {% endif %}
-                                            <button type="button"
-                                                    onclick="toggleSuitorCard('suitor-card-{{ suitor.id }}')"
-                                                    class="w-7 h-7 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
-                                                    title="{% translate 'Plegar tarjeta' %}"
-                                                    aria-label="{% translate 'Plegar tarjeta' %}">
-                                                {% include 'components/icon.html' with name="chevron-up" class="w-4 h-4" %}
-                                            </button>
+
+                                            {% if suitor.certificate %}
+                                                <span class="badge-compat text-xs py-0.5 px-2.5 font-bold">
+                                                    {% include 'components/icon.html' with name="award" class="w-3 h-3 text-emerald-900" %}
+                                                    <span>{{ suitor.certificate }}</span>
+                                                </span>
+                                            {% endif %}
+
+                                            {% for trait in suitor.temperaments %}
+                                                <span class="badge-tag text-xs font-medium py-0.5 px-2.5">
+                                                    {{ trait }}
+                                                </span>
+                                            {% endfor %}
                                         </div>
-                                    </div>
 
-                                    <!-- Insignias de salud, certificado y temperamento -->
-                                    <div class="flex flex-wrap items-center gap-1.5 mb-3">
-                                        {% if suitor.gender == 'hembra' %}
-                                            {% translate "Hembra" as female_label %}
-                                            {% include 'components/badge.html' with text=female_label variant="female" icon="female" class="text-xs py-0.5 px-2.5" %}
-                                        {% else %}
-                                            {% translate "Macho" as male_label %}
-                                            {% include 'components/badge.html' with text=male_label variant="male" icon="male" class="text-xs py-0.5 px-2.5" %}
-                                        {% endif %}
-
-                                        {% if suitor.birth_date %}
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-petly-ice text-neutral-700">
-                                                {% include 'components/icon.html' with name="calendar" class="w-3 h-3 text-neutral-500" %}
-                                                <span>{{ suitor.birth_date }}</span>
-                                            </span>
-                                        {% endif %}
-
-                                        {% if suitor.certificate %}
-                                            <span class="badge-compat text-xs py-0.5 px-2.5 font-bold">
-                                                {% include 'components/icon.html' with name="award" class="w-3 h-3 text-emerald-900" %}
-                                                <span>{{ suitor.certificate }}</span>
-                                            </span>
-                                        {% endif %}
-
-                                        {% for trait in suitor.temperaments %}
-                                            <span class="badge-tag text-xs font-medium py-0.5 px-2.5">
-                                                {{ trait }}
-                                            </span>
-                                        {% endfor %}
-                                    </div>
-
-                                    <!-- Caja de mensaje directo del tutor -->
-                                    {% if suitor.quote %}
+                                        <!-- Caja de mensaje directo o nota del tutor -->
                                         <div class="p-3.5 rounded-2xl bg-petly-ice/70 border border-petly-blue/80 text-xs text-neutral-700 leading-relaxed space-y-1">
-                                            <p class="italic">
+                                            <p class="italic" id="suitor-quote-{{ suitor.request_id }}">
                                                 "{{ suitor.quote }}"
                                             </p>
                                             <span class="text-[11px] font-bold text-neutral-500 block">
                                                 — {{ suitor.tutor_signature }}
                                             </span>
                                         </div>
-                                    {% endif %}
-                                </div>
-
-                                <!-- Botones de acción principales -->
-                                <div class="pt-2 flex flex-wrap items-center justify-between gap-2.5">
-                                    <div class="flex items-center gap-2 w-full sm:w-auto">
-                                        {% translate "Concertar encuentro" as meeting_label %}
-                                        {% include 'components/button.html' with text=meeting_label variant="primary" icon="calendar" icon_class="w-4 h-4 text-white" onclick="openMeetingModal('"|add:suitor.name|add:"', '"|add:suitor.photo_url|add:"')" class="flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold shadow-md inline-flex items-center justify-center gap-1.5" %}
-                                        {% translate "Nota de solicitud" as msg_label %}
-                                        {% include 'components/button.html' with text=msg_label variant="lilac" icon="message-square" icon_class="w-4 h-4 text-purple-800" onclick="openNoteModal('"|add:suitor.name|add:"', '"|add:suitor.tutor_signature|add:"')" class="flex-1 sm:flex-initial text-xs px-4 py-2.5 font-semibold inline-flex items-center justify-center gap-1.5 shadow-xs" %}
                                     </div>
 
-                                    {% translate "Negar interés" as dismiss_label %}
-                                    {% with dismiss_onclick="dismissSuitor('"|add:suitor.name|add:"')" %}
-                                    {% include 'components/button.html' with text=dismiss_label icon_end="close" icon_end_class="w-3.5 h-3.5 text-neutral-400 group-hover:text-rose-600 translate-y-px" variant="custom" onclick=dismiss_onclick class="text-xs font-semibold text-neutral-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1.5 py-1 cursor-pointer group" %}
-                                    {% endwith %}
+                                    <!-- Botones de acción principales en vista desplegada -->
+                                    <div class="pt-2 flex flex-wrap items-center justify-between gap-2.5" id="expanded-actions-{{ suitor.request_id }}">
+                                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                                            {% if suitor.is_received and suitor.status == 'pending' %}
+                                                <button type="button"
+                                                        onclick="handleAcceptRequest({{ suitor.request_id }}, '{{ suitor.name|escapejs }}')"
+                                                        class="btn-accept-request-exp flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold rounded-xl bg-petly-coral text-white hover:bg-petly-coral/90 shadow-md inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                                                    {% include 'components/icon.html' with name="heart-filled" class="w-4 h-4 text-white" %}
+                                                    <span>{% translate "Aceptar match" %}</span>
+                                                </button>
+                                            {% elif suitor.status == 'accepted' %}
+                                                <button type="button"
+                                                        onclick="openMeetingModal('{{ suitor.name|escapejs }}', '{{ suitor.photo_url|escapejs }}')"
+                                                        class="flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-md inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                                                    {% include 'components/icon.html' with name="calendar" class="w-4 h-4 text-white" %}
+                                                    <span>{% translate "Concertar encuentro" %}</span>
+                                                </button>
+                                            {% endif %}
+
+                                            <button type="button"
+                                                    onclick="openNoteModal({{ suitor.request_id }}, '{{ suitor.name|escapejs }}', '{{ suitor.tutor_signature|escapejs }}', '{{ suitor.quote|escapejs }}')"
+                                                    class="flex-1 sm:flex-initial text-xs px-4 py-2.5 font-semibold rounded-xl bg-petly-lilac text-petly-purple hover:bg-petly-lilac/80 shadow-xs inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                                                {% include 'components/icon.html' with name="message-square" class="w-4 h-4 text-purple-800" %}
+                                                <span>{% translate "Mensaje inicial" %}</span>
+                                            </button>
+                                        </div>
+
+                                        <button type="button"
+                                                onclick="handleRejectRequest({{ suitor.request_id }}, '{{ suitor.name|escapejs }}')"
+                                                class="text-xs font-semibold text-neutral-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1.5 py-1 cursor-pointer group">
+                                            <span>
+                                                {% if suitor.is_sent %}
+                                                    {% translate "Cancelar solicitud" %}
+                                                {% else %}
+                                                    {% translate "Descartar solicitud" %}
+                                                {% endif %}
+                                            </span>
+                                            {% include 'components/icon.html' with name="close" class="w-3.5 h-3.5 text-neutral-400 group-hover:text-rose-600" %}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            {% endif %}
 
-            <!-- Estado vacío cuando ningún pretendiente coincide con el filtro -->
+            <!-- Estado vacío dinámico al filtrar por pestañas -->
             <div id="suitors-empty-state" class="hidden card-petly p-8 bg-white border border-neutral-300/80 rounded-3xl text-center space-y-2">
                 <div class="w-12 h-12 rounded-full bg-petly-ice flex items-center justify-center text-neutral-400 mx-auto">
                     {% include 'components/icon.html' with name="users" class="w-6 h-6" %}
                 </div>
-                <h3 class="text-sm font-bold text-neutral-800">{% translate "No se encontraron pretendientes en esta categoría" %}</h3>
-                <p class="text-xs text-neutral-500">{% translate "Prueba cambiando el filtro para ver más candidatos disponibles." %}</p>
+                <h3 class="text-sm font-bold text-neutral-800">{% translate "No se encontraron solicitudes en esta categoría" %}</h3>
+                <p class="text-xs text-neutral-500">{% translate "Prueba cambiando de pestaña para ver más candidatos disponibles." %}</p>
             </div>
 
         </div>
@@ -304,43 +420,57 @@
                             {% translate "Citas confirmadas" %}
                         </h2>
                     </div>
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" title="{% translate 'Citas activas' %}"></span>
+                    {% if confirmed_dates %}
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" title="{% translate 'Citas activas' %}"></span>
+                    {% endif %}
                 </div>
 
-                <!-- Lista de citas confirmadas -->
+                <!-- Lista de citas confirmadas del modelo PetMeetup -->
                 <div class="space-y-3">
-                    {% for date in confirmed_dates %}
-                        <div class="p-3.5 rounded-2xl bg-petly-ice/50 border border-petly-blue/80 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="badge-compat text-[10px] font-bold py-0.5 px-2">
-                                    {{ date.badge }}
-                                </span>
-                                <span class="text-caption font-semibold text-neutral-500">
-                                    {{ date.day }}
-                                </span>
-                            </div>
+                    {% if confirmed_dates %}
+                        {% for date in confirmed_dates %}
+                            <div class="p-3.5 rounded-2xl bg-petly-ice/50 border border-petly-blue/80 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="badge-compat text-[10px] font-bold py-0.5 px-2">
+                                        {{ date.badge }}
+                                    </span>
+                                    <span class="text-caption font-semibold text-neutral-500">
+                                        {{ date.day }}
+                                    </span>
+                                </div>
 
-                            <div>
-                                <h3 class="text-xs font-bold text-neutral-900 leading-tight">
-                                    {{ date.title }}
-                                </h3>
-                                <p class="text-[11px] text-neutral-600 inline-flex items-center gap-1 mt-0.5">
-                                    {% include 'components/icon.html' with name="location" class="w-3 h-3 text-neutral-500" %}
-                                    <span>{{ date.location }}</span>
-                                </p>
-                            </div>
+                                <div>
+                                    <h3 class="text-xs font-bold text-neutral-900 leading-tight">
+                                        {{ date.title }}
+                                    </h3>
+                                    <p class="text-[11px] text-neutral-600 inline-flex items-center gap-1 mt-0.5">
+                                        {% include 'components/icon.html' with name="location" class="w-3.5 h-3.5 text-neutral-500" %}
+                                        <span>{{ date.location }}</span>
+                                    </p>
+                                </div>
 
-                            <div class="flex items-center justify-between pt-1 border-t border-petly-blue/40 text-xs">
-                                <span class="font-bold text-neutral-800">
-                                    🕒 {{ date.time }}
-                                </span>
-                                {% translate "Ver detalles" as view_details_label %}
-                                {% with alert_onclick="alert('Detalles de cita: "|add:date.title|add:"\\nLugar: "|add:date.location|add:"\\nHora: "|add:date.time|add:"')" %}
-                                {% include 'components/button.html' with text=view_details_label variant="custom" onclick=alert_onclick class="font-bold text-petly-coral hover:underline cursor-pointer" %}
-                                {% endwith %}
+                                <div class="flex items-center justify-between pt-1 border-t border-petly-blue/40 text-xs">
+                                    <span class="font-bold text-neutral-800">
+                                        🕒 {{ date.time }}
+                                    </span>
+                                    <button type="button"
+                                            onclick="alert('{% blocktranslate with title=date.title loc=date.location time=date.time %}Cita: {{ title }}\nLugar: {{ loc }}\nHora: {{ time }}{% endblocktranslate %}')"
+                                            class="font-bold text-petly-coral hover:underline cursor-pointer">
+                                        {% translate "Ver detalles" %}
+                                    </button>
+                                </div>
                             </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-4 rounded-2xl bg-petly-ice/40 border border-dashed border-neutral-300 text-center space-y-1.5">
+                            <p class="text-xs font-semibold text-neutral-600">
+                                {% translate "No tienes citas confirmadas próximas" %}
+                            </p>
+                            <p class="text-[11px] text-neutral-400 leading-relaxed">
+                                {% translate "Acepta un match y concierta un encuentro seguro en un parque verificado." %}
+                            </p>
                         </div>
-                    {% endfor %}
+                    {% endif %}
                 </div>
 
                 <!-- Enlace de ayuda o recomendaciones -->
@@ -369,7 +499,7 @@
 <!-- MODALES INTERACTIVOS PARA CITAS Y MENSAJES     -->
 <!-- ============================================== -->
 
-<!-- Modal: Concertar Encuentro -->
+<!-- Modal: Concertar Encuentro Seguro -->
 <div id="modal-schedule-meeting" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-meeting-title">
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-schedule-meeting')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
@@ -427,7 +557,7 @@
     </div>
 </div>
 
-<!-- Modal: Nota de solicitud -->
+<!-- Modal: Mensaje inicial / Nota de solicitud -->
 <div id="modal-send-note" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-note-title">
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-send-note')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
@@ -439,21 +569,28 @@
             </div>
             <div>
                 <h3 id="modal-note-title" class="title-h4 text-neutral-900 font-bold">
-                    {% translate "Nota de solicitud" %}
+                    {% translate "Mensaje inicial de contacto" %}
                 </h3>
                 <p class="text-caption text-neutral-500">
-                    {% translate "Nota para el tutor" %} <span id="note-tutor-name" class="font-bold text-neutral-800">Mariana Ríos</span>
+                    {% translate "Para" %} <span id="note-tutor-name" class="font-bold text-neutral-800">Tutor</span>
                 </p>
             </div>
         </div>
 
         <form onsubmit="handleSendNote(event)" class="space-y-3 text-xs">
-            <textarea rows="3" class="textarea-petly text-xs" placeholder="{% translate 'Escribe una nota sobre acuerdos de cruza o socialización...' %}" required></textarea>
+            <input type="hidden" id="note-request-id" value="">
+            <div>
+                <label for="note-textarea" class="font-medium text-neutral-700 block mb-1">
+                    {% translate "Escribe un mensaje o acuerdo para iniciar la conversación:" %}
+                </label>
+                <textarea id="note-textarea" rows="4" class="textarea-petly text-xs w-full" placeholder="{% translate '¡Hola! Nos encanta tu mascota y queremos acordar un primer encuentro de socialización o evaluar compatibilidad...' %}" required></textarea>
+            </div>
             <div class="flex justify-end gap-2 pt-2">
                 {% translate "Cancelar" as cancel_msg_label %}
                 {% include 'components/button.html' with text=cancel_msg_label type="button" variant="outline" onclick="closeModal('modal-send-note')" class="text-xs px-4 py-2 bg-white" %}
-                {% translate "Guardar nota" as send_msg_btn_label %}
-                {% include 'components/button.html' with text=send_msg_btn_label type="submit" variant="primary" class="text-xs px-5 py-2 font-bold shadow-md" %}
+                <button type="submit" id="btn-submit-note" class="text-xs px-5 py-2 font-bold rounded-xl bg-petly-coral text-white hover:bg-petly-coral/90 shadow-md transition-colors cursor-pointer">
+                    {% translate "Enviar mensaje" %}
+                </button>
             </div>
         </form>
     </div>
@@ -463,6 +600,22 @@
 
 {% block extra_js %}
 <script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
     function openModal(id) {
         const modal = document.getElementById(id);
         if (modal) {
@@ -535,16 +688,199 @@
         }
     }
 
+    function updateCountersDOM(counters) {
+        if (!counters) return;
+        const elAll = document.getElementById('counter-all');
+        const elInterested = document.getElementById('counter-interested');
+        const elSent = document.getElementById('counter-sent');
+        const elBanner = document.getElementById('counter-banner-interested');
+
+        if (elAll && counters.all !== undefined) elAll.textContent = counters.all;
+        if (elInterested && counters.interested !== undefined) elInterested.textContent = counters.interested;
+        if (elSent && counters.sent !== undefined) elSent.textContent = counters.sent;
+        if (elBanner && counters.interested !== undefined) elBanner.textContent = counters.interested;
+    }
+
+    // Acción AJAX: Aceptar solicitud de match
+    function handleAcceptRequest(requestId, petName) {
+        const acceptUrl = `/pets/match/requests/${requestId}/accept/`;
+        fetch(acceptUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Actualizar distintivos en la tarjeta
+                const card = document.querySelector(`.suitor-card[data-request-id="${requestId}"]`);
+                if (card) {
+                    card.setAttribute('data-status', 'accepted');
+                    const badgeCollapsed = document.getElementById(`card-badge-${requestId}`);
+                    if (badgeCollapsed) {
+                        badgeCollapsed.textContent = '{% translate "Match aceptado" %}';
+                        badgeCollapsed.className = 'suitor-badge-label text-[11px] font-semibold text-emerald-600 block mt-0.5';
+                    }
+                    const badgeExp = document.getElementById(`expanded-badge-${requestId}`);
+                    if (badgeExp) {
+                        badgeExp.textContent = '{% translate "Match aceptado" %}';
+                        badgeExp.className = 'suitor-badge-label-expanded badge-tag text-[11px] font-semibold py-1 px-2.5 bg-emerald-50 text-emerald-700 border-emerald-200';
+                    }
+                    // Transformar botones de aceptar a agendar cita
+                    const btnCollapsed = card.querySelector('.btn-accept-request');
+                    if (btnCollapsed) {
+                        btnCollapsed.outerHTML = `
+                            <button type="button"
+                                    onclick="openMeetingModal('${petName}', '')"
+                                    class="text-xs px-3.5 py-1.5 font-bold rounded-full bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    title="{% translate 'Agendar encuentro seguro' %}">
+                                <span class="w-3.5 h-3.5">📅</span>
+                                <span>{% translate "Cita" %}</span>
+                            </button>
+                        `;
+                    }
+                    const btnExp = card.querySelector('.btn-accept-request-exp');
+                    if (btnExp) {
+                        btnExp.outerHTML = `
+                            <button type="button"
+                                    onclick="openMeetingModal('${petName}', '')"
+                                    class="flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-md inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                                <span class="w-4 h-4">📅</span>
+                                <span>{% translate "Concertar encuentro" %}</span>
+                            </button>
+                        `;
+                    }
+                }
+
+                if (data.tab_counters) {
+                    updateCountersDOM(data.tab_counters);
+                }
+
+                // Ofrecer enviar nota inicial de contacto
+                setTimeout(() => {
+                    const sendNotePrompt = confirm(`{% blocktranslate with name="${petName}" %}¡Match con ${name} aceptado exitosamente!\n¿Deseas escribirle un mensaje inicial al tutor?{% endblocktranslate %}`);
+                    if (sendNotePrompt) {
+                        const tutorSig = card ? card.querySelector('.italic + span')?.textContent?.replace('—', '').trim() : '';
+                        const currentQuote = card ? card.querySelector('.italic')?.textContent?.replace(/"/g, '').trim() : '';
+                        openNoteModal(requestId, petName, tutorSig || petName, currentQuote);
+                    }
+                }, 200);
+            } else {
+                alert(data.message || '{% translate "Ocurrió un error al aceptar la solicitud." %}');
+            }
+        })
+        .catch(err => {
+            console.error('Error al aceptar solicitud:', err);
+            alert('{% translate "Error de conexión al procesar la solicitud." %}');
+        });
+    }
+
+    // Acción AJAX: Rechazar o descartar solicitud de match
+    function handleRejectRequest(requestId, petName) {
+        if (!confirm(`{% blocktranslate with name="${petName}" %}¿Estás seguro de descartar la solicitud de ${name}?{% endblocktranslate %}`)) {
+            return;
+        }
+
+        const rejectUrl = `/pets/match/requests/${requestId}/reject/`;
+        fetch(rejectUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const card = document.querySelector(`.suitor-card[data-request-id="${requestId}"]`);
+                if (card) {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(12px)';
+                    setTimeout(() => {
+                        card.remove();
+                        recheckVisibleCards();
+                    }, 300);
+                }
+
+                if (data.tab_counters) {
+                    updateCountersDOM(data.tab_counters);
+                }
+            } else {
+                alert(data.message || '{% translate "No se pudo descartar la solicitud." %}');
+            }
+        })
+        .catch(err => {
+            console.error('Error al descartar solicitud:', err);
+            alert('{% translate "Error de conexión al procesar la solicitud." %}');
+        });
+    }
+
+    // Modal de nota / mensaje inicial
+    function openNoteModal(requestId, petName, tutorSignature, currentQuote) {
+        document.getElementById('note-request-id').value = requestId;
+        const tutorNameEl = document.getElementById('note-tutor-name');
+        if (tutorNameEl) {
+            tutorNameEl.textContent = tutorSignature || petName;
+        }
+        const textarea = document.getElementById('note-textarea');
+        if (textarea) {
+            textarea.value = (currentQuote && !currentQuote.includes('Interesado en conectar')) ? currentQuote : '';
+        }
+        openModal('modal-send-note');
+    }
+
+    // Envío AJAX de mensaje inicial / nota de contacto
+    function handleSendNote(event) {
+        event.preventDefault();
+        const requestId = document.getElementById('note-request-id').value;
+        const messageText = document.getElementById('note-textarea').value.trim();
+
+        if (!requestId || !messageText) {
+            alert('{% translate "Por favor ingresa un mensaje válido." %}');
+            return;
+        }
+
+        const submitBtn = document.getElementById('btn-submit-note');
+        if (submitBtn) submitBtn.disabled = true;
+
+        fetch(`/pets/match/requests/${requestId}/message/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ message: messageText })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Actualizar texto de la nota en la tarjeta
+                const quoteEl = document.getElementById(`suitor-quote-${requestId}`);
+                if (quoteEl) {
+                    quoteEl.textContent = `"${messageText}"`;
+                }
+                closeModal('modal-send-note');
+                alert('{% translate "¡Mensaje guardado exitosamente!" %}');
+            } else {
+                alert(data.message || '{% translate "Error al guardar la nota." %}');
+            }
+        })
+        .catch(err => {
+            console.error('Error al enviar nota:', err);
+            alert('{% translate "Error de conexión al guardar el mensaje." %}');
+        })
+        .finally(() => {
+            if (submitBtn) submitBtn.disabled = false;
+        });
+    }
+
     function openMeetingModal(petName, photoUrl) {
         const titleName = document.getElementById('meeting-pet-name');
         if (titleName) titleName.textContent = petName;
         openModal('modal-schedule-meeting');
-    }
-
-    function openNoteModal(petName, tutorName) {
-        const titleName = document.getElementById('note-tutor-name');
-        if (titleName) titleName.textContent = tutorName;
-        openModal('modal-send-note');
     }
 
     function handleConfirmMeeting(event) {
@@ -553,19 +889,10 @@
         closeModal('modal-schedule-meeting');
     }
 
-    function handleSendNote(event) {
-        event.preventDefault();
-        alert('{% translate "¡Nota guardada exitosamente!" %}');
-        closeModal('modal-send-note');
-    }
-
-    function dismissSuitor(petName) {
-        if (confirm(`{% translate "¿Deseas negar el interés de" %} ${petName}?`)) {
-            alert(`{% translate "Se ha descartado la solicitud de" %} ${petName}.`);
-        }
-    }
+    let currentFilter = 'all';
 
     function filterSuitors(filter, btn) {
+        currentFilter = filter;
         document.querySelectorAll('.suitor-filter-btn').forEach(b => {
             b.className = 'suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all';
         });
@@ -573,20 +900,29 @@
             btn.className = 'suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-[#A53B42] text-white shadow-xs whitespace-nowrap cursor-pointer transition-all';
         }
 
+        recheckVisibleCards();
+    }
+
+    function recheckVisibleCards() {
         const cards = document.querySelectorAll('.suitor-card');
         let visibleCount = 0;
         cards.forEach(card => {
-            const cat = card.getAttribute('data-category') || 'all';
+            const cardType = card.getAttribute('data-type') || 'interested';
+            const cat = card.getAttribute('data-category') || 'breeding';
             const dist = parseFloat(card.getAttribute('data-distance') || '0');
             let match = false;
 
-            if (filter === 'all') {
+            if (currentFilter === 'all') {
                 match = true;
-            } else if (filter === 'breeding') {
+            } else if (currentFilter === 'interested') {
+                match = (cardType === 'interested');
+            } else if (currentFilter === 'sent') {
+                match = (cardType === 'sent');
+            } else if (currentFilter === 'breeding') {
                 match = (cat === 'breeding');
-            } else if (filter === 'social') {
+            } else if (currentFilter === 'social') {
                 match = (cat === 'social');
-            } else if (filter === 'near') {
+            } else if (currentFilter === 'near') {
                 match = (dist <= 5.0);
             }
 
@@ -600,10 +936,35 @@
 
         const emptyState = document.getElementById('suitors-empty-state');
         if (emptyState) {
-            if (visibleCount === 0) {
+            if (visibleCount === 0 && cards.length > 0) {
                 emptyState.classList.remove('hidden');
             } else {
                 emptyState.classList.add('hidden');
+            }
+        }
+
+        const globalEmpty = document.getElementById('suitors-global-empty-state');
+        if (cards.length === 0 && !globalEmpty) {
+            const container = document.getElementById('suitors-list-container');
+            if (container) {
+                container.innerHTML = `
+                    <div id="suitors-global-empty-state" class="card-petly p-10 bg-white border border-neutral-300/80 rounded-3xl text-center space-y-4">
+                        <div class="w-16 h-16 rounded-full bg-petly-ice flex items-center justify-center text-neutral-400 mx-auto">
+                            <span class="text-3xl">📭</span>
+                        </div>
+                        <div class="space-y-1">
+                            <h2 class="title-h4 font-bold text-neutral-800">{% translate "No hay solicitudes ni interesados pendientes" %}</h2>
+                            <p class="text-xs sm:text-sm text-neutral-500 max-w-md mx-auto">
+                                {% translate "Aún no tienes pretendientes ni solicitudes registradas para tu mascota activa. Explora perfiles compatibles en el feed de emparejamiento para conectar." %}
+                            </p>
+                        </div>
+                        <div class="pt-2">
+                            <a href="{% url 'pets:match_feed' %}" class="text-xs px-6 py-2.5 font-bold rounded-xl bg-petly-coral text-white hover:bg-petly-coral/90 shadow-md no-underline inline-flex items-center gap-2">
+                                <span>{% translate "Explorar parejas compatibles" %}</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
             }
         }
     }

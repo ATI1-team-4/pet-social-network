@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.urls import resolve, reverse
 
 from apps.pets import views
+from apps.pets.models import Pet, PetSpecies
 
 User = get_user_model()
 
@@ -15,7 +16,6 @@ class PetsViewsTests(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='edwyn')
         self.client.force_login(self.user)
-        from apps.pets.models import Pet, PetSpecies
 
         self.species = PetSpecies.objects.create(name='Perro', slug='perro', icon_name='dog')
         self.pet_toby = Pet.objects.create(
@@ -98,6 +98,27 @@ class PetsViewsTests(TestCase):
         response_luna = self.client.get(url + '?selected=luna')
         self.assertEqual(response_luna.status_code, 200)
         self.assertEqual(response_luna.context['active_pet']['name'], 'Luna')
+
+        # Verificar que una mascota sin pedigrí no muestre pedigrí certificado
+        pet_sin = Pet.objects.create(
+            owner=self.user,
+            name='Maya',
+            species=self.species,
+            breed='Boston Terrier',
+            gender=Pet.Gender.HEMBRA,
+            birth_date='2022-01-08',
+            is_active_for_match=True,
+            certificate_type='Sin pedigrí',
+            certificate_number='',
+            profile_color='mint',
+        )
+        self.assertFalse(pet_sin.has_pedigree)
+        self.assertEqual(pet_sin.certificate, 'sin_pedigri')
+        response_user = self.client.get(url)
+        maya_in_ctx = next((p for p in response_user.context['pets'] if p['name'] == 'Maya'), None)
+        self.assertIsNotNone(maya_in_ctx)
+        self.assertFalse(maya_in_ctx['has_pedigree'])
+        self.assertNotEqual(maya_in_ctx['certificate'], 'fci')
 
         # Verificar que otro usuario sólo ve sus propias mascotas y no las de edwyn
         sofia = User.objects.get(username='sofia')
@@ -309,9 +330,16 @@ class PetsViewsTests(TestCase):
         response_get = self.client.get(url)
         self.assertEqual(response_get.status_code, 405)
 
-        response = self.client.post(url, {'selected_pet_id': '5678'})
+        response = self.client.post(
+            url,
+            {
+                'selected_pet_id': '5678',
+                'pedigree_filter': 'without_pedigree',
+            },
+        )
         self.assertRedirects(response, reverse('pets:match_feed'))
         self.assertEqual(self.client.session.get('active_pet_id'), '5678')
+        self.assertEqual(self.client.session.get('match_pedigree_preference'), 'without_pedigree')
 
     def test_match_feed_view_context_and_content(self):
         """Verifica que el feed de cruza cargue candidatos, color de perfil y enlaces."""
@@ -338,6 +366,25 @@ class PetsViewsTests(TestCase):
 
     def test_match_interested_view_context_and_content(self):
         """Verifica que la bandeja de interesados cargue pretendientes, citas y enlaces."""
+        from apps.pets.models import MatchRequest, Pet
+
+        sofia = User.objects.get(username='sofia')
+        cand_kira = Pet.objects.create(
+            owner=sofia,
+            name='Kira',
+            species=self.species,
+            breed='Pomerania Mini',
+            gender=Pet.Gender.HEMBRA,
+            birth_date='2023-06-15',
+            is_active_for_match=True,
+        )
+        MatchRequest.objects.create(
+            from_pet=cand_kira,
+            to_pet=self.pet_toby,
+            status=MatchRequest.RequestStatus.PENDING,
+            notes='¡Hola! Nos encantó Toby.',
+        )
+
         url = reverse('pets:match_interested')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -345,11 +392,9 @@ class PetsViewsTests(TestCase):
         self.assertIn('secondary_suitors', response.context)
         self.assertIn('confirmed_dates', response.context)
 
-        # Verifica pretendiente destacado (Kira) y secundarias (Chloe, Maya)
+        # Verifica pretendiente real (Kira)
         self.assertContains(response, 'Kira')
         self.assertContains(response, 'Pomerania Mini')
-        self.assertContains(response, 'Chloe')
-        self.assertContains(response, 'Maya')
 
         # Verifica citas confirmadas y enlace de retorno al feed
         self.assertContains(response, 'Citas confirmadas')

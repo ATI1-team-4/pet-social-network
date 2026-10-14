@@ -30,6 +30,11 @@ urlpatterns = [
         name='match_reject_request',
     ),
     path(
+        'match/requests/<int:request_id>/message/',
+        views.send_initial_message_view,
+        name='send_initial_message',
+    ),
+    path(
         'match/requests/<int:request_id>/note/',
         views.send_initial_note_view,
         name='send_initial_note',

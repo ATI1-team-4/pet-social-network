@@ -10,9 +10,12 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.accounts.models import UserReport
+from apps.accounts.models import UserProfile, UserReport
 from apps.pets.models import MatchRequest, Pet, PetSpecies
 from apps.pets.services import (
+    calculate_candidate_compatibility,
+    calculate_candidate_distance,
+    calculate_candidate_distance_km,
     get_match_candidates,
     record_candidate_like,
     record_candidate_pass,
@@ -313,8 +316,166 @@ class MatchFeedTests(TestCase):
         self.assertIn('active_pet', response.context)
         self.assertIn('candidates', response.context)
         self.assertIn('candidates_json', response.context)
-        self.assertIn('current_candidate', response.context)
-
         # Verificar que Bella aparezca en la respuesta HTML
         self.assertContains(response, 'Bella')
         self.assertContains(response, 'Labrador')
+
+    def test_match_feed_filters_by_pedigree_preference(self):
+        """
+        Verifica el filtrado de candidatos en get_match_candidates y match_feed_view
+        según la preferencia de pedigrí (with_pedigree, without_pedigree, both).
+        """
+        # Bella tiene pedigrí FCI
+        self.cand_bella.certificate_type = 'Certificado FCI'
+        self.cand_bella.certificate_number = 'FCI-VE-1100'
+        self.cand_bella.save()
+
+        # Crear candidata sin pedigrí
+        cand_no_pedigree = Pet.objects.create(
+            owner=self.other_user,
+            name='Kira',
+            species=self.species_dog,
+            breed='Labrador',
+            gender=Pet.Gender.HEMBRA,
+            birth_date='2022-04-10',
+            is_active_for_match=True,
+            certificate_type='Sin pedigrí',
+            certificate_number='',
+            profile_color='mint',
+        )
+
+        # 1. get_match_candidates con has_pedigree
+        cand_with = list(get_match_candidates(self.pet, filters={'has_pedigree': True}))
+        self.assertIn(self.cand_bella, cand_with)
+        self.assertNotIn(cand_no_pedigree, cand_with)
+
+        # 2. get_match_candidates con without_pedigree
+        cand_without = list(get_match_candidates(self.pet, filters={'without_pedigree': True}))
+        self.assertIn(cand_no_pedigree, cand_without)
+        self.assertNotIn(self.cand_bella, cand_without)
+
+        # 3. get_match_candidates ambos
+        cand_both = list(get_match_candidates(self.pet))
+        self.assertIn(self.cand_bella, cand_both)
+        self.assertIn(cand_no_pedigree, cand_both)
+
+        # 4. match_feed_view con parámetro GET ?pedigree=without_pedigree
+        self.client.login(username='tutor_feed', password='password123')
+        session = self.client.session
+        session['active_pet_id'] = str(self.pet.id)
+        session.save()
+
+        resp_without = self.client.get(reverse('pets:match_feed') + '?pedigree=without_pedigree')
+        self.assertEqual(resp_without.status_code, 200)
+        self.assertEqual(resp_without.context['pedigree_preference'], 'without_pedigree')
+        self.assertEqual(self.client.session.get('match_pedigree_preference'), 'without_pedigree')
+        candidates_ids = [c['id'] for c in resp_without.context['candidates']]
+        self.assertIn(cand_no_pedigree.id, candidates_ids)
+        self.assertNotIn(self.cand_bella.id, candidates_ids)
+
+        # 5. match_feed_view con parámetro GET ?pedigree=with_pedigree
+        resp_with = self.client.get(reverse('pets:match_feed') + '?pedigree=with_pedigree')
+        self.assertEqual(resp_with.status_code, 200)
+        self.assertEqual(resp_with.context['pedigree_preference'], 'with_pedigree')
+        candidates_with_ids = [c['id'] for c in resp_with.context['candidates']]
+        self.assertIn(self.cand_bella.id, candidates_with_ids)
+        self.assertNotIn(cand_no_pedigree.id, candidates_with_ids)
+
+    def test_calculate_candidate_compatibility_simplified(self):
+        """
+        Verifica el cálculo de porcentaje simplificado basado únicamente en sexo y raza:
+        - Sexo opuesto + Misma raza -> 95%
+        - Sexo opuesto + Distinta raza -> 75%
+        - Mismo sexo + Misma raza -> 60%
+        - Mismo sexo + Distinta raza -> 50%
+        """
+        # self.pet es Macho Labrador
+        # self.cand_bella es Hembra Labrador -> 95%
+        self.assertEqual(calculate_candidate_compatibility(self.pet, self.cand_bella), 95)
+
+        # Hembra Beagle -> 75%
+        cand_diff_breed = Pet.objects.create(
+            owner=self.other_user,
+            name='Daisy',
+            species=self.species_dog,
+            breed='Beagle',
+            gender=Pet.Gender.HEMBRA,
+            birth_date='2022-01-01',
+        )
+        self.assertEqual(calculate_candidate_compatibility(self.pet, cand_diff_breed), 75)
+
+        # Macho Labrador -> 60%
+        cand_same_sex_same_breed = Pet.objects.create(
+            owner=self.other_user,
+            name='Rocky',
+            species=self.species_dog,
+            breed='Labrador',
+            gender=Pet.Gender.MACHO,
+            birth_date='2022-01-01',
+        )
+        self.assertEqual(calculate_candidate_compatibility(self.pet, cand_same_sex_same_breed), 60)
+
+        # Macho Beagle -> 50%
+        cand_same_sex_diff_breed = Pet.objects.create(
+            owner=self.other_user,
+            name='Buster',
+            species=self.species_dog,
+            breed='Beagle',
+            gender=Pet.Gender.MACHO,
+            birth_date='2022-01-01',
+        )
+        self.assertEqual(calculate_candidate_compatibility(self.pet, cand_same_sex_diff_breed), 50)
+
+        # Distinta especie (Perro vs Gato) -> 0%
+        cand_cat = Pet.objects.create(
+            owner=self.other_user,
+            name='Michi',
+            species=self.species_cat,
+            breed='Siamés',
+            gender=Pet.Gender.HEMBRA,
+            birth_date='2022-01-01',
+        )
+        self.assertEqual(calculate_candidate_compatibility(self.pet, cand_cat), 0)
+
+    def test_calculate_candidate_distance_gps_and_fallback(self):
+        """
+        Verifica el cálculo de distancia GPS por fórmula de Haversine y fallback municipal.
+        """
+        # Asignar coordenadas a los tutores
+        p1, _ = UserProfile.objects.get_or_create(user=self.user)
+        p2, _ = UserProfile.objects.get_or_create(user=self.other_user)
+
+        # Chacao vs Las Mercedes (~3.2 km)
+        p1.latitude = 10.4990
+        p1.longitude = -66.8480
+        p1.save()
+
+        p2.latitude = 10.4780
+        p2.longitude = -66.8620
+        p2.save()
+
+        km = calculate_candidate_distance_km(self.pet, self.cand_bella)
+        self.assertAlmostEqual(km, 2.8, delta=0.5)
+        dist_str = calculate_candidate_distance(self.pet, self.cand_bella)
+        self.assertIn('km', dist_str)
+
+        # Coordenadas muy cercanas (< 500m)
+        p2.latitude = 10.4991
+        p2.longitude = -66.8481
+        p2.save()
+        self.assertEqual(
+            calculate_candidate_distance(self.pet, self.cand_bella), 'A menos de 500 m'
+        )
+
+        # Sin coordenadas pero mismo municipio
+        p1.latitude = None
+        p1.longitude = None
+        p1.municipality = 'Chacao'
+        p1.save()
+
+        p2.latitude = None
+        p2.longitude = None
+        p2.municipality = 'Chacao'
+        p2.save()
+
+        self.assertEqual(calculate_candidate_distance_km(self.pet, self.cand_bella), 1.5)

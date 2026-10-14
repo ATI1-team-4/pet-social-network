@@ -42,8 +42,22 @@
                     {% include 'components/icon.html' with name="dog" class="w-3.5 h-3.5 text-neutral-500" %}
                     <span>{% translate "Perros" %}</span>
                 </span>
-                {% translate "Con pedigrí FCI" as fci_label %}
-                {% include 'components/badge.html' with text=fci_label variant="compat" icon="award" class="text-xs py-1.5 px-3 shadow-xs" %}
+                {% if pedigree_preference == 'with_pedigree' %}
+                    {% translate "Con pedigrí FCI" as fci_label %}
+                    {% include 'components/badge.html' with text=fci_label variant="compat" icon="award" class="text-xs py-1.5 px-3 shadow-xs" %}
+                {% elif pedigree_preference == 'without_pedigree' %}
+                    {% translate "Sin pedigrí" as no_pedigree_label %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 shadow-xs">
+                        {% include 'components/icon.html' with name="award" class="w-3.5 h-3.5 text-amber-600" %}
+                        <span>{{ no_pedigree_label }}</span>
+                    </span>
+                {% else %}
+                    {% translate "Con y sin pedigrí" as both_label %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-neutral-300/80 text-neutral-700 shadow-xs">
+                        {% include 'components/icon.html' with name="award" class="w-3.5 h-3.5 text-neutral-500" %}
+                        <span>{{ both_label }}</span>
+                    </span>
+                {% endif %}
             </div>
         </div>
 
@@ -81,8 +95,19 @@
                 {% include 'components/badge.html' with text="< 5 km" variant="neutral" icon="location" class="bg-white text-xs py-1 px-3 whitespace-nowrap" %}
                 {% translate "Perros" as dogs_label_mob %}
                 {% include 'components/badge.html' with text=dogs_label_mob variant="neutral" icon="dog" class="bg-white text-xs py-1 px-3 whitespace-nowrap" %}
-                {% translate "Con pedigrí FCI" as fci_label_mob %}
-                {% include 'components/badge.html' with text=fci_label_mob variant="compat" icon="award" class="text-xs py-1 px-3 whitespace-nowrap" %}
+                {% if pedigree_preference == 'with_pedigree' %}
+                    {% translate "Con pedigrí FCI" as fci_label_mob %}
+                    {% include 'components/badge.html' with text=fci_label_mob variant="compat" icon="award" class="text-xs py-1 px-3 whitespace-nowrap" %}
+                {% elif pedigree_preference == 'without_pedigree' %}
+                    {% translate "Sin pedigrí" as no_pedigree_label_mob %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+                        {% include 'components/icon.html' with name="award" class="w-3.5 h-3.5 text-amber-600" %}
+                        <span>{{ no_pedigree_label_mob }}</span>
+                    </span>
+                {% else %}
+                    {% translate "Con y sin pedigrí" as both_label_mob %}
+                    {% include 'components/badge.html' with text=both_label_mob variant="neutral" icon="award" class="text-xs py-1 px-3 whitespace-nowrap" %}
+                {% endif %}
             </div>
             {% include 'components/button.html' with variant="outline" icon="sliders" icon_class="w-4 h-4 text-neutral-700" onclick="openModal('modal-filters')" class="w-8 h-8 rounded-full p-0 bg-white border-neutral-300 text-neutral-700 hover:text-petly-coral flex items-center justify-center shadow-xs shrink-0 cursor-pointer" title=filter_adv_label aria_label=filter_adv_label %}
         </div>
@@ -204,7 +229,7 @@
                         </div>
                         <div class="flex flex-col">
                             <span class="text-[10px] sm:text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
-                                {% translate "Certificado FCI" %}
+                                {% translate "Pedigrí / Certificado" %}
                             </span>
                             <span id="card-certificate" class="text-xs sm:text-sm font-bold text-neutral-900 mt-1">
                                 {{ current_candidate.certificate }}
@@ -477,17 +502,33 @@
             </div>
 
             <div>
-                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Certificación requerida" %}</label>
-                <label class="inline-flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked class="rounded border-neutral-300 text-petly-coral focus:ring-petly-coral">
-                    <span>{% translate "Solo candidatos con certificado FCI o pedigrí" %}</span>
-                </label>
+                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Preferencia de pedigrí" %}</label>
+                <div class="grid grid-cols-3 gap-1 p-1 bg-petly-ice/90 border border-neutral-300 rounded-xl text-center">
+                    <button type="button"
+                            onclick="setFeedFilterPedigree('both')"
+                            id="feed-filter-ped-both"
+                            class="feed-filter-ped-btn py-1.5 px-1 text-xs rounded-lg transition-all cursor-pointer {% if pedigree_preference == 'both' or not pedigree_preference %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                        {% translate "Ambos" %}
+                    </button>
+                    <button type="button"
+                            onclick="setFeedFilterPedigree('with_pedigree')"
+                            id="feed-filter-ped-with"
+                            class="feed-filter-ped-btn py-1.5 px-1 text-xs rounded-lg transition-all cursor-pointer {% if pedigree_preference == 'with_pedigree' %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                        {% translate "Con pedigrí" %}
+                    </button>
+                    <button type="button"
+                            onclick="setFeedFilterPedigree('without_pedigree')"
+                            id="feed-filter-ped-without"
+                            class="feed-filter-ped-btn py-1.5 px-1 text-xs rounded-lg transition-all cursor-pointer {% if pedigree_preference == 'without_pedigree' %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                        {% translate "Sin pedigrí" %}
+                    </button>
+                </div>
             </div>
         </div>
 
         <div class="mt-6 flex justify-end gap-2">
             {% translate "Aplicar filtros" as apply_flt_text %}
-            {% include 'components/button.html' with text=apply_flt_text variant="primary" type="button" onclick="closeModal('modal-filters')" class="text-xs px-5 py-2 font-bold" %}
+            {% include 'components/button.html' with text=apply_flt_text variant="primary" type="button" onclick="applyFeedFilters()" class="text-xs px-5 py-2 font-bold" %}
         </div>
     </div>
 </div>
@@ -496,6 +537,25 @@
 
 {% block extra_js %}
 <script>
+    let selectedFeedPedigree = "{{ pedigree_preference|default:'both' }}";
+
+    function setFeedFilterPedigree(val) {
+        selectedFeedPedigree = val;
+        document.querySelectorAll('.feed-filter-ped-btn').forEach(btn => {
+            const isMatch = btn.id === ('feed-filter-ped-' + (val === 'with_pedigree' ? 'with' : (val === 'without_pedigree' ? 'without' : 'both')));
+            if (isMatch) {
+                btn.className = 'feed-filter-ped-btn py-1.5 px-1 text-xs rounded-lg transition-all cursor-pointer bg-petly-coral text-white font-bold shadow-xs';
+            } else {
+                btn.className = 'feed-filter-ped-btn py-1.5 px-1 text-xs rounded-lg transition-all cursor-pointer bg-transparent text-neutral-600 hover:text-neutral-900 font-medium';
+            }
+        });
+    }
+
+    function applyFeedFilters() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('pedigree', selectedFeedPedigree);
+        window.location.href = url.toString();
+    }
     function openModal(id) {
         const modal = document.getElementById(id);
         if (modal) {

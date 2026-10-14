@@ -24,6 +24,7 @@
     <form method="post" action="{% url 'pets:pet_set_active' %}" id="pet-select-form">
         {% csrf_token %}
         <input type="hidden" name="selected_pet_id" id="selected-pet-id-input" value="{{ active_pet.id|default:'1234' }}">
+        <input type="hidden" name="pedigree_filter" id="pedigree-filter-input" value="{{ pedigree_preference|default:'both' }}">
 
         <!-- ============================================== -->
         <!-- VISTA DE ESCRITORIO (reto 11, página 11 der.) -->
@@ -69,7 +70,7 @@
                                         {% include 'components/badge.html' with text=_("Buscando pareja activo") variant="tag" icon="heart" class="text-xs font-medium py-1 px-3" %}
                                     {% endif %}
 
-                                    {% if pet.certificate == 'fci' %}
+                                    {% if pet.has_pedigree and pet.certificate == 'fci' %}
                                         {% include 'components/badge.html' with text=_("Pedigrí certificado") variant="compat" icon="award" class="text-xs font-bold py-1 px-3" %}
                                     {% endif %}
                                 </div>
@@ -136,6 +137,36 @@
                     <h2 class="title-h4 text-neutral-900 font-bold">
                         {% blocktranslate with name=active_pet.name|default:"Mascota" %}Continuar flujo con <span id="desktop-action-pet-name">{{ name }}</span>{% endblocktranslate %}
                     </h2>
+
+                    <!-- Selector de preferencia de cruza / pedigrí -->
+                    <div class="space-y-2 pt-1 border-t border-neutral-100">
+                        <label class="block text-xs font-bold text-neutral-700">
+                            {% translate "¿Con qué perros deseas buscar pareja?" %}
+                        </label>
+                        <div class="grid grid-cols-3 gap-1 p-1 bg-petly-ice/90 border border-petly-blue/80 rounded-2xl text-center" role="radiogroup" aria-label="{% translate 'Preferencia de pedigrí' %}">
+                            <button type="button"
+                                    id="desktop-pedigree-both"
+                                    onclick="setPedigreePreference('both')"
+                                    data-pedigree-choice="both"
+                                    class="pedigree-choice-btn py-2 px-1 text-xs rounded-xl transition-all cursor-pointer {% if pedigree_preference == 'both' or not pedigree_preference %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                                {% translate "Ambos" %}
+                            </button>
+                            <button type="button"
+                                    id="desktop-pedigree-with"
+                                    onclick="setPedigreePreference('with_pedigree')"
+                                    data-pedigree-choice="with_pedigree"
+                                    class="pedigree-choice-btn py-2 px-1 text-xs rounded-xl transition-all cursor-pointer {% if pedigree_preference == 'with_pedigree' %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                                {% translate "Con pedigrí" %}
+                            </button>
+                            <button type="button"
+                                    id="desktop-pedigree-without"
+                                    onclick="setPedigreePreference('without_pedigree')"
+                                    data-pedigree-choice="without_pedigree"
+                                    class="pedigree-choice-btn py-2 px-1 text-xs rounded-xl transition-all cursor-pointer {% if pedigree_preference == 'without_pedigree' %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                                {% translate "Sin pedigrí" %}
+                            </button>
+                        </div>
+                    </div>
 
                     <div class="space-y-3 pt-2">
                         {% include 'components/button.html' with text=_("Continuar a buscar pareja") type="submit" variant="primary" class="w-full py-3.5 text-sm font-bold shadow-md justify-center" icon="heart" %}
@@ -208,8 +239,38 @@
                 {% include 'components/button.html' with text=_("Registrar nueva mascota") href=pet_mgmt_url|add:"?new=true" variant="secondary" icon="plus" icon_class="w-4 h-4 text-petly-coral font-bold" class="w-full min-w-[320px] p-3.5 rounded-2xl bg-petly-blue/40 border border-petly-blue text-neutral-800 justify-center font-semibold text-xs hover:bg-petly-blue/60 no-underline shadow-xs" %}
             </div>
 
+            <!-- Selector de preferencia de cruza / pedigrí (Móvil) -->
+            <div class="p-3.5 bg-white rounded-2xl border border-neutral-200/90 shadow-xs space-y-2">
+                <label class="block text-xs font-bold text-neutral-700">
+                    {% translate "¿Con qué perros deseas buscar pareja?" %}
+                </label>
+                <div class="grid grid-cols-3 gap-1 p-1 bg-petly-ice/90 border border-petly-blue/80 rounded-2xl text-center" role="radiogroup" aria-label="{% translate 'Preferencia de pedigrí móvil' %}">
+                    <button type="button"
+                            id="mobile-pedigree-both"
+                            onclick="setPedigreePreference('both')"
+                            data-pedigree-choice="both"
+                            class="pedigree-choice-btn py-2 px-1 text-xs rounded-xl transition-all cursor-pointer {% if pedigree_preference == 'both' or not pedigree_preference %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                        {% translate "Ambos" %}
+                    </button>
+                    <button type="button"
+                            id="mobile-pedigree-with"
+                            onclick="setPedigreePreference('with_pedigree')"
+                            data-pedigree-choice="with_pedigree"
+                            class="pedigree-choice-btn py-2 px-1 text-xs rounded-xl transition-all cursor-pointer {% if pedigree_preference == 'with_pedigree' %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                        {% translate "Con pedigrí" %}
+                    </button>
+                    <button type="button"
+                            id="mobile-pedigree-without"
+                            onclick="setPedigreePreference('without_pedigree')"
+                            data-pedigree-choice="without_pedigree"
+                            class="pedigree-choice-btn py-2 px-1 text-xs rounded-xl transition-all cursor-pointer {% if pedigree_preference == 'without_pedigree' %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                        {% translate "Sin pedigrí" %}
+                    </button>
+                </div>
+            </div>
+
             <!-- Botones de acción inferiores para móvil -->
-            <div class="space-y-2.5 pt-4 pb-6 mb-6 sm:mb-0">
+            <div class="space-y-2.5 pt-2 pb-6 mb-6 sm:mb-0">
                 {% include 'components/button.html' with text=_("Continuar a buscar pareja") type="submit" variant="primary" class="w-full py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold shadow-md justify-center" icon="heart" %}
 
                 {% url 'pets:match_interested' as match_interested_url %}
@@ -224,6 +285,26 @@
 
 {% block extra_js %}
 <script>
+    // Gestión reactiva de la preferencia de pedigrí (Ambos / Con pedigrí / Sin pedigrí)
+    function setPedigreePreference(preference) {
+        const hiddenInput = document.getElementById('pedigree-filter-input');
+        if (hiddenInput) {
+            hiddenInput.value = preference;
+        }
+
+        // Sincronizar todos los botones (tanto de escritorio como de móvil)
+        document.querySelectorAll('.pedigree-choice-btn').forEach(btn => {
+            const choice = btn.getAttribute('data-pedigree-choice');
+            if (choice === preference) {
+                btn.className = 'pedigree-choice-btn py-2 px-1 text-xs rounded-xl transition-all cursor-pointer bg-petly-coral text-white font-bold shadow-xs';
+                btn.setAttribute('aria-checked', 'true');
+            } else {
+                btn.className = 'pedigree-choice-btn py-2 px-1 text-xs rounded-xl transition-all cursor-pointer bg-transparent text-neutral-600 hover:text-neutral-900 font-medium';
+                btn.setAttribute('aria-checked', 'false');
+            }
+        });
+    }
+
     // Gestión reactiva de la selección de mascota activa (reto 11, página 11)
     function selectActivePet(petId, petName) {
         // Actualizar el valor en el campo oculto del formulario

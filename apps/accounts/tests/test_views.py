@@ -97,6 +97,9 @@ class AccountsViewsTests(TestCase):
         response_auth = self.client.get(url)
         self.assertEqual(response_auth.status_code, 200)
         self.assertTemplateUsed(response_auth, 'accounts/user_profile.html')
+        self.assertIn('user_pets', response_auth.context)
+        self.assertEqual(response_auth.context['pets_count'], user.pets.count())
+        self.assertIn('active_connections_count', response_auth.context)
 
     def test_profile_save_view_post_updates_profile(self):
         url = reverse('accounts:profile_save')
@@ -115,6 +118,8 @@ class AccountsViewsTests(TestCase):
                 'municipality': 'Chacao',
                 'neighborhood': 'Los Palos Grandes',
                 'favorite_color': 'Azul Eléctrico',
+                'latitude': '10.4990',
+                'longitude': '-66.8480',
             },
         )
         self.assertRedirects(response, reverse('accounts:profile'))
@@ -127,6 +132,8 @@ class AccountsViewsTests(TestCase):
         self.assertEqual(user.profile.neighborhood, 'Los Palos Grandes')
         self.assertEqual(user.profile.city, 'Chacao')
         self.assertEqual(user.profile.favorite_color, 'Azul Eléctrico')
+        self.assertEqual(user.profile.latitude, 10.4990)
+        self.assertEqual(user.profile.longitude, -66.8480)
 
 
 class AccountsSecurityAndAuditTests(TestCase):

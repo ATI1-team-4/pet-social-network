@@ -52,7 +52,7 @@
                         {% include 'components/icon.html' with name="paw" class="w-4 h-4 text-petly-coral" %}
                     </div>
                     <div class="min-w-0 text-left">
-                        <div class="font-bold text-neutral-900 text-sm leading-tight">2</div>
+                        <div class="font-bold text-neutral-900 text-sm leading-tight">{{ pets_count|default:0 }}</div>
                         <div class="text-[10px] text-neutral-500 font-medium truncate">{% translate "Mascotas registradas" %}</div>
                     </div>
                 </div>
@@ -63,20 +63,32 @@
                         {% include 'components/icon.html' with name="users" class="w-4 h-4 text-neutral-700" %}
                     </div>
                     <div class="min-w-0 text-left">
-                        <div class="font-bold text-neutral-900 text-sm leading-tight">5</div>
+                        <div class="font-bold text-neutral-900 text-sm leading-tight">{{ active_connections_count|default:0 }}</div>
                         <div class="text-[10px] text-neutral-500 font-medium truncate">{% translate "Conexiones activas" %}</div>
                     </div>
                 </div>
 
                 <!-- Mascota activa en búsqueda -->
                 <div class="stat-pill-petly min-w-0 min-h-14 px-2.5 sm:px-3.5 py-2 flex items-center gap-3 bg-white border border-neutral-300/80 rounded-2xl shadow-2xs">
-                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    </div>
-                    <div class="min-w-0 text-left">
-                        <div class="font-bold text-neutral-900 text-sm leading-tight truncate">Toby Bulldog F.</div>
-                        <div class="text-[10px] text-neutral-500 font-medium truncate">{% translate "Mascota en búsqueda" %}</div>
-                    </div>
+                    {% if active_pet %}
+                        <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        </div>
+                        <div class="min-w-0 text-left">
+                            <div class="font-bold text-neutral-900 text-sm leading-tight truncate" title="{{ active_pet.name }} ({{ active_pet.breed }})">
+                                {{ active_pet.name }} <span class="text-xs font-normal text-neutral-500">({{ active_pet.breed }})</span>
+                            </div>
+                            <div class="text-[10px] text-neutral-500 font-medium truncate">{% translate "Mascota en búsqueda" %}</div>
+                        </div>
+                    {% else %}
+                        <div class="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-400 shrink-0">
+                            {% include 'components/icon.html' with name="paw" class="w-4 h-4 text-neutral-400" %}
+                        </div>
+                        <div class="min-w-0 text-left">
+                            <div class="font-bold text-neutral-900 text-sm leading-tight truncate">{% translate "Ninguna" %}</div>
+                            <div class="text-[10px] text-neutral-500 font-medium truncate">{% translate "Sin mascota en búsqueda" %}</div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -91,66 +103,52 @@
                     <span>{% translate "Mis mascotas" %}</span>
                 </h2>
                 <span class="text-xs bg-neutral-100 text-neutral-600 px-2.5 py-0.5 rounded-full font-medium border border-neutral-200">
-                    2 {% translate "perfiles" %}
+                    {{ pets_count|default:0 }} {% if pets_count == 1 %}{% translate "perfil" %}{% else %}{% translate "perfiles" %}{% endif %}
                 </span>
             </div>
 
             <!-- Lista de tarjetas de mascotas  -->
             <div class="space-y-3 mb-4">
-                <!-- Mascota 1: Toby -->
+                {% for pet in user_pets %}
                 <div class="card-petly w-full min-w-0 p-3.5 sm:p-4 bg-white border border-neutral-200 rounded-2xl shadow-sm hover:border-petly-coral/40 hover:shadow-md transition-all group">
                     <div class="flex items-center gap-3">
-                        <img src="{% static 'images/pets/default_avatar.svg' %}"
-                             alt="Toby"
+                        <img src="{{ pet.photo_url }}"
+                             alt="{{ pet.name }}"
                              class="w-12 h-12 rounded-full object-cover shrink-0 border border-neutral-200 shadow-2xs">
                         <div class="min-w-0 flex-1">
                             <h3 class="text-sm font-bold text-neutral-900 group-hover:text-petly-coral transition-colors">
-                                Toby
+                                {{ pet.name }}
                             </h3>
                             <p class="text-xs text-neutral-500 truncate">
-                                Bulldog Francés • 3 años
+                                {{ pet.breed }} • {{ pet.age_text }}
                             </p>
                         </div>
                     </div>
 
                     <div class="flex items-center justify-between pt-3 mt-3 border-t border-neutral-100 text-xs">
-                        {% include 'components/badge.html' with text=_("Buscando citas") variant="male" class="text-[11px] py-0.5 px-2.5" %}
+                        {% if pet.is_matching %}
+                            {% include 'components/badge.html' with text=_("Buscando citas") variant=pet.gender_icon class="text-[11px] py-0.5 px-2.5" %}
+                        {% elif pet.is_adoption %}
+                            {% include 'components/badge.html' with text=_("En adopción") variant="tag" class="text-[11px] py-0.5 px-2.5" %}
+                        {% else %}
+                            {% include 'components/badge.html' with text=_("Solo paseos") variant="tag" class="text-[11px] py-0.5 px-2.5" %}
+                        {% endif %}
 
-                        <a href="{% url 'pets:pet_management' %}"
+                        <a href="{% url 'pets:pet_management' %}?pet={{ pet.id }}"
                            class="inline-flex items-center gap-1 font-semibold text-neutral-600 hover:text-petly-coral transition-colors no-underline text-xs">
                             {% include 'components/icon.html' with name="palette" class="w-3.5 h-3.5 text-petly-coral" %}
                             <span>{% translate "Editar perfil" %}</span>
                         </a>
                     </div>
                 </div>
-
-                <!-- Mascota 2: Luna -->
-                <div class="card-petly w-full min-w-0 p-3.5 sm:p-4 bg-white border border-neutral-200 rounded-2xl shadow-sm hover:border-petly-coral/40 hover:shadow-md transition-all group">
-                    <div class="flex items-center gap-3">
-                        <img src="{% static 'images/pets/default_avatar.svg' %}"
-                             alt="Luna"
-                             class="w-12 h-12 rounded-full object-cover shrink-0 border border-neutral-200 shadow-2xs">
-
-                        <div class="min-w-0 flex-1">
-                            <h3 class="text-sm font-bold text-neutral-900 group-hover:text-petly-coral transition-colors">
-                                Luna
-                            </h3>
-                            <p class="text-xs text-neutral-500 truncate">
-                                Golden Retriever • 4 años
-                            </p>
-                        </div>
+                {% empty %}
+                <div class="card-petly w-full p-6 text-center bg-white border border-dashed border-neutral-200 rounded-2xl">
+                    <div class="w-10 h-10 mx-auto mb-2 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-400">
+                        {% include 'components/icon.html' with name="paw" class="w-5 h-5 text-neutral-400" %}
                     </div>
-
-                    <div class="flex items-center justify-between pt-3 mt-3 border-t border-neutral-100 text-xs">
-                        {% include 'components/badge.html' with text=_("Solo paseos") variant="tag" class="text-[11px] py-0.5 px-2.5" %}
-
-                        <a href="{% url 'pets:pet_management' %}"
-                           class="inline-flex items-center gap-1 font-semibold text-neutral-600 hover:text-petly-coral transition-colors no-underline text-xs">
-                            {% include 'components/icon.html' with name="palette" class="w-3.5 h-3.5 text-petly-coral" %}
-                            <span>{% translate "Editar perfil" %}</span>
-                        </a>
-                    </div>
+                    <p class="text-xs text-neutral-500 font-medium">{% translate "No tienes mascotas registradas aún." %}</p>
                 </div>
+                {% endfor %}
             </div>
 
             <!-- Botón de acción para registrar nueva mascota -->
@@ -236,6 +234,46 @@
                                     {% translate "Parroquia / Sector" %}
                                 </label>
                                 {% include 'components/input.html' with name="neighborhood" id="profile-neighborhood" value=request.user.profile.neighborhood placeholder="Ej. Los Palos Grandes" icon="location" %}
+                            </div>
+                        </div>
+
+                        <!-- Bloque de Geolocalización GPS del Tutor -->
+                        <div class="sm:col-span-2 p-4 rounded-2xl bg-petly-ice/60 border border-petly-blue/80 space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        {% include 'components/icon.html' with name="location" class="w-4 h-4 text-petly-coral" %}
+                                        <h3 class="text-xs font-bold text-neutral-900">
+                                            {% translate "Ubicación GPS para calcular distancia entre mascotas" %}
+                                        </h3>
+                                    </div>
+                                    <p class="text-[11px] text-neutral-500 mt-0.5">
+                                        {% translate "Permite calcular la distancia real en kilómetros hacia otras mascotas en el feed de parejas y solicitudes." %}
+                                    </p>
+                                </div>
+                                {% translate "Detectar mi ubicación GPS" as btn_gps_label %}
+                                {% include 'components/button.html' with id="btn-detect-gps" text_id="btn-detect-gps-text" text=btn_gps_label variant="secondary" icon="location" icon_class="w-3.5 h-3.5 text-petly-coral" onclick="detectGPSLocation()" class="text-xs px-3.5 py-2 rounded-full font-bold shadow-xs cursor-pointer hover:border-petly-coral hover:text-petly-coral" %}
+                            </div>
+
+                            <!-- Campos de latitud y longitud con componente reutilizable -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                {% translate "Latitud GPS" as lat_label %}
+                                {% include 'components/input.html' with name="latitude" id="profile-latitude" type="number" attrs='step="any"' label=lat_label value=request.user.profile.latitude|default_if_none:'' placeholder="Ej. 10.4930" input_class="font-mono bg-white text-xs" %}
+
+                                {% translate "Longitud GPS" as lon_label %}
+                                {% include 'components/input.html' with name="longitude" id="profile-longitude" type="number" attrs='step="any"' label=lon_label value=request.user.profile.longitude|default_if_none:'' placeholder="Ej. -66.8530" input_class="font-mono bg-white text-xs" %}
+                            </div>
+
+                            <!-- Indicador de estado del GPS -->
+                            <div id="gps-status-feedback" class="{% if request.user.profile.latitude and request.user.profile.longitude %}flex{% else %}hidden{% endif %} items-center gap-2 text-[11px] text-emerald-700 font-medium">
+                                {% include 'components/icon.html' with name="check" class="w-3.5 h-3.5 text-emerald-600" %}
+                                <span id="gps-status-text">
+                                    {% if request.user.profile.latitude and request.user.profile.longitude %}
+                                        {% translate "Ubicación GPS registrada:" %} {{ request.user.profile.latitude|floatformat:4 }}, {{ request.user.profile.longitude|floatformat:4 }}
+                                    {% else %}
+                                        {% translate "Ubicación GPS registrada correctamente." %}
+                                    {% endif %}
+                                </span>
                             </div>
                         </div>
 
@@ -327,6 +365,58 @@
             };
             reader.readAsDataURL(file);
         }
+    }
+
+    function detectGPSLocation() {
+        const btn = document.getElementById('btn-detect-gps');
+        const btnText = document.getElementById('btn-detect-gps-text');
+        const latInput = document.getElementById('profile-latitude');
+        const lonInput = document.getElementById('profile-longitude');
+        const feedback = document.getElementById('gps-status-feedback');
+        const statusText = document.getElementById('gps-status-text');
+
+        if (!navigator.geolocation) {
+            alert('{% translate "Tu navegador no soporta geolocalización GPS." %}');
+            return;
+        }
+
+        if (btn) btn.disabled = true;
+        if (btnText) btnText.textContent = '{% translate "Detectando..." %}';
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude.toFixed(6);
+                const lon = position.coords.longitude.toFixed(6);
+
+                if (latInput) latInput.value = lat;
+                if (lonInput) lonInput.value = lon;
+
+                if (feedback) {
+                    feedback.classList.remove('hidden');
+                    feedback.classList.add('flex');
+                }
+                if (statusText) {
+                    statusText.textContent = `{% translate "Ubicación detectada:" %} ${lat}, ${lon} ({% translate "recuerda guardar cambios" %})`;
+                }
+
+                if (btn) btn.disabled = false;
+                if (btnText) btnText.textContent = '{% translate "Detectar mi ubicación GPS" %}';
+            },
+            function(error) {
+                let msg = '{% translate "No se pudo obtener la ubicación GPS." %}';
+                if (error.code === error.PERMISSION_DENIED) {
+                    msg = '{% translate "Permiso de ubicación denegado por el navegador." %}';
+                }
+                alert(msg);
+                if (btn) btn.disabled = false;
+                if (btnText) btnText.textContent = '{% translate "Detectar mi ubicación GPS" %}';
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
     }
 </script>
 {% endblock %}
