@@ -727,15 +727,13 @@ def schedule_pet_meetup(
     if meeting_dt <= now:
         raise ValueError(_('La fecha y hora del encuentro deben ser futuras.'))
 
-
     active_statuses = [
         PetMeetup.MeetupStatus.CONFIRMED,
         PetMeetup.MeetupStatus.PROPOSED,
     ]
 
     has_conflict = PetMeetup.objects.filter(
-        Q(pet1__in=[requester_pet, target_pet])
-        | Q(pet2__in=[requester_pet, target_pet]),
+        Q(pet1__in=[requester_pet, target_pet]) | Q(pet2__in=[requester_pet, target_pet]),
         status__in=active_statuses,
     ).exists()
 
@@ -774,9 +772,9 @@ def cancel_pet_meetup(meetup_id: int, user: Any, reason: str = '') -> PetMeetup:
     - Actualizar estado de `PetMeetup` a `CANCELLED`.
     - Retornar la instancia cancelada.
     """
-    meetup = PetMeetup.objects.select_related(
-        'pet1', 'pet2', 'pet1__owner', 'pet2__owner'
-    ).get(id=meetup_id)
+    meetup = PetMeetup.objects.select_related('pet1', 'pet2', 'pet1__owner', 'pet2__owner').get(
+        id=meetup_id
+    )
 
     is_pet1_owner = meetup.pet1.owner_id == user.id or meetup.pet1.owner == user
     is_pet2_owner = meetup.pet2.owner_id == user.id or meetup.pet2.owner == user
@@ -800,18 +798,16 @@ def complete_pet_meetup(meetup_id: int, user: Optional[Any] = None) -> PetMeetup
     el contador de encuentros completados en el perfil de ambos tutores
     (Profile.completed_meetings_count).
     """
-    meetup = PetMeetup.objects.select_related(
-        'pet1', 'pet2', 'pet1__owner', 'pet2__owner'
-    ).get(id=meetup_id)
+    meetup = PetMeetup.objects.select_related('pet1', 'pet2', 'pet1__owner', 'pet2__owner').get(
+        id=meetup_id
+    )
 
     if user:
         is_pet1_owner = meetup.pet1.owner_id == user.id or meetup.pet1.owner == user
         is_pet2_owner = meetup.pet2.owner_id == user.id or meetup.pet2.owner == user
         is_staff = getattr(user, 'is_staff', False)
         if not (is_pet1_owner or is_pet2_owner or is_staff):
-            raise PermissionError(
-                _('No tienes permiso para marcar como completada esta cita.')
-            )
+            raise PermissionError(_('No tienes permiso para marcar como completada esta cita.'))
 
     meetup.status = PetMeetup.MeetupStatus.COMPLETED
     meetup.save(update_fields=['status', 'updated_at'])

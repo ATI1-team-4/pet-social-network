@@ -61,26 +61,25 @@ class ScheduleMeetupForm(forms.ModelForm):
         authorized_normalized = [p.lower() for p in AUTHORIZED_CANINE_PARKS]
         loc_lower = location_name.lower()
 
-        is_authorized = (
-            loc_lower in authorized_normalized
-            or any(
-                p in loc_lower
-                for p in [
-                    'parque españa',
-                    'parque del este',
-                    'parque vizcaya',
-                    'la rosaleda',
-                    'los caobos',
-                    'zona canina verificada',
-                    'área de recreación canina',
-                    'espacio cercado',
-                ]
-            )
+        is_authorized = loc_lower in authorized_normalized or any(
+            p in loc_lower
+            for p in [
+                'parque españa',
+                'parque del este',
+                'parque vizcaya',
+                'la rosaleda',
+                'los caobos',
+                'zona canina verificada',
+                'área de recreación canina',
+                'espacio cercado',
+            ]
         )
 
         if not is_authorized:
             raise forms.ValidationError(
-                _('El lugar seleccionado no corresponde a un parque canino autorizado o espacio público verificado.')
+                _(
+                    'El lugar seleccionado no corresponde a un parque canino autorizado o espacio público verificado.'
+                )
             )
 
         return location_name
@@ -111,4 +110,3 @@ class ScheduleMeetupForm(forms.ModelForm):
                     _('La fecha y hora propuestas deben corresponder a un momento futuro.')
                 )
         return cleaned_data
-
