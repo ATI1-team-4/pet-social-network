@@ -48,6 +48,8 @@ class Command(BaseCommand):
                 'favorite_music': 'Rock clásico',
                 'favorite_videogame': 'Super Mario',
                 'gender': 'M',
+                'latitude': 10.5060,
+                'longitude': -66.9146,
             },
             'edwyn': {
                 'state': 'Miranda',
@@ -58,6 +60,8 @@ class Command(BaseCommand):
                 'favorite_music': 'Synthwave',
                 'favorite_videogame': 'The Witcher',
                 'gender': 'M',
+                'latitude': 10.4990,
+                'longitude': -66.8480,
             },
             'stefany': {
                 'state': 'Miranda',
@@ -68,6 +72,8 @@ class Command(BaseCommand):
                 'favorite_music': 'Indie Pop',
                 'favorite_videogame': 'Stardew Valley',
                 'gender': 'F',
+                'latitude': 10.4780,
+                'longitude': -66.8620,
             },
             'tutor': {
                 'state': 'Miranda',
@@ -78,6 +84,8 @@ class Command(BaseCommand):
                 'favorite_music': 'Acústica',
                 'favorite_videogame': 'Minecraft',
                 'gender': 'M',
+                'latitude': 10.3750,
+                'longitude': -66.9530,
             },
             'sofia': {
                 'state': 'Miranda',
@@ -88,6 +96,8 @@ class Command(BaseCommand):
                 'favorite_music': 'Indie Rock',
                 'favorite_videogame': 'Animal Crossing',
                 'gender': 'F',
+                'latitude': 10.3440,
+                'longitude': -67.0420,
             },
             'maria': {
                 'state': 'Distrito Capital',
@@ -98,6 +108,8 @@ class Command(BaseCommand):
                 'favorite_music': 'Pop',
                 'favorite_videogame': 'The Sims',
                 'gender': 'F',
+                'latitude': 10.4930,
+                'longitude': -66.8790,
             },
             'bryan': {
                 'state': 'Miranda',
@@ -108,6 +120,8 @@ class Command(BaseCommand):
                 'favorite_music': 'Electrónica',
                 'favorite_videogame': 'Zelda: Breath of the Wild',
                 'gender': 'M',
+                'latitude': 10.4280,
+                'longitude': -66.8250,
             },
             'oriana': {
                 'state': 'Miranda',
@@ -118,6 +132,8 @@ class Command(BaseCommand):
                 'favorite_music': 'R&B',
                 'favorite_videogame': 'Pokemon',
                 'gender': 'F',
+                'latitude': 10.4940,
+                'longitude': -66.8320,
             },
         }
 
@@ -259,8 +275,8 @@ class Command(BaseCommand):
                 'gender': Pet.Gender.MACHO,
                 'birth_date': date(2022, 8, 14),
                 'weight_kg': Decimal('13.50'),
-                'certificate_type': 'Certificado FCI',
-                'certificate_number': 'FCI-VE-44910',
+                'certificate_type': 'Sin pedigrí',
+                'certificate_number': '',
                 'purpose': Pet.Purpose.BOTH,
                 'is_active_for_match': True,
                 'max_search_distance_km': 20,

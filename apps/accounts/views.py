@@ -3,6 +3,7 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
@@ -15,6 +16,7 @@ from apps.accounts.services import (
     create_tutor_user,
 )
 from apps.accounts.signals import get_client_ip
+from apps.pets.models import MatchRequest
 
 
 def login_view(request):
@@ -148,8 +150,37 @@ def profile_view(request):
     """
     Renderiza la pantalla oficial de Gestión de usuario.
     Requiere que el tutor esté autenticado en el sistema.
+    Carga las mascotas reales del usuario, el total de conexiones y la mascota activa.
     """
-    return render(request, 'accounts/user_profile.html')
+    user = request.user
+    user_pets = user.pets.select_related('species').all()
+    pets_count = user_pets.count()
+
+    # Conexiones activas: Solicitudes de match aceptadas donde intervenga alguna mascota del tutor
+    active_connections_count = MatchRequest.objects.filter(
+        Q(from_pet__in=user_pets) | Q(to_pet__in=user_pets),
+        status=MatchRequest.RequestStatus.ACCEPTED,
+    ).count()
+
+    # Mascota activa en búsqueda:
+    # 1) Mascota activa seleccionada en sesión (active_pet_id)
+    # 2) O primera mascota con is_active_for_match=True
+    # 3) O primera mascota del tutor
+    active_pet = None
+    active_pet_id = request.session.get('active_pet_id')
+    if active_pet_id and str(active_pet_id).isdigit():
+        active_pet = user_pets.filter(id=int(active_pet_id)).first()
+
+    if not active_pet:
+        active_pet = user_pets.filter(is_active_for_match=True).first() or user_pets.first()
+
+    context = {
+        'user_pets': user_pets,
+        'pets_count': pets_count,
+        'active_connections_count': active_connections_count,
+        'active_pet': active_pet,
+    }
+    return render(request, 'accounts/user_profile.html', context)
 
 
 @login_required
@@ -180,6 +211,26 @@ def profile_save_view(request):
     profile.neighborhood = request.POST.get('neighborhood', profile.neighborhood).strip()
     if 'city' in request.POST and not request.POST.get('municipality'):
         profile.municipality = request.POST.get('city', '').strip()
+
+    if 'latitude' in request.POST:
+        lat_val = request.POST.get('latitude', '').strip()
+        if lat_val:
+            try:
+                profile.latitude = float(lat_val)
+            except ValueError:
+                pass
+        else:
+            profile.latitude = None
+
+    if 'longitude' in request.POST:
+        lon_val = request.POST.get('longitude', '').strip()
+        if lon_val:
+            try:
+                profile.longitude = float(lon_val)
+            except ValueError:
+                pass
+        else:
+            profile.longitude = None
 
     birth_date_val = request.POST.get('birth_date', '').strip()
     if birth_date_val:

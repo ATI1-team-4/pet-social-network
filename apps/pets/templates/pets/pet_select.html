@@ -24,6 +24,7 @@
     <form method="post" action="{% url 'pets:pet_set_active' %}" id="pet-select-form">
         {% csrf_token %}
         <input type="hidden" name="selected_pet_id" id="selected-pet-id-input" value="{{ active_pet.id|default:'1234' }}">
+        <input type="hidden" name="pedigree_filter" id="pedigree-filter-input" value="{{ pedigree_preference|default:'both' }}">
 
         <!-- ============================================== -->
         <!-- VISTA DE ESCRITORIO (reto 11, página 11 der.) -->
@@ -69,7 +70,7 @@
                                         {% include 'components/badge.html' with text=_("Buscando pareja activo") variant="tag" icon="heart" class="text-xs font-medium py-1 px-3" %}
                                     {% endif %}
 
-                                    {% if pet.certificate == 'fci' %}
+                                    {% if pet.has_pedigree and pet.certificate == 'fci' %}
                                         {% include 'components/badge.html' with text=_("Pedigrí certificado") variant="compat" icon="award" class="text-xs font-bold py-1 px-3" %}
                                     {% endif %}
                                 </div>
@@ -136,6 +137,7 @@
                     <h2 class="title-h4 text-neutral-900 font-bold">
                         {% blocktranslate with name=active_pet.name|default:"Mascota" %}Continuar flujo con <span id="desktop-action-pet-name">{{ name }}</span>{% endblocktranslate %}
                     </h2>
+
 
                     <div class="space-y-3 pt-2">
                         {% include 'components/button.html' with text=_("Continuar a buscar pareja") type="submit" variant="primary" class="w-full py-3.5 text-sm font-bold shadow-md justify-center" icon="heart" %}
@@ -209,7 +211,7 @@
             </div>
 
             <!-- Botones de acción inferiores para móvil -->
-            <div class="space-y-2.5 pt-4 pb-6 mb-6 sm:mb-0">
+            <div class="space-y-2.5 pt-2 pb-6 mb-6 sm:mb-0">
                 {% include 'components/button.html' with text=_("Continuar a buscar pareja") type="submit" variant="primary" class="w-full py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold shadow-md justify-center" icon="heart" %}
 
                 {% url 'pets:match_interested' as match_interested_url %}

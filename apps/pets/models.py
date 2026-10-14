@@ -302,7 +302,15 @@ class Pet(TimeStampedModel):
 
     @property
     def has_pedigree(self):
-        return bool(self.certificate_number or 'fci' in (self.certificate_type or '').lower())
+        raw = (self.certificate_type or '').lower()
+        if 'sin' in raw or 'tramite' in raw or 'trámite' in raw:
+            return False
+        return bool(
+            (self.certificate_number and 'sin' not in self.certificate_number.lower())
+            or 'fci' in raw
+            or 'pedigr' in raw
+            or 'pedigree' in raw
+        )
 
     @property
     def location(self):
@@ -329,7 +337,9 @@ class Pet(TimeStampedModel):
             return 'tramite'
         elif 'sin' in raw:
             return 'sin_pedigri'
-        return 'fci'
+        if self.has_pedigree:
+            return 'fci'
+        return 'sin_pedigri'
 
 
 class MatchRequest(TimeStampedModel):
