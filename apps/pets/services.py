@@ -732,23 +732,12 @@ def schedule_pet_meetup(
         PetMeetup.MeetupStatus.CONFIRMED,
         PetMeetup.MeetupStatus.PROPOSED,
     ]
-  
-    active_statuses = [
-        PetMeetup.MeetupStatus.CONFIRMED,
-        PetMeetup.MeetupStatus.PROPOSED,
-    ]
 
     has_conflict = PetMeetup.objects.filter(
         Q(pet1__in=[requester_pet, target_pet])
         | Q(pet2__in=[requester_pet, target_pet]),
         status__in=active_statuses,
     ).exists()
-
-    if has_conflict:
-        raise ValueError(
-            _('Una de las mascotas ya tiene un encuentro agendado.')
-        )
-
 
     if has_conflict:
         raise ValueError(
