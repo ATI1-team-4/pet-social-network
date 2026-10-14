@@ -10,10 +10,12 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.pets.models import MatchRequest, Pet, PetSpecies
+from apps.pets.forms import ScheduleMeetupForm
+from apps.pets.models import MatchRequest, Pet, PetMeetup, PetSpecies
 from apps.pets.services import (
     accept_match_request,
     calculate_candidate_distance,
+    cancel_pet_meetup,
     get_all_match_requests_for_pet,
     get_interested_match_requests,
     get_match_candidates,
@@ -24,6 +26,7 @@ from apps.pets.services import (
     record_candidate_pass,
     reject_match_request,
     report_candidate_pet,
+    schedule_pet_meetup,
     send_initial_match_note,
     serialize_candidate,
     serialize_match_request,
@@ -1256,37 +1259,148 @@ send_initial_note_view = send_initial_message_view
 @require_POST
 def schedule_meetup_view(request):
     """
-    Silueta: Procesa la concertación de un encuentro canino seguro desde el modal.
-
-    El equipo debe implementar:
-    - Validar los datos recibidos mediante `ScheduleMeetupForm(request.POST)`.
-    - Delegar la creación a `apps.pets.services.schedule_pet_meetup(...)`.
-    - Retornar JSON con `{'status': 'scheduled', 'meetup_id': ...}`.
+    Procesa la concertación de un encuentro canino seguro desde el modal.
+    - Valida los datos recibidos mediante ScheduleMeetupForm(data).
+    - Identifica la mascota solicitante y la mascota destinataria.
+    - Delega la creación y persistencia a apps.pets.services.schedule_pet_meetup(...).
+    - Retorna JSON con confirmación y serialización del encuentro.
     """
-    return JsonResponse(
-        {
-            'status': 'pending_implementation',
-            'message': _('Pendiente de implementación por el equipo.'),
-        },
-        status=501,
+    data = {}
+    if request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            pass
+    if not data:
+        data = request.POST.copy()
+
+    form = ScheduleMeetupForm(data)
+    if not form.is_valid():
+        first_error = next(iter(form.errors.values()))[0]
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': str(first_error),
+                'errors': form.errors,
+            },
+            status=400,
+        )
+
+    # Identificar mascota solicitante del usuario
+    requester_pet_id = (
+        data.get('requester_pet_id')
+        or data.get('from_pet_id')
+        or request.session.get('active_pet_id')
     )
+    requester_pet = None
+    if requester_pet_id:
+        requester_pet = Pet.objects.filter(id=requester_pet_id, owner=request.user).first()
+    if not requester_pet:
+        requester_pet = Pet.objects.filter(owner=request.user).first()
+
+    if not requester_pet:
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': _('Debes tener al menos una mascota registrada para agendar citas.'),
+            },
+            status=400,
+        )
+
+    # Identificar mascota destinataria
+    target_pet_id = data.get('target_pet_id') or data.get('to_pet_id') or data.get('pet_id')
+    match_request_id = data.get('match_request_id') or data.get('request_id')
+    target_pet = None
+
+    if match_request_id:
+        req = MatchRequest.objects.filter(id=match_request_id).first()
+        if req:
+            target_pet = req.to_pet if req.from_pet_id == requester_pet.id else req.from_pet
+
+    if not target_pet and target_pet_id:
+        target_pet = Pet.objects.filter(id=target_pet_id).first()
+
+    if not target_pet:
+        target_pet_name = str(data.get('target_pet_name') or data.get('pet_name') or '').strip()
+        if target_pet_name:
+            target_pet = (
+                Pet.objects.filter(name__iexact=target_pet_name)
+                .exclude(id=requester_pet.id)
+                .first()
+            )
+
+    if not target_pet:
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': _('Debe especificar una mascota destinataria válida para el encuentro.'),
+            },
+            status=400,
+        )
+
+    try:
+        meetup = schedule_pet_meetup(
+            requester_user=request.user,
+            requester_pet=requester_pet,
+            target_pet=target_pet,
+            meeting_date=form.cleaned_data['date'],
+            meeting_time=form.cleaned_data['time'],
+            location_name=form.cleaned_data['location_name'],
+            notes=form.cleaned_data.get('notes', ''),
+        )
+        return JsonResponse(
+            {
+                'status': 'scheduled',
+                'message': _('¡Cita agendada con éxito! Se ha notificado al tutor de la mascota.'),
+                'meetup_id': meetup.id,
+                'meetup': serialize_pet_meetup(requester_pet, meetup),
+            }
+        )
+    except PermissionError as pe:
+        return JsonResponse({'status': 'error', 'message': str(pe)}, status=403)
+    except ValueError as ve:
+        return JsonResponse({'status': 'error', 'message': str(ve)}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
 @login_required
 @require_POST
 def cancel_meetup_view(request, meetup_id):
     """
-    Silueta: Cancela una cita de encuentro canino previamente acordada.
-
-    El equipo debe implementar:
-    - Validar permisos del usuario sobre el encuentro.
-    - Delegar a `apps.pets.services.cancel_pet_meetup(meetup_id, request.user)`.
-    - Retornar JSON con confirmación de cancelación.
+    Cancela una cita de encuentro canino previamente acordada.
+    - Valida permisos del usuario sobre el encuentro.
+    - Delega la actualización a apps.pets.services.cancel_pet_meetup(meetup_id, request.user).
+    - Retorna JSON con confirmación de cancelación.
     """
-    return JsonResponse(
-        {
-            'status': 'pending_implementation',
-            'message': _('Pendiente de implementación por el equipo.'),
-        },
-        status=501,
-    )
+    data = {}
+    if request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            pass
+    if not data:
+        data = request.POST
+
+    reason = str(data.get('reason', '')).strip()
+
+    try:
+        meetup = cancel_pet_meetup(meetup_id=meetup_id, user=request.user, reason=reason)
+        return JsonResponse(
+            {
+                'status': 'cancelled',
+                'message': _('La cita ha sido cancelada exitosamente.'),
+                'meetup_id': meetup.id,
+            }
+        )
+    except PetMeetup.DoesNotExist:
+        return JsonResponse(
+            {'status': 'error', 'message': _('La cita especificada no existe.')},
+            status=404,
+        )
+    except PermissionError as pe:
+        return JsonResponse({'status': 'error', 'message': str(pe)}, status=403)
+    except ValueError as ve:
+        return JsonResponse({'status': 'error', 'message': str(ve)}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

@@ -8,7 +8,7 @@ Define las siluetas de las funciones especializadas para:
 """
 
 import math
-from datetime import date, time
+from datetime import date, datetime, time
 from typing import Any, Optional
 
 from django.contrib.auth import get_user_model
@@ -679,11 +679,15 @@ def serialize_pet_meetup(active_pet: Pet, meetup: PetMeetup) -> dict[str, Any]:
     time_str = meetup.time.strftime('%I:%M %p') if meetup.time else ''
     return {
         'id': f'meetup-{meetup.id}',
+        'meetup_id': meetup.id,
         'badge': meetup.get_status_display(),
         'day': meetup.date.strftime('%d/%m/%Y'),
         'title': f'{_("Cita con")} {other_pet.name}',
+        'pet_name': other_pet.name,
         'location': meetup.location_name or _('Espacio canino verificado'),
         'time': time_str,
+        'status': meetup.status,
+        'notes': meetup.notes,
     }
 
 
@@ -696,25 +700,115 @@ def schedule_pet_meetup(
     location_name: str,
     location_address: str = '',
     notes: str = '',
+    status: str = PetMeetup.MeetupStatus.CONFIRMED,
 ) -> PetMeetup:
     """
-    Silueta: Persiste la concertación de una nueva cita de socialización o cruza responsable.
+    Persiste la concertación de una nueva cita de socialización o cruza responsable en PetMeetup.
 
-    Requerimientos del equipo:
+    Requerimientos:
     - Validar que `requester_pet.owner == requester_user`.
+    - Validar que no sea la misma mascota.
     - Validar que la fecha y hora sean futuras.
-    - Crear instancia en `PetMeetup` con estado `SCHEDULED`.
+    - Validar disponibilidad temporal (sin solapamiento exacto de cita activa).
+    - Asociar la solicitud de match existente (si la hay).
+    - Crear instancia en `PetMeetup` con estado `confirmed` (o el indicado).
     """
-    raise NotImplementedError('El equipo debe implementar la concertación de citas en PetMeetup.')
+    if requester_pet.owner_id != requester_user.id and requester_pet.owner != requester_user:
+        raise PermissionError(_('El usuario no es el tutor de la mascota solicitante.'))
+
+    if requester_pet.id == target_pet.id:
+        raise ValueError(_('No se puede programar un encuentro de una mascota consigo misma.'))
+
+    now = timezone.localtime() if timezone.is_aware(timezone.now()) else datetime.now()
+    meeting_dt = datetime.combine(meeting_date, meeting_time)
+    if timezone.is_aware(now):
+        meeting_dt = timezone.make_aware(meeting_dt, timezone.get_current_timezone())
+
+    if meeting_dt <= now:
+        raise ValueError(_('La fecha y hora del encuentro deben ser futuras.'))
+
+    active_statuses = [
+        PetMeetup.MeetupStatus.CONFIRMED,
+        PetMeetup.MeetupStatus.PROPOSED,
+    ]
+
+    has_conflict = PetMeetup.objects.filter(
+        Q(pet1__in=[requester_pet, target_pet]) | Q(pet2__in=[requester_pet, target_pet]),
+        status__in=active_statuses,
+    ).exists()
+
+    if has_conflict:
+        raise ValueError(
+            _(
+                'Una de las mascotas ya tiene una cita activa. '
+                'Cancela o completa la cita existente antes de agendar otra.'
+            )
+        )
+
+    # Vincular MatchRequest correspondiente si existe
+    match_req = MatchRequest.objects.filter(
+        Q(from_pet=requester_pet, to_pet=target_pet) | Q(from_pet=target_pet, to_pet=requester_pet)
+    ).first()
+
+    meetup = PetMeetup.objects.create(
+        match_request=match_req,
+        pet1=requester_pet,
+        pet2=target_pet,
+        date=meeting_date,
+        time=meeting_time,
+        location_name=location_name,
+        notes=notes,
+        status=status,
+    )
+    return meetup
 
 
 def cancel_pet_meetup(meetup_id: int, user: Any, reason: str = '') -> PetMeetup:
     """
-    Silueta: Cancela una cita de encuentro previamente acordada.
+    Cancela una cita de encuentro previamente acordada.
 
-    Requerimientos del equipo:
-    - Validar que el usuario sea dueño de `requester_pet` o de `target_pet`.
+    Requerimientos:
+    - Validar que el usuario sea tutor de `pet1` o de `pet2` (o staff).
     - Actualizar estado de `PetMeetup` a `CANCELLED`.
     - Retornar la instancia cancelada.
     """
-    raise NotImplementedError('El equipo debe implementar la cancelación de encuentros caninos.')
+    meetup = PetMeetup.objects.select_related('pet1', 'pet2', 'pet1__owner', 'pet2__owner').get(
+        id=meetup_id
+    )
+
+    is_pet1_owner = meetup.pet1.owner_id == user.id or meetup.pet1.owner == user
+    is_pet2_owner = meetup.pet2.owner_id == user.id or meetup.pet2.owner == user
+    is_staff = getattr(user, 'is_staff', False)
+
+    if not (is_pet1_owner or is_pet2_owner or is_staff):
+        raise PermissionError(_('No tienes permiso para cancelar esta cita.'))
+
+    meetup.status = PetMeetup.MeetupStatus.CANCELLED
+    if reason:
+        cancel_note = f' [Cancelado por tutor: {reason}]'
+        meetup.notes = f'{meetup.notes}{cancel_note}'.strip()
+    meetup.save(update_fields=['status', 'notes', 'updated_at'])
+    return meetup
+
+
+def complete_pet_meetup(meetup_id: int, user: Optional[Any] = None) -> PetMeetup:
+    """
+    Finaliza satisfactoriamente una cita de encuentro canino.
+    Actualiza el estado a `COMPLETED`, lo que incrementa automáticamente
+    el contador de encuentros completados en el perfil de ambos tutores
+    (Profile.completed_meetings_count).
+    """
+    meetup = PetMeetup.objects.select_related('pet1', 'pet2', 'pet1__owner', 'pet2__owner').get(
+        id=meetup_id
+    )
+
+    if user:
+        is_pet1_owner = meetup.pet1.owner_id == user.id or meetup.pet1.owner == user
+        is_pet2_owner = meetup.pet2.owner_id == user.id or meetup.pet2.owner == user
+        is_staff = getattr(user, 'is_staff', False)
+        if not (is_pet1_owner or is_pet2_owner or is_staff):
+            raise PermissionError(_('No tienes permiso para marcar como completada esta cita.'))
+
+    meetup.status = PetMeetup.MeetupStatus.COMPLETED
+    meetup.save(update_fields=['status', 'updated_at'])
+    return meetup
