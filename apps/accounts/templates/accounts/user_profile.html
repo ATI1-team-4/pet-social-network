@@ -134,11 +134,17 @@
                             {% include 'components/badge.html' with text=_("Solo paseos") variant="tag" class="text-[11px] py-0.5 px-2.5" %}
                         {% endif %}
 
-                        <a href="{% url 'pets:pet_management' %}?pet={{ pet.id }}"
-                           class="inline-flex items-center gap-1 font-semibold text-neutral-600 hover:text-petly-coral transition-colors no-underline text-xs">
-                            {% include 'components/icon.html' with name="palette" class="w-3.5 h-3.5 text-petly-coral" %}
-                            <span>{% translate "Editar perfil" %}</span>
-                        </a>
+                        <form method="post" action="{% url 'pets:pet_set_active' %}" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="selected_pet_id" value="{{ pet.id }}">
+                            <input type="hidden" name="next" value="{% url 'pets:pet_management' %}">
+                            <input type="hidden" name="is_form_submission" value="true">
+                            <button type="submit"
+                                    class="inline-flex items-center gap-1 font-semibold text-neutral-600 hover:text-petly-coral transition-colors no-underline text-xs bg-transparent border-0 cursor-pointer p-0">
+                                {% include 'components/icon.html' with name="palette" class="w-3.5 h-3.5 text-petly-coral" %}
+                                <span>{% translate "Editar perfil" %}</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
                 {% empty %}

@@ -36,13 +36,12 @@ from apps.pets.services import (
 )
 
 
-def get_user_active_pet(request, target_pet_id=None):
+def get_user_active_pet(request):
     """
-    Obtiene la mascota activa del usuario autenticado y garantiza sincronización en sesión.
+    Obtiene la mascota activa del usuario autenticado basándose estrictamente en la sesión (cookie).
     Criterios de resolución:
-    1. target_pet_id explícito (por ID numérico o nombre) si pertenece al usuario.
-    2. request.session['active_pet_id'] si aún pertenece a una mascota válida del usuario.
-    3. Primera mascota del usuario registrada en base de datos por defecto.
+    1. request.session['active_pet_id'] si aún pertenece a una mascota válida del usuario.
+    2. Primera mascota del usuario registrada en base de datos por defecto.
 
     Retorna tupla: (active_pet, user_pets_list).
     Si el usuario no tiene mascotas registradas, limpia la sesión y retorna (None, []).
@@ -54,20 +53,12 @@ def get_user_active_pet(request, target_pet_id=None):
         return None, []
 
     active_pet = None
-    if target_pet_id:
-        target_str = str(target_pet_id).strip().lower()
+    session_pet_id = str(request.session.get('active_pet_id', '')).strip().lower()
+    if session_pet_id:
         active_pet = next(
-            (p for p in user_pets if str(p.id) == target_str or p.name.lower() == target_str),
+            (p for p in user_pets if str(p.id) == session_pet_id or p.name.lower() == session_pet_id),
             None,
         )
-
-    if not active_pet:
-        session_pet_id = str(request.session.get('active_pet_id', '')).strip().lower()
-        if session_pet_id:
-            active_pet = next(
-                (p for p in user_pets if str(p.id) == session_pet_id or p.name.lower() == session_pet_id),
-                None,
-            )
 
     if not active_pet:
         active_pet = user_pets[0]
@@ -293,7 +284,7 @@ def pet_save_view(request):
     messages.success(
         request, _('Los datos de %(name)s se guardaron exitosamente.') % {'name': pet_name}
     )
-    return redirect(f"{reverse('pets:pet_management')}?pet={pet_id}")
+    return redirect('pets:pet_management')
 
 
 @login_required
@@ -438,10 +429,9 @@ def pet_management_view(request):
     o desplegar el formulario para registrar una nueva mascota.
     Si el usuario no tiene mascotas, fuerza el modo de creación (is_new = True).
     """
-    pet_param = request.GET.get('pet', '').strip().lower()
     is_new = request.GET.get('new', '').strip().lower() == 'true'
 
-    active_pet_obj, user_pets = get_user_active_pet(request, target_pet_id=pet_param)
+    active_pet_obj, user_pets = get_user_active_pet(request)
     pets_list = [serialize_pet_for_management(p) for p in user_pets]
 
     if not user_pets:
@@ -510,26 +500,40 @@ def pet_delete_view(request, pet_id):
 def pet_set_active_view(request):
     """
     Establece la mascota activa seleccionada y la preferencia de pedigrí en la sesión
-    del usuario y redirige al flujo de emparejamiento (match feed), o retorna JSON si es AJAX.
+    del usuario (cookie) y redirige a la vista solicitada (o match feed), o retorna JSON si es AJAX.
     """
     selected_id = ''
+    next_url = ''
     if request.content_type == 'application/json':
         try:
             data = json.loads(request.body)
             selected_id = str(data.get('selected_pet_id', '')).strip()
+            next_url = data.get('next', '') or data.get('next_url', '')
         except Exception:
             pass
     if not selected_id:
         selected_id = request.POST.get('selected_pet_id', '').strip()
+    if not next_url:
+        next_url = request.POST.get('next', '') or request.POST.get('next_url', '') or request.GET.get('next', '')
 
-    active_pet, user_pets = get_user_active_pet(request, target_pet_id=selected_id)
-
+    user_pets = list(Pet.objects.filter(owner=request.user).order_by('id'))
     if not user_pets:
         messages.info(
             request,
             _('Para comenzar la búsqueda de pareja, primero debes registrar a tu mascota.'),
         )
         return redirect(f"{reverse('pets:pet_management')}?new=true")
+
+    active_pet = None
+    if selected_id:
+        target_str = selected_id.lower()
+        active_pet = next(
+            (p for p in user_pets if str(p.id) == target_str or p.name.lower() == target_str),
+            None,
+        )
+
+    if not active_pet:
+        active_pet = user_pets[0]
 
     resolved_id = str(active_pet.id)
     request.session['active_pet_id'] = resolved_id
@@ -547,6 +551,9 @@ def pet_set_active_view(request):
     if is_ajax and not request.POST.get('is_form_submission'):
         return JsonResponse({'status': 'success', 'active_pet_id': resolved_id})
 
+    if next_url and next_url.startswith('/'):
+        return redirect(next_url)
+
     return redirect('pets:match_feed')
 
 
@@ -558,8 +565,7 @@ def pet_select_view(request):
     Carga las mascotas registradas por el usuario tutor autenticado y sincroniza
     la mascota elegida en la sesión. Si el usuario no tiene mascotas, redirige a registrar una.
     """
-    selected_param = request.GET.get('selected', '').strip().lower()
-    active_pet_obj, user_pets = get_user_active_pet(request, target_pet_id=selected_param)
+    active_pet_obj, user_pets = get_user_active_pet(request)
 
     if not user_pets:
         messages.info(
@@ -626,8 +632,7 @@ def match_feed_view(request):
     Aplica el color de perfil personalizado de la mascota activa al contenedor de descubrimiento,
     soporta alternar candidatos dinámicos mediante el ORM y desplegar el diálogo modal interactivo de match.
     """
-    pet_param = request.GET.get('pet', '').strip().lower()
-    active_pet, user_pets = get_user_active_pet(request, target_pet_id=pet_param)
+    active_pet, user_pets = get_user_active_pet(request)
 
     if not user_pets:
         messages.info(
@@ -765,8 +770,7 @@ def match_interested_view(request):
     Cumple con el Principio de Responsabilidad Única (SRP) delegando la lógica de consulta
     y conteo a apps/pets/services.py.
     """
-    pet_param = request.GET.get('pet', '').strip().lower()
-    active_pet, user_pets = get_user_active_pet(request, target_pet_id=pet_param)
+    active_pet, user_pets = get_user_active_pet(request)
 
     if not user_pets:
         messages.info(

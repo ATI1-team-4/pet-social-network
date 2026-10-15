@@ -94,8 +94,11 @@ class PetsViewsTests(TestCase):
         self.assertContains(response, 'Toby')
         self.assertContains(response, 'Luna')
 
-        # Probar selección explícita mediante parámetro GET
-        response_luna = self.client.get(url + '?selected=luna')
+        # Probar selección activa mediante sesión
+        session = self.client.session
+        session['active_pet_id'] = str(self.pet_luna.id)
+        session.save()
+        response_luna = self.client.get(url)
         self.assertEqual(response_luna.status_code, 200)
         self.assertEqual(response_luna.context['active_pet']['name'], 'Luna')
 
@@ -144,10 +147,14 @@ class PetsViewsTests(TestCase):
         self.assertTemplateUsed(response, 'pets/match_interested.html')
 
     def test_pet_management_query_params(self):
-        """Verifica la carga de mascotas por parámetro de consulta GET."""
-        url = reverse('pets:pet_management') + '?pet=luna'
+        """Verifica la carga de mascotas por sesión."""
+        session = self.client.session
+        session['active_pet_id'] = str(self.pet_luna.id)
+        session.save()
+        url = reverse('pets:pet_management')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['active_pet']['name'], 'Luna')
         self.assertContains(response, 'Luna')
 
         url_new = reverse('pets:pet_management') + '?new=true'
@@ -163,7 +170,7 @@ class PetsViewsTests(TestCase):
 
         save_url = reverse('pets:pet_save')
         response_save = self.client.post(save_url, {'name': 'Toby', 'pet_id': str(self.pet_toby.id)})
-        self.assertRedirects(response_save, f"{reverse('pets:pet_management')}?pet={self.pet_toby.id}")
+        self.assertRedirects(response_save, reverse('pets:pet_management'))
 
         # Rechazar solicitudes GET en pet_save_view (require_POST)
         response_get = self.client.get(save_url)
@@ -186,7 +193,7 @@ class PetsViewsTests(TestCase):
 
         saved_pet = Pet.objects.filter(owner=self.user, name='Maximus').first()
         self.assertIsNotNone(saved_pet)
-        self.assertRedirects(response_photo, f"{reverse('pets:pet_management')}?pet={saved_pet.id}")
+        self.assertRedirects(response_photo, reverse('pets:pet_management'))
         self.assertTrue(saved_pet.has_photo)
         self.assertTrue(
             saved_pet.photo.name.startswith(f'pets/user_{self.user.id}_pet_{saved_pet.id}_avatar_')
@@ -341,6 +348,17 @@ class PetsViewsTests(TestCase):
         self.assertEqual(self.client.session.get('active_pet_id'), str(self.pet_luna.id))
         self.assertEqual(self.client.session.get('match_pedigree_preference'), 'without_pedigree')
 
+        # Probar redirección con next_url
+        response_next = self.client.post(
+            url,
+            {
+                'selected_pet_id': str(self.pet_toby.id),
+                'next_url': reverse('pets:pet_management'),
+            },
+        )
+        self.assertRedirects(response_next, reverse('pets:pet_management'))
+        self.assertEqual(self.client.session.get('active_pet_id'), str(self.pet_toby.id))
+
     def test_match_feed_view_context_and_content(self):
         """Verifica que el feed de cruza cargue candidatos, color de perfil y enlaces."""
         url = reverse('pets:match_feed')
@@ -357,9 +375,11 @@ class PetsViewsTests(TestCase):
         self.assertContains(response, reverse('pets:pet_select'))
         self.assertContains(response, reverse('pets:match_interested'))
 
-        # Verifica que al consultar con ?pet=luna se aplique su color de perfil
-        url_luna = reverse('pets:match_feed') + '?pet=luna'
-        response_luna = self.client.get(url_luna)
+        # Verifica que con Luna como mascota activa en sesión se aplique su color de perfil
+        session = self.client.session
+        session['active_pet_id'] = str(self.pet_luna.id)
+        session.save()
+        response_luna = self.client.get(reverse('pets:match_feed'))
         self.assertEqual(response_luna.status_code, 200)
         self.assertEqual(response_luna.context['active_pet']['name'], 'Luna')
         self.assertContains(response_luna, response_luna.context['active_pet']['profile_color_hex'])

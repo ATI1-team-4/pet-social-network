@@ -82,12 +82,20 @@
         </div>
     {% endif %}
 
+    <!-- Formulario oculto para alternar de mascota activa en sesión sin parámetros GET -->
+    <form id="switch-pet-form" method="post" action="{% url 'pets:pet_set_active' %}" class="hidden">
+        {% csrf_token %}
+        <input type="hidden" name="selected_pet_id" id="switch-pet-id-input" value="">
+        <input type="hidden" name="next" value="{% url 'pets:pet_management' %}">
+        <input type="hidden" name="is_form_submission" value="true">
+    </form>
+
     <!-- Barra de pestañas para alternar entre mascotas del tutor o registrar nueva (escritorio y móvil) -->
     <div class="bg-petly-ice/60 border border-neutral-300/70 rounded-2xl p-1.5 flex flex-wrap items-center justify-between gap-2 shadow-xs">
         <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 max-w-full">
             {% for pet in pets %}
-                <a href="{% url 'pets:pet_management' %}?pet={{ pet.name|lower }}"
-                   class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all select-none no-underline shrink-0 {% if not is_new and active_pet.id == pet.id %}bg-white text-neutral-900 shadow-xs border border-neutral-300/80{% else %}text-neutral-600 hover:text-neutral-900 hover:bg-white/60{% endif %}">
+                <button type="button" onclick="switchActivePet('{{ pet.id }}')"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all select-none cursor-pointer shrink-0 {% if not is_new and active_pet.id == pet.id %}bg-white text-neutral-900 shadow-xs border border-neutral-300/80{% else %}text-neutral-600 hover:text-neutral-900 hover:bg-white/60{% endif %}">
                     <span class="w-2.5 h-2.5 rounded-full {% if pet.is_active %}bg-petly-coral{% else %}bg-neutral-400{% endif %}"></span>
                     <span>{{ pet.tab_label|default:pet.name }}</span>
                     {% if pet.is_active %}
@@ -95,7 +103,7 @@
                             {% translate "Activo" %}
                         </span>
                     {% endif %}
-                </a>
+                </button>
             {% endfor %}
         </div>
 
@@ -680,6 +688,16 @@
 
 {% block extra_js %}
 <script>
+    // Cambiar mascota activa en sesión sin parámetros GET
+    function switchActivePet(petId) {
+        const input = document.getElementById('switch-pet-id-input');
+        const form = document.getElementById('switch-pet-form');
+        if (input && form) {
+            input.value = petId;
+            form.submit();
+        }
+    }
+
     // Configuración reactiva del perfil de mascota
     const COLOR_HEX_MAP = {
         coral: '#FA7D82',
