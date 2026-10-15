@@ -5,7 +5,7 @@
     {% if is_new %}
         {% translate "Registrar mascota" %} | Petly
     {% else %}
-        {% translate "Gestión de perfil de mascota" %} - {{ active_pet.name|default:"Toby" }} | Petly
+        {% translate "Gestión de perfil de mascota" %} - {{ active_pet.name|default:_("Mascota") }} | Petly
     {% endif %}
 {% endblock %}
 
@@ -548,7 +548,7 @@
                         <div>
                             <div class="flex items-center gap-1.5 sm:gap-2">
                                 <h2 id="modal-preview-name" class="title-h3 sm:title-h2 text-white font-bold tracking-tight drop-shadow-md">
-                                    {{ active_pet.name|default:"Toby" }}
+                                    {{ active_pet.name|default:_("Mascota") }}
                                 </h2>
                                 <span id="modal-preview-gender-symbol" class="inline-flex items-center drop-shadow-md" style="color: #FA7D82;">
                                     {% if active_pet.is_hembra or active_pet.gender == 'H' or active_pet.gender == 'hembra' %}
@@ -621,7 +621,7 @@
                     <!-- Biografía: Sobre la mascota -->
                     <div>
                         <h3 class="text-xs font-bold text-neutral-900 mb-0.5">
-                            {% translate "Sobre" %} <span id="modal-preview-about-name">{{ active_pet.name|default:"Toby" }}</span>
+                            {% translate "Sobre" %} <span id="modal-preview-about-name">{{ active_pet.name|default:_("tu mascota") }}</span>
                         </h3>
                         <p id="modal-preview-desc" class="text-xs text-neutral-600 leading-relaxed italic">
                             "{{ active_pet.description|default:'Adora correr en el parque, jugar con pelotas y dormir siestas al sol.' }}"
@@ -657,10 +657,10 @@
                             {% include 'components/icon.html' with name="close" class="w-4 h-4 text-neutral-400" %}
                         </div>
                         <div id="modal-preview-btn-like"
-                             class="flex-1 py-2 px-3 rounded-full {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}text-neutral-900{% else %}text-white{% endif %} text-xs sm:text-sm font-bold shadow-md inline-flex items-center justify-center gap-1.5 select-none"
-                             style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; color: {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}#171717{% else %}#ffffff{% endif %};">
+                             class="flex-1 py-2 px-3 rounded-full text-white text-xs sm:text-sm font-bold shadow-md inline-flex items-center justify-center gap-1.5 select-none"
+                             style="background-color: #FA7D82;">
                             {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5" %}
-                            <span class="truncate">{% translate "Mostrar interés en" %} <span id="modal-preview-btn-name">{{ active_pet.name|default:"Toby" }}</span></span>
+                            <span class="truncate">{% translate "Mostrar interés en" %} <span id="modal-preview-btn-name">{{ active_pet.name|default:_("tu mascota") }}</span></span>
                         </div>
                     </div>
 
@@ -858,9 +858,9 @@
     // Abrir modal de vista previa dinámico con estructura de Buscar Pareja
     function openPreviewModal() {
         const nameInput = document.getElementById('pet-name-input');
-        const name = (nameInput && nameInput.value.trim()) || '{{ active_pet.name|default:"Toby" }}';
+        const name = (nameInput && nameInput.value.trim()) || '{{ active_pet.name|default:_("Mascota")|escapejs }}';
         const breedInput = document.getElementById('pet-breed-input');
-        const breed = (breedInput && breedInput.value.trim()) || '{{ active_pet.breed|default:"Bulldog Francés" }}';
+        const breed = (breedInput && breedInput.value.trim()) || '{{ active_pet.breed|default:_("Raza no especificada")|escapejs }}';
         const descInput = document.getElementById('pet-description-input');
         const desc = (descInput && descInput.value.trim()) || '{{ active_pet.description|default:"Sin descripción" }}';
         const color = document.getElementById('input-profile-color').value || 'coral';
