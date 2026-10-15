@@ -1032,7 +1032,7 @@ msgstr "Age not specified"
 
 #: apps/pets/models.py:231
 msgid "1 mes"
-msgstr ""
+msgstr "1 month"
 
 #: apps/pets/models.py:310
 msgid "Aceptada"
@@ -1928,6 +1928,10 @@ msgstr ""
 msgid "Ver mascotas interesadas"
 msgstr "View interested pets"
 
+#, python-format
+msgid "Ver mascotas interesadas (%(count)s)"
+msgstr "View interested pets (%(count)s)"
+
 #: apps/pets/views.py:197
 #, python-format
 msgid "Los datos de %(name)s se guardaron exitosamente."
@@ -2176,8 +2180,8 @@ msgstr "Sign up"
 #~ msgid "Detalles del candidato"
 #~ msgstr "Candidate details"
 
-#~ msgid "Todos"
-#~ msgstr "All"
+msgid "Todos"
+msgstr "All"
 
 #~ msgid "Certificado FCI / con pedigrí"
 #~ msgstr "FCI Certified / with pedigree"
@@ -2281,3 +2285,283 @@ msgstr "Sign up"
 
 #~ msgid "Confirmar match"
 #~ msgstr "Confirm match"
+
+#: apps/accounts/templates/accounts/user_profile.html
+msgid "Datos personales"
+msgstr "Personal information"
+
+msgid "Información básica de contacto y cuenta del tutor."
+msgstr "Basic contact and account information."
+
+msgid "Ubicación y geolocalización"
+msgstr "Location and geolocation"
+
+msgid "Indica tu zona residencial y coordenadas GPS para calcular la distancia real hacia otras mascotas."
+msgstr "Set your residential area and GPS coordinates to calculate real distance to other pets."
+
+msgid "Geolocalización activa"
+msgstr "Active geolocation"
+
+msgid "Zona de residencia"
+msgstr "Residential area"
+
+msgid "Coordenadas GPS para distancia entre mascotas"
+msgstr "GPS coordinates for pet distance"
+
+msgid "Coordenadas GPS de precisión"
+msgstr "Precision GPS coordinates"
+
+msgid "Ubicación GPS para calcular distancia entre mascotas"
+msgstr "GPS location to calculate distance between pets"
+
+msgid "Permite calcular la distancia real en kilómetros hacia otras mascotas en el feed de parejas y solicitudes."
+msgstr "Allows calculating real distance in kilometers to other pets in match feed and requests."
+
+msgid "Detectar mi ubicación GPS"
+msgstr "Detect my GPS location"
+
+msgid "Latitud GPS"
+msgstr "GPS Latitude"
+
+msgid "Longitud GPS"
+msgstr "GPS Longitude"
+
+msgid "Ubicación GPS registrada:"
+msgstr "Registered GPS location:"
+
+msgid "Ubicación GPS registrada correctamente."
+msgstr "GPS location registered successfully."
+
+msgid "Detectando..."
+msgstr "Detecting..."
+
+msgid "Ubicación detectada:"
+msgstr "Location detected:"
+
+msgid "recuerda guardar cambios"
+msgstr "remember to save changes"
+
+msgid "No se pudo obtener la ubicación GPS."
+msgstr "Could not obtain GPS location."
+
+msgid "Permiso de ubicación denegado por el navegador."
+msgstr "Location permission denied by browser."
+
+msgid "Gustos y pasatiempos"
+msgstr "Interests and hobbies"
+
+msgid "Comparte tus preferencias para romper el hielo en las notas de match."
+msgstr "Share your preferences to break the ice in match notes."
+
+msgid "Sobre mí"
+msgstr "About me"
+
+msgid "Ej. Miranda"
+msgstr "E.g. Miranda"
+
+msgid "Ej. Sucre"
+msgstr "E.g. Sucre"
+
+msgid "Ej. Los Dos Caminos"
+msgstr "E.g. Los Dos Caminos"
+
+msgid "Ej. 10.4940"
+msgstr "E.g. 10.4940"
+
+msgid "Ej. -66.8320"
+msgstr "E.g. -66.8320"
+
+msgid "Azul, Coral..."
+msgstr "Blue, Coral..."
+
+msgid "Escribe tu libro favorito"
+msgstr "Write your favorite book"
+
+msgid "Rock, Pop, Clásica..."
+msgstr "Rock, Pop, Classical..."
+
+msgid "Escribe tu videojuego favorito"
+msgstr "Write your favorite videogame"
+
+msgid "Restablecer filtros"
+msgstr "Reset filters"
+
+msgid "Únicamente cruza responsable"
+msgstr "Only responsible breeding"
+
+msgid "El feed ha sido recargado con éxito."
+msgstr "The feed has been successfully reloaded."
+
+msgid "Los filtros han sido restablecidos."
+msgstr "Filters have been reset."
+
+msgid "A %(km)s km"
+msgstr "%(km)s km away"
+
+msgid "A menos de 500 m"
+msgstr "Less than 500 m"
+
+msgid "A menos de 1 km"
+msgstr "Less than 1 km"
+
+msgid "No especificada"
+msgstr "Not specified"
+
+msgid "No especificado"
+msgstr "Not specified"
+
+msgid "5 citas"
+msgstr "5 meetings"
+
+msgid "12 citas"
+msgstr "12 meetings"
+
+msgid "%(count)s citas"
+msgstr "%(count)s meetings"
+
+msgid "%(years)s años"
+msgstr "%(years)s years"
+
+msgid "%(months)s meses"
+msgstr "%(months)s months"
+
+msgid "Aún no tienes nuevas solicitudes de interesados."
+msgstr "You do not have new suitor requests yet."
+
+msgid "¡Has explorado todos los candidatos!"
+msgstr "You have explored all candidates!"
+
+msgid "No hay más perfiles compatibles disponibles para evaluar en este momento. Revisa tus solicitudes de interesados o regresa más tarde para descubrir nuevas mascotas."
+msgstr "There are no more compatible profiles available to review at this time. Check your interested requests or return later to discover new pets."
+
+msgid "Recargar feed"
+msgstr "Reload feed"
+
+msgid "Ver solicitudes pendientes"
+msgstr "View pending requests"
+
+msgid "Mis solicitudes"
+msgstr "My requests"
+
+msgid "Matches"
+msgstr "Matches"
+
+msgid "Match aceptado"
+msgstr "Accepted match"
+
+msgid "Solicitud enviada"
+msgstr "Request sent"
+
+msgid "Interesado en %(name)s"
+msgstr "Interested in %(name)s"
+
+msgid "%(name)s (Tutor de %(pet)s)"
+msgstr "%(name)s (Tutor of %(pet)s)"
+
+msgid "Tutor de"
+msgstr "Tutor of"
+
+msgid "Interés registrado desde el feed de descubrimiento."
+msgstr "Interest registered from discovery feed."
+
+msgid "Mascota disponible para conectar y evaluar compatibilidad."
+msgstr "Pet available to connect and evaluate compatibility."
+
+msgid "Interesado en conectar y evaluar compatibilidad."
+msgstr "Interested in connecting and evaluating compatibility."
+
+msgid "Cancelar solicitud"
+msgstr "Cancel request"
+
+msgid "Nota inicial"
+msgstr "Initial note"
+
+msgid "Nota inicial de contacto"
+msgstr "Initial contact note"
+
+msgid "Nota enviada al tutor"
+msgstr "Note sent to tutor"
+
+msgid "Escribe una nota para iniciar la conversación:"
+msgstr "Write a note to start the conversation:"
+
+msgid "Por favor ingresa una nota válida."
+msgstr "Please enter a valid note."
+
+msgid "Error al guardar la nota."
+msgstr "Error saving note."
+
+msgid "Error de conexión al guardar la nota."
+msgstr "Connection error saving note."
+
+msgid "Tranquila"
+msgstr "Calm"
+
+msgid "Calmada"
+msgstr "Calm"
+
+msgid "Curiosa"
+msgstr "Curious"
+
+msgid "Inteligente"
+msgstr "Smart"
+
+msgid "Mimosa"
+msgstr "Affectionate"
+
+msgid "Silenciosa"
+msgstr "Quiet"
+
+msgid "pretendiente esperando respuesta"
+msgstr "suitor waiting for response"
+
+msgid "pretendientes esperando respuesta"
+msgstr "suitors waiting for response"
+
+msgid "Bandeja de interesados y solicitudes"
+msgstr "Interested pets and requests inbox"
+
+msgid "No hay solicitudes ni interesados pendientes"
+msgstr "No pending requests or suitors"
+
+msgid "Aún no tienes pretendientes ni solicitudes registradas para tu mascota activa. Explora perfiles compatibles en el feed de emparejamiento para conectar."
+msgstr "You don't have suitors or requests registered for your active pet yet. Explore compatible profiles in the discovery feed to connect."
+
+msgid "No se encontraron solicitudes en esta categoría"
+msgstr "No requests found in this category"
+
+msgid "Prueba cambiando de pestaña para ver más candidatos disponibles."
+msgstr "Try changing tabs to see more available candidates."
+
+msgid "Aceptar match"
+msgstr "Accept match"
+
+msgid "Aceptar solicitud de match"
+msgstr "Accept match request"
+
+msgid "Para"
+msgstr "To"
+
+msgid "De"
+msgstr "From"
+
+msgid "Cita"
+msgstr "Meetup"
+
+msgid "Cancelar match"
+msgstr "Cancel match"
+
+msgid "La solicitud se ha cancelado correctamente."
+msgstr "The request was successfully cancelled."
+
+msgid "El match se ha cancelado correctamente."
+msgstr "The match was successfully cancelled."
+
+msgid "La solicitud se ha descartado correctamente."
+msgstr "The request was successfully dismissed."
+
+msgid "Acción completada"
+msgstr "Action completed"
+
+
+

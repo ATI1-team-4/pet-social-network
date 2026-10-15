@@ -1886,6 +1886,10 @@ msgstr ""
 msgid "Ver mascotas interesadas"
 msgstr ""
 
+#, python-format
+msgid "Ver mascotas interesadas (%(count)s)"
+msgstr ""
+
 #: apps/pets/views.py:197
 #, python-format
 msgid "Los datos de %(name)s se guardaron exitosamente."
@@ -2083,7 +2087,7 @@ msgstr ""
 
 #: templates/components/navbar.html:29 templates/components/navbar.html:70
 msgid "Interesados"
-msgstr ""
+msgstr "Interesados"
 
 #: templates/components/navbar.html:46 templates/components/navbar.html:47
 msgid "Cerrar sesión"
@@ -2096,3 +2100,185 @@ msgstr ""
 #: templates/components/navbar_public.html:27
 msgid "Registrarse"
 msgstr ""
+
+msgid "Restablecer filtros"
+msgstr "Restablecer filtros"
+
+msgid "Únicamente cruza responsable"
+msgstr "Únicamente cruza responsable"
+
+msgid "El feed ha sido recargado con éxito."
+msgstr "El feed ha sido recargado con éxito."
+
+msgid "Los filtros han sido restablecidos."
+msgstr "Los filtros han sido restablecidos."
+
+msgid "A %(km)s km"
+msgstr "A %(km)s km"
+
+msgid "A menos de 500 m"
+msgstr "A menos de 500 m"
+
+msgid "A menos de 1 km"
+msgstr "A menos de 1 km"
+
+msgid "No especificada"
+msgstr "No especificada"
+
+msgid "No especificado"
+msgstr "No especificado"
+
+msgid "5 citas"
+msgstr "5 citas"
+
+msgid "12 citas"
+msgstr "12 citas"
+
+msgid "%(count)s citas"
+msgstr "%(count)s citas"
+
+msgid "%(years)s años"
+msgstr "%(years)s años"
+
+msgid "%(months)s meses"
+msgstr "%(months)s meses"
+
+msgid "Aún no tienes nuevas solicitudes de interesados."
+msgstr "Aún no tienes nuevas solicitudes de interesados."
+
+msgid "¡Has explorado todos los candidatos!"
+msgstr "¡Has explorado todos los candidatos!"
+
+msgid "No hay más perfiles compatibles disponibles para evaluar en este momento. Revisa tus solicitudes de interesados o regresa más tarde para descubrir nuevas mascotas."
+msgstr "No hay más perfiles compatibles disponibles para evaluar en este momento. Revisa tus solicitudes de interesados o regresa más tarde para descubrir nuevas mascotas."
+
+msgid "Recargar feed"
+msgstr "Recargar feed"
+
+msgid "Ver solicitudes pendientes"
+msgstr "Ver solicitudes pendientes"
+
+msgid "Mis solicitudes"
+msgstr "Mis solicitudes"
+
+msgid "Matches"
+msgstr "Matches"
+
+msgid "Match aceptado"
+msgstr "Match aceptado"
+
+msgid "Solicitud enviada"
+msgstr "Solicitud enviada"
+
+msgid "Interesado en %(name)s"
+msgstr "Interesado en %(name)s"
+
+msgid "%(name)s (Tutor de %(pet)s)"
+msgstr "%(name)s (Tutor de %(pet)s)"
+
+msgid "Tutor de"
+msgstr "Tutor de"
+
+msgid "Interés registrado desde el feed de descubrimiento."
+msgstr "Interés registrado desde el feed de descubrimiento."
+
+msgid "Mascota disponible para conectar y evaluar compatibilidad."
+msgstr "Mascota disponible para conectar y evaluar compatibilidad."
+
+msgid "Interesado en conectar y evaluar compatibilidad."
+msgstr "Interesado en conectar y evaluar compatibilidad."
+
+msgid "Cancelar solicitud"
+msgstr "Cancelar solicitud"
+
+msgid "Nota inicial"
+msgstr "Nota inicial"
+
+msgid "Nota inicial de contacto"
+msgstr "Nota inicial de contacto"
+
+msgid "Nota enviada al tutor"
+msgstr "Nota enviada al tutor"
+
+msgid "Escribe una nota para iniciar la conversación:"
+msgstr "Escribe una nota para iniciar la conversación:"
+
+msgid "Por favor ingresa una nota válida."
+msgstr "Por favor ingresa una nota válida."
+
+msgid "Error al guardar la nota."
+msgstr "Error al guardar la nota."
+
+msgid "Error de conexión al guardar la nota."
+msgstr "Error de conexión al guardar la nota."
+
+msgid "Tranquila"
+msgstr "Tranquila"
+
+msgid "Calmada"
+msgstr "Calmada"
+
+msgid "Curiosa"
+msgstr "Curiosa"
+
+msgid "Inteligente"
+msgstr "Inteligente"
+
+msgid "Mimosa"
+msgstr "Mimosa"
+
+msgid "Silenciosa"
+msgstr "Silenciosa"
+
+msgid "pretendiente esperando respuesta"
+msgstr "pretendiente esperando respuesta"
+
+msgid "pretendientes esperando respuesta"
+msgstr "pretendientes esperando respuesta"
+
+msgid "Bandeja de interesados y solicitudes"
+msgstr "Bandeja de interesados y solicitudes"
+
+msgid "No hay solicitudes ni interesados pendientes"
+msgstr "No hay solicitudes ni interesados pendientes"
+
+msgid "Aún no tienes pretendientes ni solicitudes registradas para tu mascota activa. Explora perfiles compatibles en el feed de emparejamiento para conectar."
+msgstr "Aún no tienes pretendientes ni solicitudes registradas para tu mascota activa. Explora perfiles compatibles en el feed de emparejamiento para conectar."
+
+msgid "No se encontraron solicitudes en esta categoría"
+msgstr "No se encontraron solicitudes en esta categoría"
+
+msgid "Prueba cambiando de pestaña para ver más candidatos disponibles."
+msgstr "Prueba cambiando de pestaña para ver más candidatos disponibles."
+
+msgid "Aceptar match"
+msgstr "Aceptar match"
+
+msgid "Aceptar solicitud de match"
+msgstr "Aceptar solicitud de match"
+
+msgid "Para"
+msgstr "Para"
+
+msgid "De"
+msgstr "De"
+
+msgid "Cita"
+msgstr "Cita"
+
+msgid "Cancelar match"
+msgstr "Cancelar match"
+
+msgid "La solicitud se ha cancelado correctamente."
+msgstr "La solicitud se ha cancelado correctamente."
+
+msgid "El match se ha cancelado correctamente."
+msgstr "El match se ha cancelado correctamente."
+
+msgid "La solicitud se ha descartado correctamente."
+msgstr "La solicitud se ha descartado correctamente."
+
+msgid "Acción completada"
+msgstr "Acción completada"
+
+
