@@ -655,8 +655,10 @@ input[type="password"]::-ms-clear {
   box-shadow: 0 10px 24px -4px var(--pet-color-shadow) !important;
 }
 .btn-pet-dynamic-like.text-neutral-900,
-.btn-pet-dynamic-like.text-neutral-900 * {
-  color: #171717 !important;
+.btn-pet-dynamic-like.text-neutral-900 *,
+.btn-pet-dynamic-like.text-neutral-800,
+.btn-pet-dynamic-like.text-neutral-800 * {
+  color: #2b2b2b !important;
 }
 .btn-pet-dynamic-like.text-white,
 .btn-pet-dynamic-like.text-white * {
@@ -665,6 +667,24 @@ input[type="password"]::-ms-clear {
 .btn-pet-quick-match {
   background-color: var(--pet-color-badge) !important;
   color: var(--pet-color) !important;
+}
+.btn-pet-quick-match.text-neutral-900,
+.btn-pet-quick-match.text-neutral-900 *,
+.btn-pet-quick-match.text-neutral-800,
+.btn-pet-quick-match.text-neutral-800 * {
+  color: #2b2b2b !important;
+}
+.bg-pet-accent.text-neutral-900,
+.bg-pet-accent.text-neutral-900 *,
+.bg-pet-accent.text-neutral-800,
+.bg-pet-accent.text-neutral-800 * {
+  color: #2b2b2b !important;
+}
+.badge-pet-accent.text-neutral-900,
+.badge-pet-accent.text-neutral-900 *,
+.badge-pet-accent.text-neutral-800,
+.badge-pet-accent.text-neutral-800 * {
+  color: #2b2b2b !important;
 }
 
 .textarea-petly {

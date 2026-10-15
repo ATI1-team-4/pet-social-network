@@ -189,7 +189,7 @@
                                 <h2 id="card-name" class="title-h2 text-white font-bold tracking-tight drop-shadow-md">
                                     {{ current_candidate.name }}
                                 </h2>
-                                <span id="card-gender-symbol" class="inline-flex items-center drop-shadow-md text-pet-accent">
+                                <span id="card-gender-symbol" class="inline-flex items-center drop-shadow-md {% if current_candidate.gender == 'H' or current_candidate.gender == 'hembra' or current_candidate.is_hembra %}text-rose-400{% else %}text-sky-400{% endif %}">
                                     {% if current_candidate.gender == 'H' or current_candidate.gender == 'hembra' or current_candidate.is_hembra %}
                                         {% include 'components/icon.html' with name="female" class="w-4 h-4 sm:w-5 sm:h-5 text-inherit" %}
                                     {% else %}
@@ -277,7 +277,7 @@
                     <!-- Bloque de tutores responsables (tarjeta redondeada limpia como en UI Figma) -->
                     <div class="p-3.5 rounded-2xl bg-[#F4F6F9] border border-slate-100 flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-xs shrink-0 bg-pet-accent">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}text-neutral-800{% else %}text-white{% endif %} shadow-xs shrink-0 bg-pet-accent">
                                 <span id="card-tutor-avatar">{{ current_candidate.tutors.avatar_letter|default:"SC" }}</span>
                             </div>
                             <div>
@@ -293,7 +293,7 @@
                         <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-neutral-100 shadow-xs text-xs font-semibold">
                             {% include 'components/icon.html' with name="star" class="w-3.5 h-3.5 text-petly-coral" %}
                             <span id="card-tutor-rating" class="text-neutral-900 font-bold">{{ current_candidate.tutors.rating }}</span>
-                            <span class="text-neutral-400 font-normal text-[11px]">({{ current_candidate.tutors.review_count }})</span>
+                            <span id="card-tutor-reviews" class="text-neutral-400 font-normal text-[11px]">({{ current_candidate.tutors.review_count }})</span>
                         </div>
                     </div>
                 </div>
@@ -308,7 +308,7 @@
                     <!-- Botón primario central: Mostrar Interés (♥) -->
                     {% blocktranslate with name=current_candidate.name asvar like_btn_text %}Mostrar interés en {{ name }}{% endblocktranslate %}
                     {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}
-                        {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-neutral-900" onclick="handleLikeCandidate()" class="btn-pet-dynamic-like select-none flex-1 py-3.5 px-6 rounded-full font-bold text-neutral-900 shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
+                        {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-neutral-800" onclick="handleLikeCandidate()" class="btn-pet-dynamic-like select-none flex-1 py-3.5 px-6 rounded-full font-bold text-neutral-800 shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
                     {% else %}
                         {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-white" onclick="handleLikeCandidate()" class="btn-pet-dynamic-like select-none flex-1 py-3.5 px-6 rounded-full font-bold text-white shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
                     {% endif %}
@@ -331,7 +331,7 @@
                     <div class="flex flex-col items-center gap-1.5">
                         {% translate 'Interesado' as aria_like_mobile %}
                         {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}
-                            {% include 'components/button.html' with id="btn-like-mobile" variant="custom" icon="heart-filled" icon_class="w-7 h-7 text-neutral-900" onclick="handleLikeCandidate()" aria_label=aria_like_mobile class="btn-pet-dynamic-like w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-neutral-900 flex items-center justify-center cursor-pointer" %}
+                            {% include 'components/button.html' with id="btn-like-mobile" variant="custom" icon="heart-filled" icon_class="w-7 h-7 text-neutral-800" onclick="handleLikeCandidate()" aria_label=aria_like_mobile class="btn-pet-dynamic-like w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-neutral-800 flex items-center justify-center cursor-pointer" %}
                         {% else %}
                             {% include 'components/button.html' with id="btn-like-mobile" variant="custom" icon="heart-filled" icon_class="w-7 h-7 text-white" onclick="handleLikeCandidate()" aria_label=aria_like_mobile class="btn-pet-dynamic-like w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-white flex items-center justify-center cursor-pointer" %}
                         {% endif %}
@@ -353,7 +353,7 @@
                     {% translate "No hay más perfiles compatibles disponibles para evaluar en este momento. Revisa tus solicitudes de interesados o regresa más tarde para descubrir nuevas mascotas." %}
                 </p>
                 <div class="pt-2 flex flex-wrap gap-3 justify-center">
-                    <a href="{% url 'pets:match_feed' %}?reload=true" class="btn-pet-dynamic-like px-5 py-2.5 rounded-full text-xs font-bold text-white shadow-xs no-underline inline-flex items-center gap-2 cursor-pointer">
+                    <a href="{% url 'pets:match_feed' %}?reload=true" class="btn-pet-dynamic-like px-5 py-2.5 rounded-full text-xs font-bold {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}text-neutral-800{% else %}text-white{% endif %} shadow-xs no-underline inline-flex items-center gap-2 cursor-pointer">
                         <span>{% translate "Recargar feed" %}</span>
                     </a>
                     <a href="{% url 'pets:match_interested' %}" class="px-5 py-2.5 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 no-underline inline-flex items-center gap-1.5 transition-colors">
@@ -380,7 +380,7 @@
                         </h2>
                     </div>
                     <!-- Indicador de solicitudes pendientes sin desbordamiento -->
-                    <span class="inline-flex items-center justify-center whitespace-nowrap shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold badge-pet-accent">
+                    <span class="inline-flex items-center justify-center whitespace-nowrap shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold badge-pet-accent {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}text-neutral-800{% endif %}">
                         {{ pending_interested_count }} {% translate "nuevas" %}
                     </span>
                 </div>
@@ -403,7 +403,11 @@
                                 </div>
                             </div>
                             {% translate 'Responder con match' as aria_quick_match %}
-                            {% include 'components/button.html' with variant="custom" icon="heart-filled" icon_class="w-4 h-4" onclick="handleSidebarQuickMatch(this)" data_id=suitor.candidate_pet_id data_name=suitor.name data_photo=suitor.photo_url title=aria_quick_match class="btn-pet-quick-match w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer" %}
+                            {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}
+                                {% include 'components/button.html' with variant="custom" icon="heart-filled" icon_class="w-4 h-4 text-neutral-800" onclick="handleSidebarQuickMatch(this)" data_id=suitor.candidate_pet_id data_name=suitor.name data_photo=suitor.photo_url title=aria_quick_match class="btn-pet-quick-match text-neutral-800 w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer" %}
+                            {% else %}
+                                {% include 'components/button.html' with variant="custom" icon="heart-filled" icon_class="w-4 h-4" onclick="handleSidebarQuickMatch(this)" data_id=suitor.candidate_pet_id data_name=suitor.name data_photo=suitor.photo_url title=aria_quick_match class="btn-pet-quick-match w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer" %}
+                            {% endif %}
                         </div>
                     {% empty %}
                         <div class="p-4 rounded-2xl bg-[#F4F6F9] border border-slate-100 text-center text-xs text-neutral-500">
@@ -656,7 +660,7 @@
     const activePetColorKey = '{{ active_pet.profile_color|default:"coral" }}';
     document.documentElement.style.setProperty('--pet-color', activePetColor);
 
-    // Ajuste de contraste para el botón de mostrar interés: negro para melocotón y verde, blanco para coral y lila
+    // Ajuste de contraste para el botón de mostrar interés: gris oscuro (#2b2b2b) para melocotón y menta, blanco para coral y lila
     const isDarkLikeBtn = (activePetColorKey === 'peach' || activePetColorKey === 'mint');
     const updateLikeBtnContrast = () => {
         ['btn-like', 'btn-like-mobile'].forEach(id => {
@@ -664,22 +668,22 @@
             if (!btn) return;
             if (isDarkLikeBtn) {
                 btn.classList.remove('text-white');
-                btn.classList.add('text-neutral-900');
-                btn.style.color = '#171717';
+                btn.classList.add('text-neutral-800');
+                btn.style.color = '#2b2b2b';
                 const icons = btn.querySelectorAll('.bg-current, span[style*="mask-image"]');
                 icons.forEach(ic => {
                     ic.classList.remove('text-white');
-                    ic.classList.add('text-neutral-900');
-                    ic.style.color = '#171717';
-                    ic.style.backgroundColor = '#171717';
+                    ic.classList.add('text-neutral-800');
+                    ic.style.color = '#2b2b2b';
+                    ic.style.backgroundColor = '#2b2b2b';
                 });
             } else {
-                btn.classList.remove('text-neutral-900');
+                btn.classList.remove('text-neutral-800');
                 btn.classList.add('text-white');
                 btn.style.color = '#ffffff';
                 const icons = btn.querySelectorAll('.bg-current, span[style*="mask-image"]');
                 icons.forEach(ic => {
-                    ic.classList.remove('text-neutral-900');
+                    ic.classList.remove('text-neutral-800');
                     ic.classList.add('text-white');
                     ic.style.color = '#ffffff';
                     ic.style.backgroundColor = '#ffffff';
@@ -733,6 +737,7 @@
         if (genderSymbol) {
             const isFemale = (c.gender === 'H' || c.gender === 'hembra' || c.gender_icon === 'female');
             const iconName = isFemale ? 'female' : 'male';
+            genderSymbol.className = `inline-flex items-center drop-shadow-md ${isFemale ? 'text-rose-400' : 'text-sky-400'}`;
             const iconSpan = genderSymbol.querySelector('span[style*="mask-image"]');
             if (iconSpan) {
                 iconSpan.style.maskImage = `url('/static/images/icons/${iconName}.svg')`;
@@ -778,6 +783,9 @@
 
             const tutorRating = document.getElementById('card-tutor-rating');
             if (tutorRating) tutorRating.textContent = c.tutors.rating;
+
+            const tutorReviews = document.getElementById('card-tutor-reviews');
+            if (tutorReviews) tutorReviews.textContent = `(${c.tutors.review_count})`;
         }
 
         // Temperamentos
