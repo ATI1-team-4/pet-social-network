@@ -32,7 +32,7 @@ package "apps.accounts" {
     + created_at : DateTimeField
     + updated_at : DateTimeField
     # user : OneToOneField <<FK>>
-    + avatar : FileField
+    + avatar : ImageField
     + phone_prefix : CharField
     + phone_number : CharField
     + id_type : CharField
@@ -88,11 +88,14 @@ package "apps.pets" {
     + birth_date : DateField
     + weight_kg : DecimalField
     + description : TextField
-    + photo : FileField
+    + photo : ImageField
     + certificate_type : CharField
     + certificate_number : CharField
+    + has_pedigree : BooleanField
     + purpose : CharField
     + is_active_for_match : BooleanField
+    + is_socializing : BooleanField
+    + is_for_adoption : BooleanField
     + max_search_distance_km : PositiveIntegerField
     + temperaments : CharField
     + profile_color : CharField
