@@ -144,11 +144,14 @@ def serialize_candidate(active_pet: Pet, candidate_pet: Pet) -> dict[str, Any]:
     )
 
     tutor_rating = '5.0'
-    tutor_reviews = _('12 citas')
+    tutor_reviews = _('0 citas')
     if owner_profile:
         tutor_rating = str(owner_profile.rating)
         meetings = owner_profile.completed_meetings_count
-        tutor_reviews = _('%(count)s citas') % {'count': meetings} if meetings > 0 else _('5 citas')
+        if meetings == 1:
+            tutor_reviews = _('1 cita')
+        else:
+            tutor_reviews = _('%(count)s citas') % {'count': meetings}
 
     birth_str = (
         candidate_pet.birth_date.strftime('%d / %b / %Y')
