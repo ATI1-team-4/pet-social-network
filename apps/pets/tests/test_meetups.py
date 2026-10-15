@@ -302,3 +302,29 @@ class PetMeetupTests(TestCase):
                 meeting_time=self.future_time,
                 location_name=self.location,
             )
+
+    def test_schedule_multiple_meetups_different_times_allowed(self):
+        """Verifica que una mascota pueda agendar múltiples citas en fechas u horarios diferentes."""
+        meetup1 = schedule_pet_meetup(
+            requester_user=self.user,
+            requester_pet=self.pet,
+            target_pet=self.other_pet,
+            meeting_date=self.future_date,
+            meeting_time=self.future_time,
+            location_name=self.location,
+        )
+        # Horario diferente en la misma fecha
+        diff_hour = (self.future_time.hour + 2) % 24
+        different_time = time(diff_hour, 0)
+        meetup2 = schedule_pet_meetup(
+            requester_user=self.user,
+            requester_pet=self.pet,
+            target_pet=self.third_pet,
+            meeting_date=self.future_date,
+            meeting_time=different_time,
+            location_name=self.location,
+        )
+        self.assertIsNotNone(meetup1.id)
+        self.assertIsNotNone(meetup2.id)
+        self.assertNotEqual(meetup1.id, meetup2.id)
+        self.assertEqual(PetMeetup.objects.filter(pet1=self.pet).count(), 2)

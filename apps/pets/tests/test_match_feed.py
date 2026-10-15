@@ -555,3 +555,119 @@ class MatchFeedTests(TestCase):
         self.assertNotContains(response, '¿Con qué perros deseas buscar pareja?')
         self.assertContains(response, 'Continuar a buscar pareja')
         self.assertContains(response, 'Ver mascotas interesadas')
+
+    def test_reload_feed_clears_rejected_requests(self):
+        """
+        Verifica que el parámetro reload=true elimine los descartes (REJECTED) salientes
+        de la mascota activa para reincorporarlos al feed de candidatos compatibles.
+        """
+        self.client.login(username='tutor_feed', password='password123')
+        session = self.client.session
+        session['active_pet_id'] = str(self.pet.id)
+        session.save()
+
+        # Descartar a Bella
+        record_candidate_pass(self.pet, self.cand_bella)
+        self.assertEqual(
+            MatchRequest.objects.filter(
+                from_pet=self.pet,
+                to_pet=self.cand_bella,
+                status=MatchRequest.RequestStatus.REJECTED,
+            ).count(),
+            1,
+        )
+
+        # Sin reload=true: Bella no aparece en candidatos
+        response = self.client.get(reverse('pets:match_feed'))
+        self.assertEqual(len(response.context['candidates']), 0)
+
+        # Con reload=true: el registro REJECTED se elimina y Bella reaparece
+        response_reload = self.client.get(reverse('pets:match_feed') + '?reload=true')
+        self.assertEqual(response_reload.status_code, 200)
+        self.assertEqual(len(response_reload.context['candidates']), 1)
+        self.assertEqual(response_reload.context['candidates'][0]['id'], self.cand_bella.id)
+        self.assertFalse(
+            MatchRequest.objects.filter(
+                from_pet=self.pet,
+                to_pet=self.cand_bella,
+                status=MatchRequest.RequestStatus.REJECTED,
+            ).exists()
+        )
+
+    def test_match_feed_view_applies_purpose_filter(self):
+        """
+        Verifica que match_feed_view aplique el filtro de propósito y lo preserve en sesión.
+        """
+        self.client.login(username='tutor_feed', password='password123')
+        session = self.client.session
+        session['active_pet_id'] = str(self.pet.id)
+        session.save()
+
+        self.cand_bella.is_socializing = False
+        self.cand_bella.is_active_for_match = True
+        self.cand_bella.save()
+
+        # Mascota con propósito socialización
+        cand_play = Pet.objects.create(
+            owner=self.other_user,
+            name='Daisy',
+            species=self.species_dog,
+            breed='Labrador',
+            gender=Pet.Gender.HEMBRA,
+            birth_date='2022-06-15',
+            is_active_for_match=True,
+            is_socializing=True,
+        )
+
+        # Filtrar por mating
+        resp_mating = self.client.get(reverse('pets:match_feed') + '?purpose=mating')
+        self.assertEqual(resp_mating.status_code, 200)
+        candidate_ids = [c['id'] for c in resp_mating.context['candidates']]
+        self.assertIn(self.cand_bella.id, candidate_ids)
+        self.assertNotIn(cand_play.id, candidate_ids)
+
+        # Filtrar por play
+        resp_play = self.client.get(reverse('pets:match_feed') + '?purpose=play')
+        self.assertEqual(resp_play.status_code, 200)
+        play_ids = [c['id'] for c in resp_play.context['candidates']]
+        self.assertIn(cand_play.id, play_ids)
+        self.assertNotIn(self.cand_bella.id, play_ids)
+
+    def test_match_feed_request_counters_alignment(self):
+        """
+        Verifica que los contadores del feed reflejen adecuadamente las cantidades:
+        - pending_interested_count: solicitudes PENDING entrantes (para 'X nuevas')
+        - total_requests_count: total de solicitudes activas (para 'Ver todas las solicitudes (X)')
+        """
+        self.client.login(username='tutor_feed', password='password123')
+        session = self.client.session
+        session['active_pet_id'] = str(self.pet.id)
+        session.save()
+
+        # Crear una solicitud entrante pendiente y una aceptada
+        MatchRequest.objects.create(
+            from_pet=self.cand_bella,
+            to_pet=self.pet,
+            status=MatchRequest.RequestStatus.PENDING,
+        )
+        cand_luna = Pet.objects.create(
+            owner=self.other_user,
+            name='Luna2',
+            species=self.species_dog,
+            breed='Labrador',
+            gender=Pet.Gender.HEMBRA,
+            birth_date='2022-06-15',
+            is_active_for_match=True,
+        )
+        MatchRequest.objects.create(
+            from_pet=cand_luna,
+            to_pet=self.pet,
+            status=MatchRequest.RequestStatus.ACCEPTED,
+        )
+
+        response = self.client.get(reverse('pets:match_feed'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['pending_interested_count'], 1)
+        self.assertEqual(response.context['total_requests_count'], 2)
+        self.assertContains(response, '1 nuevas')
+        self.assertContains(response, 'Ver todas las solicitudes (2)')

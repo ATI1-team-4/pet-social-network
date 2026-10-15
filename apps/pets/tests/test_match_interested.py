@@ -207,11 +207,6 @@ class MatchInterestedTests(TestCase):
         )
         self.assertEqual(res_reject.status_code, 405)
 
-        res_msg = self.client.get(
-            reverse('pets:send_initial_message', kwargs={'request_id': req.id})
-        )
-        self.assertEqual(res_msg.status_code, 405)
-
         res_note = self.client.get(reverse('pets:send_initial_note', kwargs={'request_id': req.id}))
         self.assertEqual(res_note.status_code, 405)
 
@@ -288,8 +283,8 @@ class MatchInterestedTests(TestCase):
         req.refresh_from_db()
         self.assertEqual(req.status, MatchRequest.RequestStatus.REJECTED)
 
-    def test_send_initial_message_view(self):
-        """Verifica que se registre exitosamente la nota o mensaje inicial de contacto."""
+    def test_cancel_accepted_match_request(self):
+        """Verifica que un tutor pueda cancelar un match ya aceptado."""
         self.client.login(username='tutor_interesados', password='password123')
 
         req = MatchRequest.objects.create(
@@ -298,24 +293,46 @@ class MatchInterestedTests(TestCase):
             status=MatchRequest.RequestStatus.ACCEPTED,
         )
 
-        message_content = (
-            '¡Hola Mariana! Encantado con Kira. ¿Coordinamos un paseo en el Parque España?'
-        )
         response = self.client.post(
-            reverse('pets:send_initial_message', kwargs={'request_id': req.id}),
-            data=json.dumps({'message': message_content}),
+            reverse('pets:match_reject_request', kwargs={'request_id': req.id}),
             content_type='application/json',
         )
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data['status'], 'success')
-        self.assertEqual(data['notes'], message_content)
+        self.assertEqual(data['match_status'], 'rejected')
 
         req.refresh_from_db()
-        self.assertEqual(req.notes, message_content)
+        self.assertEqual(req.status, MatchRequest.RequestStatus.REJECTED)
 
-    def test_send_initial_message_empty_fails(self):
-        """Verifica que enviar un mensaje vacío devuelva error 400."""
+    def test_send_initial_note_view(self):
+        """Verifica que se registre exitosamente la nota inicial de contacto."""
+        self.client.login(username='tutor_interesados', password='password123')
+
+        req = MatchRequest.objects.create(
+            from_pet=self.suitor_pet1,
+            to_pet=self.pet,
+            status=MatchRequest.RequestStatus.ACCEPTED,
+        )
+
+        note_content = (
+            '¡Hola Mariana! Encantado con Kira. ¿Coordinamos un paseo en el Parque España?'
+        )
+        response = self.client.post(
+            reverse('pets:send_initial_note', kwargs={'request_id': req.id}),
+            data=json.dumps({'note': note_content}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(data['notes'], note_content)
+
+        req.refresh_from_db()
+        self.assertEqual(req.notes, note_content)
+
+    def test_send_initial_note_empty_fails(self):
+        """Verifica que enviar una nota vacía devuelva error 400."""
         self.client.login(username='tutor_interesados', password='password123')
 
         req = MatchRequest.objects.create(
@@ -325,15 +342,15 @@ class MatchInterestedTests(TestCase):
         )
 
         response = self.client.post(
-            reverse('pets:send_initial_message', kwargs={'request_id': req.id}),
-            data=json.dumps({'message': '   '}),
+            reverse('pets:send_initial_note', kwargs={'request_id': req.id}),
+            data=json.dumps({'note': '   '}),
             content_type='application/json',
         )
         self.assertEqual(response.status_code, 400)
         data = response.json()
         self.assertEqual(data['status'], 'error')
 
-    def test_send_initial_message_unauthorized_user_forbidden(self):
+    def test_send_initial_note_unauthorized_user_forbidden(self):
         """Verifica que un usuario ajeno a la solicitud no pueda registrar notas en ella."""
         self.client.login(username='tercer_tutor', password='password123')
 
@@ -345,8 +362,44 @@ class MatchInterestedTests(TestCase):
         )
 
         response = self.client.post(
-            reverse('pets:send_initial_message', kwargs={'request_id': req.id}),
-            data=json.dumps({'message': 'Mensaje no autorizado'}),
+            reverse('pets:send_initial_note', kwargs={'request_id': req.id}),
+            data=json.dumps({'note': 'Nota no autorizada'}),
             content_type='application/json',
         )
         self.assertEqual(response.status_code, 403)
+
+    def test_match_interested_sorting_criteria(self):
+        """Verifica que el ordenamiento por compatibilidad y fecha reciente funcione adecuadamente."""
+        self.client.login(username='tutor_interesados', password='password123')
+
+        # Solicitud 1: Kira (Boxer, hembra -> 95% compatibilidad con Rocky)
+        req_kira = MatchRequest.objects.create(
+            from_pet=self.suitor_pet1,
+            to_pet=self.pet,
+            status=MatchRequest.RequestStatus.PENDING,
+        )
+        # Solicitud 2: Luna (Poodle, hembra -> 75% compatibilidad con Rocky, creada después)
+        req_luna = MatchRequest.objects.create(
+            from_pet=self.suitor_pet2,
+            to_pet=self.pet,
+            status=MatchRequest.RequestStatus.PENDING,
+        )
+
+        # 1. Por defecto o ?sort=compatibility: Kira (95%) debe ir primero
+        res_compat = self.client.get(reverse('pets:match_interested') + '?sort=compatibility')
+        self.assertEqual(res_compat.status_code, 200)
+        suitors = res_compat.context['suitors']
+        self.assertEqual(len(suitors), 2)
+        self.assertEqual(suitors[0]['name'], 'Kira')
+        self.assertEqual(suitors[1]['name'], 'Luna')
+        self.assertContains(res_compat, 'data-timestamp')
+        self.assertContains(res_compat, 'data-compatibility')
+        self.assertContains(res_compat, 'data-distance')
+
+        # 2. ?sort=recent: Luna (creada más recientemente) debe ir primero
+        res_recent = self.client.get(reverse('pets:match_interested') + '?sort=recent')
+        self.assertEqual(res_recent.status_code, 200)
+        suitors_recent = res_recent.context['suitors']
+        self.assertEqual(suitors_recent[0]['name'], 'Luna')
+        self.assertEqual(suitors_recent[1]['name'], 'Kira')
+
