@@ -66,7 +66,11 @@ def get_user_active_pet(request):
     session_pet_id = str(request.session.get('active_pet_id', '')).strip().lower()
     if session_pet_id:
         active_pet = next(
-            (p for p in user_pets if str(p.id) == session_pet_id or p.name.lower() == session_pet_id),
+            (
+                p
+                for p in user_pets
+                if str(p.id) == session_pet_id or p.name.lower() == session_pet_id
+            ),
             None,
         )
 
@@ -160,16 +164,21 @@ def pet_update_certificate_view(request):
     # Delegar la actualización del certificado a la capa de servicios
     try:
         pet, clean_val, cert_label = update_pet_certificate(request.user, pet_id, certificate_val)
-        return JsonResponse({
-            'status': 'success',
-            'message': _('Certificado actualizado correctamente.'),
-            'pet_id': pet.id,
-            'certificate': clean_val,
-            'certificate_label': cert_label,
-        })
+        return JsonResponse(
+            {
+                'status': 'success',
+                'message': _('Certificado actualizado correctamente.'),
+                'pet_id': pet.id,
+                'certificate': clean_val,
+                'certificate_label': cert_label,
+            }
+        )
     except Pet.DoesNotExist:
         return JsonResponse(
-            {'status': 'error', 'message': _('Mascota no encontrada o no pertenece al usuario actual.')},
+            {
+                'status': 'error',
+                'message': _('Mascota no encontrada o no pertenece al usuario actual.'),
+            },
             status=404,
         )
 
@@ -197,19 +206,24 @@ def pet_toggle_goal_view(request):
     # Delegar la alternancia del objetivo a la capa de servicios
     try:
         pet = toggle_pet_goal(request.user, pet_id, goal, is_enabled)
-        return JsonResponse({
-            'status': 'success',
-            'message': _('Objetivo actualizado correctamente.'),
-            'pet_id': pet.id,
-            'goal': goal,
-            'value': is_enabled,
-            'is_matching': pet.is_matching,
-            'is_socializing': pet.is_socializing,
-            'is_adoption': pet.is_adoption,
-        })
+        return JsonResponse(
+            {
+                'status': 'success',
+                'message': _('Objetivo actualizado correctamente.'),
+                'pet_id': pet.id,
+                'goal': goal,
+                'value': is_enabled,
+                'is_matching': pet.is_matching,
+                'is_socializing': pet.is_socializing,
+                'is_adoption': pet.is_adoption,
+            }
+        )
     except Pet.DoesNotExist:
         return JsonResponse(
-            {'status': 'error', 'message': _('Mascota no encontrada o no pertenece al usuario actual.')},
+            {
+                'status': 'error',
+                'message': _('Mascota no encontrada o no pertenece al usuario actual.'),
+            },
             status=404,
         )
     except ValueError as ve:
@@ -270,7 +284,7 @@ def pet_set_active_view(request):
             request,
             _('Para comenzar la búsqueda de pareja, primero debes registrar a tu mascota.'),
         )
-        return redirect(f"{reverse('pets:pet_management')}?new=true")
+        return redirect(f'{reverse("pets:pet_management")}?new=true')
 
     # Localizar la mascota seleccionada o usar la primera registrada
     active_pet = None
@@ -321,9 +335,11 @@ def pet_select_view(request):
     if not user_pets:
         messages.info(
             request,
-            _('Para comenzar la búsqueda de pareja y explorar pretendientes, primero debes registrar a tu mascota.'),
+            _(
+                'Para comenzar la búsqueda de pareja y explorar pretendientes, primero debes registrar a tu mascota.'
+            ),
         )
-        return redirect(f"{reverse('pets:pet_management')}?new=true")
+        return redirect(f'{reverse("pets:pet_management")}?new=true')
 
     # Obtener el contexto estructurado a través de la capa de servicios
     pedigree_preference = request.session.get('match_pedigree_preference', 'both')
@@ -351,7 +367,7 @@ def match_feed_view(request):
         messages.info(
             request, _('Debes registrar al menos una mascota para acceder al feed de parejas.')
         )
-        return redirect(f"{reverse('pets:pet_management')}?new=true")
+        return redirect(f'{reverse("pets:pet_management")}?new=true')
 
     # Validar que la mascota activa tenga habilitada la condición de búsqueda de pareja
     if not active_pet.is_active_for_match:
@@ -389,7 +405,7 @@ def match_interested_view(request):
             request,
             _('Debes registrar al menos una mascota antes de ver solicitudes e interesados.'),
         )
-        return redirect(f"{reverse('pets:pet_management')}?new=true")
+        return redirect(f'{reverse("pets:pet_management")}?new=true')
 
     # Obtener el contexto de solicitudes y citas a través de la capa de servicios
     tab = request.GET.get('tab', 'all')
@@ -411,46 +427,64 @@ def match_like_candidate_view(request):
     data = parse_request_payload(request)
     candidate_id = data.get('candidate_id')
     if not candidate_id:
-        return JsonResponse({'status': 'error', 'message': _('ID de candidato no especificado.')}, status=400)
+        return JsonResponse(
+            {'status': 'error', 'message': _('ID de candidato no especificado.')}, status=400
+        )
 
     # Validar existencia del candidato en la base de datos
     try:
         candidate_pet = Pet.objects.get(id=candidate_id)
     except (Pet.DoesNotExist, ValueError):
-        return JsonResponse({'status': 'error', 'message': _('Candidato no encontrado.')}, status=404)
+        return JsonResponse(
+            {'status': 'error', 'message': _('Candidato no encontrado.')}, status=404
+        )
 
     # Obtener la mascota activa del tutor desde la sesión
     active_pet, _user_pets = get_user_active_pet(request)
     if not active_pet:
-        return JsonResponse({'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')}, status=400)
+        return JsonResponse(
+            {'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')},
+            status=400,
+        )
 
     # Validar que la mascota activa tenga activada la búsqueda de pareja
     if not active_pet.is_active_for_match:
-        return JsonResponse({'status': 'error', 'message': _('La mascota activa no tiene habilitada la búsqueda de pareja.')}, status=400)
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': _('La mascota activa no tiene habilitada la búsqueda de pareja.'),
+            },
+            status=400,
+        )
 
     # Evitar interacción entre mascotas del mismo dueño
     if candidate_pet.id == active_pet.id or candidate_pet.owner_id == request.user.id:
-        return JsonResponse({'status': 'error', 'message': _('No puedes interactuar con tu propia mascota.')}, status=400)
+        return JsonResponse(
+            {'status': 'error', 'message': _('No puedes interactuar con tu propia mascota.')},
+            status=400,
+        )
 
     # Delegar el registro del like a la capa de servicios
     match_request, is_mutual = record_candidate_like(active_pet, candidate_pet)
 
-    return JsonResponse({
-        'status': 'success',
-        'is_match': is_mutual,
-        'match_request_id': match_request.id,
-        'active_pet': {
-            'id': active_pet.id,
-            'name': active_pet.name,
-            'photo_url': active_pet.photo_url,
-        },
-        'candidate': {
-            'id': candidate_pet.id,
-            'name': candidate_pet.name,
-            'photo_url': candidate_pet.photo_url,
-            'tutor_name': candidate_pet.owner.get_full_name() or candidate_pet.owner.username,
-        },
-    })
+    return JsonResponse(
+        {
+            'status': 'success',
+            'is_match': is_mutual,
+            'match_request_id': match_request.id,
+            'active_pet': {
+                'id': active_pet.id,
+                'name': active_pet.name,
+                'photo_url': active_pet.photo_url,
+            },
+            'candidate': {
+                'id': candidate_pet.id,
+                'name': candidate_pet.name,
+                'photo_url': candidate_pet.photo_url,
+                'tutor_name': candidate_pet.owner.get_full_name() or candidate_pet.owner.username,
+            },
+        }
+    )
 
 
 @login_required
@@ -460,27 +494,36 @@ def match_pass_candidate_view(request):
     data = parse_request_payload(request)
     candidate_id = data.get('candidate_id')
     if not candidate_id:
-        return JsonResponse({'status': 'error', 'message': _('ID de candidato no especificado.')}, status=400)
+        return JsonResponse(
+            {'status': 'error', 'message': _('ID de candidato no especificado.')}, status=400
+        )
 
     # Validar existencia del candidato
     try:
         candidate_pet = Pet.objects.get(id=candidate_id)
     except (Pet.DoesNotExist, ValueError):
-        return JsonResponse({'status': 'error', 'message': _('Candidato no encontrado.')}, status=404)
+        return JsonResponse(
+            {'status': 'error', 'message': _('Candidato no encontrado.')}, status=404
+        )
 
     # Obtener la mascota activa del tutor desde la sesión
     active_pet, _user_pets = get_user_active_pet(request)
     if not active_pet:
-        return JsonResponse({'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')}, status=400)
+        return JsonResponse(
+            {'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')},
+            status=400,
+        )
 
     # Delegar el registro del descarte a la capa de servicios
     match_request = record_candidate_pass(active_pet, candidate_pet)
 
-    return JsonResponse({
-        'status': 'success',
-        'candidate_id': candidate_pet.id,
-        'match_request_id': match_request.id,
-    })
+    return JsonResponse(
+        {
+            'status': 'success',
+            'candidate_id': candidate_pet.id,
+            'match_request_id': match_request.id,
+        }
+    )
 
 
 @login_required
@@ -492,13 +535,18 @@ def match_report_candidate_view(request):
     reason = data.get('reason', '').strip()
 
     if not reported_pet_id:
-        return JsonResponse({'status': 'error', 'message': _('ID de mascota candidata no especificado.')}, status=400)
+        return JsonResponse(
+            {'status': 'error', 'message': _('ID de mascota candidata no especificado.')},
+            status=400,
+        )
 
     # Validar existencia de la mascota reportada
     try:
         reported_pet = Pet.objects.get(id=reported_pet_id)
     except (Pet.DoesNotExist, ValueError):
-        return JsonResponse({'status': 'error', 'message': _('Mascota candidata no encontrada.')}, status=404)
+        return JsonResponse(
+            {'status': 'error', 'message': _('Mascota candidata no encontrada.')}, status=404
+        )
 
     # Delegar la creación del reporte a la capa de servicios
     report = report_candidate_pet(
@@ -512,11 +560,15 @@ def match_report_candidate_view(request):
     if active_pet:
         record_candidate_pass(active_pet, reported_pet)
 
-    return JsonResponse({
-        'status': 'success',
-        'report_id': report.id,
-        'message': _('El reporte ha sido enviado al equipo de administración para su revisión.'),
-    })
+    return JsonResponse(
+        {
+            'status': 'success',
+            'report_id': report.id,
+            'message': _(
+                'El reporte ha sido enviado al equipo de administración para su revisión.'
+            ),
+        }
+    )
 
 
 # ==============================================================================
@@ -531,24 +583,34 @@ def match_accept_request_view(request, request_id):
     # Obtener la mascota activa del tutor
     active_pet, _user_pets = get_user_active_pet(request)
     if not active_pet:
-        return JsonResponse({'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')}, status=400)
+        return JsonResponse(
+            {'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')},
+            status=400,
+        )
 
     # Delegar la aceptación de la solicitud a la capa de servicios
     try:
         match_request = accept_match_request(request_id=request_id, active_pet=active_pet)
         tab_counters = get_requests_tab_counters(active_pet)
-        return JsonResponse({
-            'status': 'success',
-            'match_status': 'accepted',
-            'request_id': match_request.id,
-            'message': _('Solicitud de match aceptada exitosamente.'),
-            'tab_counters': tab_counters,
-        })
+        return JsonResponse(
+            {
+                'status': 'success',
+                'match_status': 'accepted',
+                'request_id': match_request.id,
+                'message': _('Solicitud de match aceptada exitosamente.'),
+                'tab_counters': tab_counters,
+            }
+        )
     except MatchRequest.DoesNotExist:
-        return JsonResponse({
-            'status': 'error',
-            'message': _('La solicitud de match no existe o no corresponde a tu mascota activa.'),
-        }, status=404)
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': _(
+                    'La solicitud de match no existe o no corresponde a tu mascota activa.'
+                ),
+            },
+            status=404,
+        )
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
@@ -560,24 +622,34 @@ def match_reject_request_view(request, request_id):
     # Obtener la mascota activa del tutor
     active_pet, _user_pets = get_user_active_pet(request)
     if not active_pet:
-        return JsonResponse({'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')}, status=400)
+        return JsonResponse(
+            {'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')},
+            status=400,
+        )
 
     # Delegar el rechazo de la solicitud a la capa de servicios
     try:
         match_request = reject_match_request(request_id=request_id, active_pet=active_pet)
         tab_counters = get_requests_tab_counters(active_pet)
-        return JsonResponse({
-            'status': 'success',
-            'match_status': 'rejected',
-            'request_id': match_request.id,
-            'message': _('Solicitud descartada exitosamente.'),
-            'tab_counters': tab_counters,
-        })
+        return JsonResponse(
+            {
+                'status': 'success',
+                'match_status': 'rejected',
+                'request_id': match_request.id,
+                'message': _('Solicitud descartada exitosamente.'),
+                'tab_counters': tab_counters,
+            }
+        )
     except MatchRequest.DoesNotExist:
-        return JsonResponse({
-            'status': 'error',
-            'message': _('La solicitud de match no existe o no corresponde a tu mascota activa.'),
-        }, status=404)
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': _(
+                    'La solicitud de match no existe o no corresponde a tu mascota activa.'
+                ),
+            },
+            status=404,
+        )
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
@@ -600,7 +672,9 @@ def send_initial_note_view(request, request_id):
     clean_note = str(note_text).strip()
 
     if not clean_note:
-        return JsonResponse({'status': 'error', 'message': _('La nota no puede estar vacía.')}, status=400)
+        return JsonResponse(
+            {'status': 'error', 'message': _('La nota no puede estar vacía.')}, status=400
+        )
 
     # Delegar el guardado de la nota a la capa de servicios
     try:
@@ -611,7 +685,10 @@ def send_initial_note_view(request, request_id):
         )
         return JsonResponse(result)
     except MatchRequest.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': _('La solicitud de match no fue encontrada.')}, status=404)
+        return JsonResponse(
+            {'status': 'error', 'message': _('La solicitud de match no fue encontrada.')},
+            status=404,
+        )
     except PermissionError as pe:
         return JsonResponse({'status': 'error', 'message': str(pe)}, status=403)
     except Exception as e:

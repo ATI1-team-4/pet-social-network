@@ -45,7 +45,9 @@ class Command(BaseCommand):
                 user.set_password(DEV_PASSWORD)
                 user.is_active = True
                 user.save()
-                self.stdout.write(f'  ✓ Credenciales verificadas para {uname} (clave: {DEV_PASSWORD})')
+                self.stdout.write(
+                    f'  ✓ Credenciales verificadas para {uname} (clave: {DEV_PASSWORD})'
+                )
 
         # ==============================================================================
         # 2. Catálogo oficial de especies
@@ -244,7 +246,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.MINT,
                 'description': 'Pastor Alemán noble y atento, excelente guardián y compañero de trote.',
             },
-
             # --- 2. Mascotas de Edwyn (Usuario desarrollador principal) ---
             {
                 'owner': edwyn_user,
@@ -314,7 +315,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.MINT,
                 'description': 'Husky juguetón y sociable que adora correr al aire libre y hacer nuevos amigos caninos.',
             },
-
             # --- 3. Mascotas de Stefany ---
             {
                 'owner': stefany_user,
@@ -367,7 +367,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.CORAL,
                 'description': 'Golden Retriever jovial y dulce, le fascina jugar con la pelota y compartir con otros perros.',
             },
-
             # --- 4. Mascotas de Sofia ---
             {
                 'owner': sofia_user,
@@ -420,7 +419,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.PEACH,
                 'description': 'Gatita de pelaje sedoso y esponjoso, muy curiosa y acostumbrada a convivir en armonía.',
             },
-
             # --- 5. Mascotas de Maria ---
             {
                 'owner': maria_user,
@@ -473,7 +471,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.MINT,
                 'description': 'Golden Retriever dócil y equilibrado, perfecto compañero de paseos largos.',
             },
-
             # --- 6. Mascotas de Bryan ---
             {
                 'owner': bryan_user,
@@ -526,7 +523,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.PEACH,
                 'description': 'Gato británico de pelaje gris denso, tranquilo, cariñoso y de andar elegante.',
             },
-
             # --- 7. Mascotas de Oriana ---
             {
                 'owner': oriana_user,
@@ -579,7 +575,6 @@ class Command(BaseCommand):
                 'profile_color': Pet.ProfileColor.LILAC,
                 'description': 'Poodle Toy elegante y dócil, excelente compañía.',
             },
-
             # --- 8. Mascotas de Tutor ---
             {
                 'owner': tutor_user,
@@ -657,7 +652,6 @@ class Command(BaseCommand):
         max_pet = created_pets.get('Max')
 
         rocky = created_pets.get('Rocky')
-        mia = created_pets.get('Mia')
         canela = created_pets.get('Canela')
 
         bella = created_pets.get('Bella')
@@ -666,7 +660,6 @@ class Command(BaseCommand):
 
         kira = created_pets.get('Kira')
         oliver = created_pets.get('Oliver')
-        milo = created_pets.get('Milo')
 
         maya = created_pets.get('Maya')
         balto = created_pets.get('Balto')
@@ -674,7 +667,6 @@ class Command(BaseCommand):
 
         chloe = created_pets.get('Chloe')
         leo = created_pets.get('Leo')
-        princesa = created_pets.get('Princesa')
 
         thor = created_pets.get('Thor')
         sasha = created_pets.get('Sasha')
@@ -703,13 +695,13 @@ class Command(BaseCommand):
             MatchRequest.RequestStatus.PENDING,
             '¡Hola Edwyn! Sasha también es Golden Retriever con pedigrí FCI. Nos gustaría coordinar un encuentro en Parque Vizcaya.',
         )
-        req_bella_simba = create_match_req(
+        create_match_req(
             bella,
             simba,
             MatchRequest.RequestStatus.PENDING,
             'A Bella le encantaría compartir paseos activos y correr con Simba en Los Salias.',
         )
-        req_canela_simba = create_match_req(
+        create_match_req(
             canela,
             simba,
             MatchRequest.RequestStatus.PENDING,

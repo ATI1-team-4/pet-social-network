@@ -98,7 +98,9 @@ def create_tutor_user(
     return user
 
 
-def get_user_profile_context(user: Any, session_active_pet_id: Optional[str] = None) -> dict[str, Any]:
+def get_user_profile_context(
+    user: Any, session_active_pet_id: Optional[str] = None
+) -> dict[str, Any]:
     """
     Construye el contexto de datos para la pantalla de perfil del tutor autenticado.
     Obtiene las mascotas registradas, calcula conexiones de match y resuelve la mascota activa.
@@ -130,7 +132,9 @@ def get_user_profile_context(user: Any, session_active_pet_id: Optional[str] = N
 
 
 @transaction.atomic
-def update_user_profile(user: Any, data: dict[str, Any], files: dict[str, Any]) -> tuple[Any, UserProfile]:
+def update_user_profile(
+    user: Any, data: dict[str, Any], files: dict[str, Any]
+) -> tuple[Any, UserProfile]:
     """
     Actualiza la información personal, ubicación, preferencias y avatar del tutor autenticado.
     Garantiza consistencia transaccional y persistencia de medios.
@@ -207,9 +211,7 @@ def update_user_profile(user: Any, data: dict[str, Any], files: dict[str, Any]) 
     profile.favorite_color = str(data.get('favorite_color', profile.favorite_color)).strip()
     profile.favorite_book = str(data.get('favorite_book', profile.favorite_book)).strip()
     profile.favorite_music = str(data.get('favorite_music', profile.favorite_music)).strip()
-    profile.favorite_videogame = str(
-        data.get('favorite_game', profile.favorite_videogame)
-    ).strip()
+    profile.favorite_videogame = str(data.get('favorite_game', profile.favorite_videogame)).strip()
 
     # Procesar eliminación del avatar actual
     if str(data.get('remove_avatar', '')).lower() == 'true' and profile.avatar:

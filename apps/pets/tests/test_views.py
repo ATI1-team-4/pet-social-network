@@ -169,7 +169,9 @@ class PetsViewsTests(TestCase):
         from apps.pets.models import Pet
 
         save_url = reverse('pets:pet_save')
-        response_save = self.client.post(save_url, {'name': 'Toby', 'pet_id': str(self.pet_toby.id)})
+        response_save = self.client.post(
+            save_url, {'name': 'Toby', 'pet_id': str(self.pet_toby.id)}
+        )
         self.assertRedirects(response_save, reverse('pets:pet_management'))
 
         # Rechazar solicitudes GET en pet_save_view (require_POST)
@@ -441,12 +443,12 @@ class PetsViewsTests(TestCase):
 
         # 2. En selección de mascota debe redirigir a crear mascota
         res_sel = self.client.get(reverse('pets:pet_select'))
-        self.assertRedirects(res_sel, f"{reverse('pets:pet_management')}?new=true")
+        self.assertRedirects(res_sel, f'{reverse("pets:pet_management")}?new=true')
 
         # 3. En feed de match debe redirigir a crear mascota
         res_feed = self.client.get(reverse('pets:match_feed'))
-        self.assertRedirects(res_feed, f"{reverse('pets:pet_management')}?new=true")
+        self.assertRedirects(res_feed, f'{reverse("pets:pet_management")}?new=true')
 
         # 4. En interesados de match debe redirigir a crear mascota
         res_int = self.client.get(reverse('pets:match_interested'))
-        self.assertRedirects(res_int, f"{reverse('pets:pet_management')}?new=true")
+        self.assertRedirects(res_int, f'{reverse("pets:pet_management")}?new=true')

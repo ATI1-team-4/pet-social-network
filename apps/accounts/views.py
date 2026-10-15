@@ -17,7 +17,6 @@ from apps.accounts.services import (
 )
 from apps.accounts.signals import get_client_ip
 
-
 # ==============================================================================
 # Vistas Públicas de Autenticación y Registro
 # ==============================================================================

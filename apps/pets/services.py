@@ -155,7 +155,9 @@ def serialize_candidate(active_pet: Pet, candidate_pet: Pet) -> dict[str, Any]:
         if candidate_pet.birth_date
         else _('No especificada')
     )
-    weight_str = f'{candidate_pet.weight_kg} kg' if candidate_pet.weight_kg else _('No especificado')
+    weight_str = (
+        f'{candidate_pet.weight_kg} kg' if candidate_pet.weight_kg else _('No especificado')
+    )
     if candidate_pet.has_pedigree:
         cert_str = (
             candidate_pet.certificate_number
@@ -536,7 +538,9 @@ def reject_match_request(request_id: int, active_pet: Pet) -> MatchRequest:
 
     if was_accepted:
         # Sincronizar solicitud inversa para coherencia bidireccional
-        other_pet = match_request.to_pet if match_request.from_pet == active_pet else match_request.from_pet
+        other_pet = (
+            match_request.to_pet if match_request.from_pet == active_pet else match_request.from_pet
+        )
         MatchRequest.objects.filter(
             from_pet=other_pet,
             to_pet=active_pet,
@@ -704,7 +708,9 @@ def serialize_match_request(active_pet: Pet, req: MatchRequest) -> dict[str, Any
         'species_label': str(candidate.species_label),
         'age': str(candidate.age_text),
         'birth_date': candidate.birth_date.strftime('%d/%m/%Y') if candidate.birth_date else '',
-        'certificate': get_translated_certificate(candidate.certificate_type, candidate.has_pedigree),
+        'certificate': get_translated_certificate(
+            candidate.certificate_type, candidate.has_pedigree
+        ),
         'distance': calculate_candidate_distance(active_pet, candidate),
         'distance_val': calculate_candidate_distance_km(active_pet, candidate),
         'location': candidate.location,
@@ -725,7 +731,9 @@ def serialize_match_request(active_pet: Pet, req: MatchRequest) -> dict[str, Any
         'is_received': is_received,
         'is_sent': not is_received,
         'is_sent_num': 1 if not is_received else 0,
-        'action_type': 'match' if req.status == MatchRequest.RequestStatus.ACCEPTED else ('sent' if not is_received else 'received'),
+        'action_type': 'match'
+        if req.status == MatchRequest.RequestStatus.ACCEPTED
+        else ('sent' if not is_received else 'received'),
         'type': 'interested' if is_received else 'sent',
         'created_at': req.created_at,
         'created_timestamp': int(req.created_at.timestamp()) if req.created_at else 0,
@@ -802,7 +810,11 @@ def schedule_pet_meetup(
         raise PermissionError(_('El usuario no es el tutor de la mascota solicitante.'))
 
     if requester_pet.id == target_pet.id or requester_pet.owner_id == target_pet.owner_id:
-        raise ValueError(_('No se puede programar un encuentro entre mascotas del mismo tutor ni con la misma mascota.'))
+        raise ValueError(
+            _(
+                'No se puede programar un encuentro entre mascotas del mismo tutor ni con la misma mascota.'
+            )
+        )
 
     now = timezone.localtime() if timezone.is_aware(timezone.now()) else datetime.now()
     meeting_dt = datetime.combine(meeting_date, meeting_time)
@@ -1150,7 +1162,15 @@ def toggle_pet_goal(user: Any, pet_id: Any, goal: str, is_enabled: bool) -> Pet:
     else:
         raise ValueError(_('Objetivo no válido.'))
 
-    pet.save(update_fields=['is_active_for_match', 'is_socializing', 'is_for_adoption', 'purpose', 'updated_at'])
+    pet.save(
+        update_fields=[
+            'is_active_for_match',
+            'is_socializing',
+            'is_for_adoption',
+            'purpose',
+            'updated_at',
+        ]
+    )
     return pet
 
 
@@ -1166,7 +1186,9 @@ def delete_user_pet(user: Any, pet_id: Any) -> tuple[str, Optional[Pet]]:
         pet = Pet.objects.filter(name__iexact=str(pet_id), owner=user).first()
 
     if not pet:
-        raise Pet.DoesNotExist(_('La mascota especificada no existe o no tienes permisos para eliminarla.'))
+        raise Pet.DoesNotExist(
+            _('La mascota especificada no existe o no tienes permisos para eliminarla.')
+        )
 
     pet_name = pet.name
     pet.delete()
@@ -1217,7 +1239,11 @@ def get_pet_select_context(
     )
     interested_count = active_pet_dict.get('interested_count', 0)
 
-    clean_pedigree = pedigree_preference if pedigree_preference in ('with_pedigree', 'without_pedigree', 'both') else 'both'
+    clean_pedigree = (
+        pedigree_preference
+        if pedigree_preference in ('with_pedigree', 'without_pedigree', 'both')
+        else 'both'
+    )
 
     return {
         'pets': pets_display,
@@ -1315,15 +1341,17 @@ def get_match_feed_context(
     interested_sidebar = []
     for req in interested_requests[:5]:
         cand = req.from_pet
-        interested_sidebar.append({
-            'id': str(req.id),
-            'candidate_pet_id': cand.id,
-            'name': cand.name,
-            'age': str(cand.age_text),
-            'breed': cand.breed,
-            'distance': calculate_candidate_distance(active_pet, cand),
-            'photo_url': cand.photo_url,
-        })
+        interested_sidebar.append(
+            {
+                'id': str(req.id),
+                'candidate_pet_id': cand.id,
+                'name': cand.name,
+                'age': str(cand.age_text),
+                'breed': cand.breed,
+                'distance': calculate_candidate_distance(active_pet, cand),
+                'photo_url': cand.photo_url,
+            }
+        )
 
     return {
         'active_pet': active_pet,

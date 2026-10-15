@@ -430,7 +430,9 @@ class MatchRequest(TimeStampedModel):
             from_owner_id = getattr(self.from_pet, 'owner_id', None)
             to_owner_id = getattr(self.to_pet, 'owner_id', None)
             if from_owner_id and to_owner_id and from_owner_id == to_owner_id:
-                raise ValidationError(_('No se pueden crear solicitudes entre mascotas del mismo tutor.'))
+                raise ValidationError(
+                    _('No se pueden crear solicitudes entre mascotas del mismo tutor.')
+                )
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -518,7 +520,9 @@ class PetMeetup(TimeStampedModel):
             p1_owner_id = getattr(self.pet1, 'owner_id', None)
             p2_owner_id = getattr(self.pet2, 'owner_id', None)
             if p1_owner_id and p2_owner_id and p1_owner_id == p2_owner_id:
-                raise ValidationError(_('No se pueden programar citas entre mascotas del mismo tutor.'))
+                raise ValidationError(
+                    _('No se pueden programar citas entre mascotas del mismo tutor.')
+                )
 
     def save(self, *args, **kwargs):
         self.clean()

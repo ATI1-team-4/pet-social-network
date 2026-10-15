@@ -373,13 +373,13 @@ class MatchInterestedTests(TestCase):
         self.client.login(username='tutor_interesados', password='password123')
 
         # Solicitud 1: Kira (Boxer, hembra -> 95% compatibilidad con Rocky)
-        req_kira = MatchRequest.objects.create(
+        MatchRequest.objects.create(
             from_pet=self.suitor_pet1,
             to_pet=self.pet,
             status=MatchRequest.RequestStatus.PENDING,
         )
         # Solicitud 2: Luna (Poodle, hembra -> 75% compatibilidad con Rocky, creada después)
-        req_luna = MatchRequest.objects.create(
+        MatchRequest.objects.create(
             from_pet=self.suitor_pet2,
             to_pet=self.pet,
             status=MatchRequest.RequestStatus.PENDING,
@@ -402,4 +402,3 @@ class MatchInterestedTests(TestCase):
         suitors_recent = res_recent.context['suitors']
         self.assertEqual(suitors_recent[0]['name'], 'Luna')
         self.assertEqual(suitors_recent[1]['name'], 'Kira')
-
