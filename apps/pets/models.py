@@ -2,6 +2,7 @@ import uuid
 from datetime import date
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -90,6 +91,11 @@ class Pet(TimeStampedModel):
         MINT = 'mint', _('Menta')
         PEACH = 'peach', _('Melocotón')
 
+    class CertificateType(models.TextChoices):
+        FCI = 'Certificado FCI', _('Certificado FCI / con pedigrí')
+        TRAMITE = 'En trámite', _('En trámite')
+        SIN_PEDIGRI = 'Sin pedigrí', _('Sin pedigrí')
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -148,7 +154,8 @@ class Pet(TimeStampedModel):
     certificate_type = models.CharField(
         max_length=100,
         blank=True,
-        default='Certificado FCI',
+        choices=CertificateType.choices,
+        default=CertificateType.FCI,
         verbose_name=_('Tipo de certificado'),
         help_text=_('Certificación sanitaria o de pedigrí (ej. Certificado FCI).'),
     )
@@ -157,6 +164,12 @@ class Pet(TimeStampedModel):
         blank=True,
         verbose_name=_('Número de certificado'),
         help_text=_('Número de registro oficial o folio del certificado.'),
+    )
+    has_pedigree = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name=_('Tiene pedigrí'),
+        help_text=_('Indica si la mascota cuenta con certificación de pedigrí oficial.'),
     )
     purpose = models.CharField(
         max_length=20,
@@ -169,6 +182,11 @@ class Pet(TimeStampedModel):
         default=True,
         verbose_name=_('Activo para match'),
         help_text=_('Determina si la mascota es visible en el feed de búsqueda de parejas.'),
+    )
+    is_socializing = models.BooleanField(
+        default=True,
+        verbose_name=_('Buscando socializar'),
+        help_text=_('Determina si la mascota está disponible para socialización y juego.'),
     )
     is_for_adoption = models.BooleanField(
         default=False,
@@ -202,6 +220,34 @@ class Pet(TimeStampedModel):
     def __str__(self):
         return f'{self.name} ({self.species_label} - {self.breed})'
 
+    def _compute_has_pedigree(self) -> bool:
+        raw = (self.certificate_type or '').lower()
+        if 'sin' in raw or 'tramite' in raw or 'trámite' in raw:
+            return False
+        return bool(
+            (self.certificate_number and 'sin' not in self.certificate_number.lower())
+            or 'fci' in raw
+            or 'pedigr' in raw
+            or 'pedigree' in raw
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'has_pedigree' not in kwargs and (self.certificate_type or self.certificate_number):
+            self.has_pedigree = self._compute_has_pedigree()
+        if 'is_socializing' not in kwargs and self.purpose:
+            self.is_socializing = self.purpose in (self.Purpose.PLAY, self.Purpose.BOTH)
+
+    def save(self, *args, **kwargs):
+        self.has_pedigree = self._compute_has_pedigree()
+        if self.is_active_for_match and self.is_socializing:
+            self.purpose = self.Purpose.BOTH
+        elif self.is_active_for_match and not self.is_socializing:
+            self.purpose = self.Purpose.MATING
+        elif not self.is_active_for_match and self.is_socializing:
+            self.purpose = self.Purpose.PLAY
+        super().save(*args, **kwargs)
+
     def __getitem__(self, key):
         """Permite acceso estilo diccionario para compatibilidad de vistas y plantillas."""
         if hasattr(self, key):
@@ -214,8 +260,8 @@ class Pet(TimeStampedModel):
         if not self.species:
             return _('Mascota')
         if hasattr(self.species, 'name'):
-            return self.species.name
-        return str(self.species).strip().capitalize()
+            return _(self.species.name)
+        return _(str(self.species).strip().capitalize())
 
     @property
     def age_years(self):
@@ -234,14 +280,14 @@ class Pet(TimeStampedModel):
         if years == 1:
             return _('1 año')
         elif years > 1:
-            return _(f'{years} años')
+            return _('%(years)s años') % {'years': years}
         if not self.birth_date:
             return _('Edad no especificada')
         today = date.today()
         months = (today.year - self.birth_date.year) * 12 + today.month - self.birth_date.month
         if months <= 1:
             return _('1 mes')
-        return _(f'{months} meses')
+        return _('%(months)s meses') % {'months': months}
 
     @property
     def age(self):
@@ -301,18 +347,6 @@ class Pet(TimeStampedModel):
         return color_map.get(self.profile_color, '#FA7D82')
 
     @property
-    def has_pedigree(self):
-        raw = (self.certificate_type or '').lower()
-        if 'sin' in raw or 'tramite' in raw or 'trámite' in raw:
-            return False
-        return bool(
-            (self.certificate_number and 'sin' not in self.certificate_number.lower())
-            or 'fci' in raw
-            or 'pedigr' in raw
-            or 'pedigree' in raw
-        )
-
-    @property
     def location(self):
         if hasattr(self.owner, 'profile'):
             return self.owner.profile.location_display
@@ -321,10 +355,6 @@ class Pet(TimeStampedModel):
     @property
     def is_matching(self):
         return self.is_active_for_match and self.purpose in (self.Purpose.MATING, self.Purpose.BOTH)
-
-    @property
-    def is_socializing(self):
-        return self.purpose in (self.Purpose.PLAY, self.Purpose.BOTH)
 
     @property
     def is_adoption(self):
@@ -391,6 +421,20 @@ class MatchRequest(TimeStampedModel):
                 name='prevent_self_match_request',
             ),
         ]
+
+    def clean(self):
+        super().clean()
+        if self.from_pet_id and self.to_pet_id:
+            if self.from_pet_id == self.to_pet_id:
+                raise ValidationError(_('Una mascota no puede enviarse una solicitud a sí misma.'))
+            from_owner_id = getattr(self.from_pet, 'owner_id', None)
+            to_owner_id = getattr(self.to_pet, 'owner_id', None)
+            if from_owner_id and to_owner_id and from_owner_id == to_owner_id:
+                raise ValidationError(_('No se pueden crear solicitudes entre mascotas del mismo tutor.'))
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.from_pet.name} ➔ {self.to_pet.name} ({self.get_status_display()})'
@@ -465,6 +509,20 @@ class PetMeetup(TimeStampedModel):
         verbose_name = _('Encuentro de mascotas')
         verbose_name_plural = _('Encuentros de mascotas')
         ordering = ['-date', '-time']
+
+    def clean(self):
+        super().clean()
+        if self.pet1_id and self.pet2_id:
+            if self.pet1_id == self.pet2_id:
+                raise ValidationError(_('Una cita debe realizarse entre dos mascotas distintas.'))
+            p1_owner_id = getattr(self.pet1, 'owner_id', None)
+            p2_owner_id = getattr(self.pet2, 'owner_id', None)
+            if p1_owner_id and p2_owner_id and p1_owner_id == p2_owner_id:
+                raise ValidationError(_('No se pueden programar citas entre mascotas del mismo tutor.'))
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'Cita entre {self.pet1.name} y {self.pet2.name} el {self.date} ({self.get_status_display()})'
