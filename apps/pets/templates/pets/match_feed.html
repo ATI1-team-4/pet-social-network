@@ -6,7 +6,7 @@
 {% block content %}
 <div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-5">
 
-    <!-- Mensajes flash del sistema si existen -->
+    <!-- Mensajes flash del sistema alineados con el contenedor de la página -->
     {% include 'components/messages.html' %}
 
     <!-- Miga de pan de navegación -->
@@ -156,7 +156,7 @@
             <div id="discovery-card"
                  class="relative w-full max-w-2xl lg:max-w-none bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border border-neutral-200/80 mb-8 lg:mb-0 shadow-pet-discovery {% if not current_candidate %}hidden{% endif %}">
 
-                <!-- SECCIÓN 1: FOTOGRAFÍA PRINCIPAL CON GRADIENTE E INFORMACIÓN -->
+                <!-- Fotografía principal del candidato con gradiente informativo y etiquetas -->
                 <div class="relative w-full h-80 sm:h-96 md:h-[480px] lg:h-[500px] bg-neutral-100 overflow-hidden">
                     <img id="card-photo"
                          src="{{ current_candidate.photo_url|default:'' }}"
@@ -219,7 +219,7 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN 2: CUERPO DETALLADO DE LA MASCOTA -->
+                <!-- Información detallada del candidato, métricas y tutores -->
                 <div id="card-body-container" class="p-6 sm:p-7 space-y-5 bg-white">
 
                     <!-- Personalidad y Temperamento -->
@@ -236,7 +236,7 @@
                         </div>
                     </div>
 
-                    <!-- Fila de métricas clave (3 cajas redondeadas limpias como en UI Figma) -->
+                    <!-- Fila de métricas clave con compatibilidad, distancia y pedigrí -->
                     <div class="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl bg-[#F4F6F9] border border-slate-100 text-center">
                         <div class="flex flex-col">
                             <span class="text-[10px] sm:text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
@@ -298,7 +298,7 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN 3: BOTONES DE ACCIÓN RÁPIDA (✕, ♥ y ⚑) -->
+                <!-- Botones de acción rápida: descartar, mostrar interés y reportar -->
                 <!-- Versión Escritorio (md en adelante) -->
                 <div class="hidden md:flex p-4 sm:p-5 bg-neutral-50/80 border-t border-neutral-100 items-center justify-between gap-4">
                     <!-- Botón: Pasar / Descartar (✕) -->
@@ -367,9 +367,7 @@
 
         </div>
 
-        <!-- ============================================== -->
-        <!-- COLUMNA DERECHA: BANDEJA LATERAL DE INTERESADOS-->
-        <!-- ============================================== -->
+        <!-- Columna lateral con bandeja de pretendientes interesados -->
         <div class="hidden lg:block lg:col-span-4 sticky top-24 space-y-4">
 
             <!-- Tarjeta: Pretendientes interesados en Toby -->
@@ -381,7 +379,7 @@
                             {% blocktranslate with name=active_pet.name %}Interesadas en {{ name }}{% endblocktranslate %}
                         </h2>
                     </div>
-                    <!-- Badge '3 nuevas' en una sola línea sin desbordamiento -->
+                    <!-- Indicador de solicitudes pendientes sin desbordamiento -->
                     <span class="inline-flex items-center justify-center whitespace-nowrap shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold badge-pet-accent">
                         {{ pending_interested_count }} {% translate "nuevas" %}
                     </span>
@@ -927,10 +925,9 @@
     function openCandidateReportModal() {
         if (!CANDIDATES || currentCandidateIndex >= CANDIDATES.length) return;
         const c = CANDIDATES[currentCandidateIndex];
-        const reason = prompt(
-            `{% translate "¿Deseas reportar el perfil de" %} ${c.name}? {% translate "Por favor indica el motivo del reporte:" %}`,
-            "{% translate "Información falsa o contenido inapropiado" %}"
-        );
+        const defaultReason = '{% filter escapejs %}{% translate "Información falsa o contenido inapropiado" %}{% endfilter %}';
+        const promptText = `{% filter escapejs %}{% translate "¿Deseas reportar el perfil de" %}{% endfilter %} ${c.name}? {% filter escapejs %}{% translate "Por favor indica el motivo del reporte:" %}{% endfilter %}`;
+        const reason = prompt(promptText, defaultReason);
         if (reason && reason.trim()) {
             fetch('{% url "pets:match_report_candidate" %}', {
                 method: 'POST',
@@ -940,9 +937,9 @@
                 },
                 body: JSON.stringify({ candidate_id: c.id, reason: reason.trim() })
             })
-            .then(r => r.json())
             .then(data => {
-                alert(data.message || "{% translate 'El reporte ha sido enviado al equipo de administración para su revisión.' %}");
+                const successMsg = data.message || '{% filter escapejs %}{% translate "El reporte ha sido enviado al equipo de administración para su revisión." %}{% endfilter %}';
+                alert(successMsg);
                 currentCandidateIndex++;
                 renderCandidate(currentCandidateIndex);
             })

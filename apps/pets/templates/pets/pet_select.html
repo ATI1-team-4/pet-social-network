@@ -6,7 +6,7 @@
 {% block content %}
 <div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-6">
 
-    <!-- Mensajes flash del sistema si existen -->
+    <!-- Mensajes flash del sistema alineados con el contenedor de la página -->
     {% include 'components/messages.html' %}
 
     <!-- Miga de pan de navegación -->
@@ -26,12 +26,10 @@
         <input type="hidden" name="selected_pet_id" id="selected-pet-id-input" value="{{ active_pet.id|default:'' }}">
         <input type="hidden" name="pedigree_filter" id="pedigree-filter-input" value="{{ pedigree_preference|default:'both' }}">
 
-        <!-- ============================================== -->
-        <!-- VISTA DE ESCRITORIO (reto 11, página 11 der.) -->
-        <!-- ============================================== -->
+        <!-- Vista de escritorio con listado y panel lateral de acciones -->
         <div class="hidden lg:grid grid-cols-12 gap-8 items-start">
 
-            <!-- Columna izquierda: Lista de tarjetas de mascotas (8 columnas) -->
+            <!-- Columna principal con el listado de tarjetas de mascotas -->
             <div class="col-span-8 space-y-4">
                 {% for pet in pets %}
                     <div id="desktop-pet-card-{{ pet.id }}"
@@ -146,7 +144,7 @@
                 </div>
             </div>
 
-            <!-- Columna derecha: Acciones inmediatas (4 columnas fijas) -->
+            <!-- Columna lateral con panel de acciones inmediatas -->
             <div class="col-span-4 sticky top-24">
                 <div class="card-petly p-6 bg-white border border-neutral-300/80 shadow-md space-y-4">
                     <div class="flex items-center gap-2">
@@ -179,9 +177,7 @@
 
         </div>
 
-        <!-- ============================================== -->
-        <!-- VISTA MÓVIL (reto 11, página 11 izq. teléfono) -->
-        <!-- ============================================== -->
+        <!-- Vista adaptada para dispositivos móviles -->
         <div class="lg:hidden space-y-4">
 
             <!-- Lista de tarjetas de mascotas en diseño móvil -->
@@ -384,7 +380,7 @@
             }).catch(err => console.error('Error al sincronizar mascota activa en sesión:', err));
         }
 
-        // 1. Actualizar todas las tarjetas de ESCRITORIO
+        // Sincronizar estilos e indicadores en tarjetas de escritorio
         document.querySelectorAll('.desktop-pet-card').forEach(card => {
             const isSelected = card.getAttribute('data-pet-id') === petId;
 
@@ -443,7 +439,7 @@
             }
         });
 
-        // 2. Actualizar todas las tarjetas de MÓVIL
+        // Sincronizar estilos e indicadores en tarjetas móviles
         document.querySelectorAll('.mobile-pet-card').forEach(card => {
             const isSelected = card.getAttribute('data-pet-id') === petId;
 

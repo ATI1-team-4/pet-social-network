@@ -8,6 +8,9 @@
 
     <!-- Contenido principal de la vista pública -->
     <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Bloque opcional de mensajes del sistema -->
+        {% block messages %}{% endblock %}
+
         {% block content %}{% endblock %}
     </main>
 

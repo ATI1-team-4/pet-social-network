@@ -1,11 +1,23 @@
-{% load i18n %}
+{% load i18n static %}
+<!-- Contenedor estático de mensajes de alerta en el flujo de la página -->
 {% if messages %}
-<div class="w-full space-y-2 mb-4">
+<div class="w-full space-y-2 mb-4" id="flash-messages-container">
     {% for message in messages %}
-    <div class="p-3.5 rounded-2xl text-xs sm:text-sm border flex items-center justify-between shadow-2xs transition-all {% if message.tags == 'error' %}bg-rose-50 border-rose-200 text-rose-800{% elif message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800{% elif message.tags == 'warning' %}bg-amber-50 border-amber-200 text-amber-800{% else %}bg-sky-50 border-sky-200 text-sky-800{% endif %}" role="alert">
-        <span>{{ message }}</span>
+    <div class="p-3.5 rounded-2xl text-xs sm:text-sm border flex items-center justify-between gap-3 shadow-2xs transition-all duration-300 {% if message.tags == 'error' %}bg-rose-50 border-rose-200 text-rose-800{% elif message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800{% elif message.tags == 'warning' %}bg-amber-50 border-amber-200 text-amber-800{% else %}bg-sky-50 border-sky-200 text-sky-800{% endif %}" role="alert">
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+            {% if message.tags == 'error' %}
+                {% include 'components/icon.html' with name="alert-circle" class="w-4 h-4 text-rose-600 shrink-0" %}
+            {% elif message.tags == 'success' %}
+                {% include 'components/icon.html' with name="check-circle" class="w-4 h-4 text-emerald-600 shrink-0" %}
+            {% elif message.tags == 'warning' %}
+                {% include 'components/icon.html' with name="alert-circle" class="w-4 h-4 text-amber-600 shrink-0" %}
+            {% else %}
+                {% include 'components/icon.html' with name="info" class="w-4 h-4 text-sky-600 shrink-0" %}
+            {% endif %}
+            <span class="font-medium break-words leading-relaxed">{{ message }}</span>
+        </div>
         {% translate "Cerrar" as aria_close_msg %}
-        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-3.5 h-3.5 text-current" text="" onclick="this.parentElement.remove()" aria_label=aria_close_msg class="opacity-70 hover:opacity-100 ml-3 p-1 rounded-lg hover:bg-black/5 transition-colors cursor-pointer select-none inline-flex items-center justify-center shrink-0" %}
+        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-3.5 h-3.5 text-current" text="" onclick="this.closest('[role=alert]').remove()" aria_label=aria_close_msg class="opacity-70 hover:opacity-100 p-1 rounded-lg hover:bg-black/5 transition-colors cursor-pointer select-none inline-flex items-center justify-center shrink-0" %}
     </div>
     {% endfor %}
 </div>

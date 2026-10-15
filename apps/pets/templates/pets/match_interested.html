@@ -6,7 +6,7 @@
 {% block content %}
 <div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-6">
 
-    <!-- Mensajes flash del sistema si existen -->
+    <!-- Mensajes flash del sistema alineados con el contenedor de la página -->
     {% include 'components/messages.html' %}
 
     <!-- Miga de pan de navegación oficial -->
@@ -224,7 +224,7 @@
                     <div class="flex items-center gap-2 self-end sm:self-center" onclick="event.stopPropagation()">
                         {% if suitor.is_received and suitor.status == 'pending' %}
                         <button type="button"
-                            onclick="handleAcceptRequest({{ suitor.request_id }}, '{{ suitor.name|escapejs }}')"
+                            onclick="handleAcceptRequest('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}');"
                             class="btn-accept-request text-xs px-3.5 py-1.5 font-bold rounded-full bg-petly-coral text-white hover:bg-petly-coral/90 shadow-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                             title="{% translate 'Aceptar solicitud de match' %}">
                             {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-white" %}
@@ -241,7 +241,7 @@
                         {% endif %}
 
                         <button type="button"
-                            onclick="openNoteModal({{ suitor.request_id }}, '{{ suitor.name|escapejs }}', '{{ suitor.tutor_signature|escapejs }}', '{{ suitor.sent_note|default:suitor.quote|escapejs }}', {{ suitor.is_sent_num }})"
+                            onclick="openNoteModal('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}', '{{ suitor.tutor_signature|escapejs }}', '{{ suitor.sent_note|default:suitor.quote|escapejs }}', '{{ suitor.is_sent_num }}')"
                             class="w-8 h-8 rounded-full p-0 flex items-center justify-center border border-neutral-300 text-neutral-600 hover:text-petly-coral hover:border-petly-coral/50 shadow-xs cursor-pointer transition-colors"
                             title="{% translate 'Nota inicial' %}"
                             aria-label="{% translate 'Nota inicial' %}">
@@ -249,7 +249,7 @@
                         </button>
 
                         <button type="button"
-                            onclick="handleRejectRequest({{ suitor.request_id }}, '{{ suitor.name|escapejs }}', '{{ suitor.action_type }}')"
+                            onclick="handleRejectRequest('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}', '{{ suitor.action_type }}')"
                             class="btn-reject-request w-8 h-8 rounded-full p-0 flex items-center justify-center border border-neutral-300 text-neutral-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 shadow-xs cursor-pointer transition-colors"
                             title="{% if suitor.status == 'accepted' %}{% translate 'Cancelar match' %}{% elif suitor.is_sent %}{% translate 'Cancelar solicitud' %}{% else %}{% translate 'Descartar solicitud' %}{% endif %}"
                             aria-label="{% if suitor.status == 'accepted' %}{% translate 'Cancelar match' %}{% elif suitor.is_sent %}{% translate 'Cancelar solicitud' %}{% else %}{% translate 'Descartar solicitud' %}{% endif %}">
@@ -360,7 +360,7 @@
                                 <div class="flex flex-wrap items-center gap-2.5">
                                     {% if suitor.is_received and suitor.status == 'pending' %}
                                     <button type="button"
-                                        onclick="handleAcceptRequest({{ suitor.request_id }}, '{{ suitor.name|escapejs }}')"
+                                        onclick="handleAcceptRequest('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}')"
                                         class="btn-accept-request-exp flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold rounded-xl bg-petly-coral text-white hover:bg-petly-coral/90 shadow-md inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
                                         {% include 'components/icon.html' with name="heart-filled" class="w-4 h-4 text-white" %}
                                         <span>{% translate "Aceptar match" %}</span>
@@ -375,7 +375,7 @@
                                     {% endif %}
 
                                     <button type="button"
-                                        onclick="openNoteModal({{ suitor.request_id }}, '{{ suitor.name|escapejs }}', '{{ suitor.tutor_signature|escapejs }}', '{{ suitor.sent_note|default:suitor.quote|escapejs }}', {{ suitor.is_sent_num }})"
+                                        onclick="openNoteModal('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}', '{{ suitor.tutor_signature|escapejs }}', '{{ suitor.sent_note|default:suitor.quote|escapejs }}', '{{ suitor.is_sent_num }}')"
                                         class="flex-1 sm:flex-initial text-xs px-4 py-2.5 font-semibold rounded-xl bg-petly-lilac text-petly-purple hover:bg-petly-lilac/80 shadow-xs inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
                                         {% include 'components/icon.html' with name="message-square" class="w-4 h-4 text-purple-800" %}
                                         <span>{% translate "Nota inicial" %}</span>
@@ -384,7 +384,7 @@
 
                                 <div class="btn-reject-request-wrapper">
                                     <button type="button"
-                                        onclick="handleRejectRequest({{ suitor.request_id }}, '{{ suitor.name|escapejs }}', '{{ suitor.action_type }}')"
+                                        onclick="handleRejectRequest('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}', '{{ suitor.action_type }}')"
                                         class="btn-reject-request text-xs font-semibold text-neutral-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1.5 py-1 cursor-pointer group">
                                         <span>
                                             {% if suitor.status == 'accepted' %}
@@ -481,12 +481,16 @@
                                     class="font-bold text-petly-coral hover:underline cursor-pointer">
                                     {% translate "Ver detalles" %}
                                 </button>
+                                {% with meetup_raw_id=date.meetup_id|default:date.id %}
+                                {% with clean_meetup_id=meetup_raw_id|cut:'meetup-' %}
                                 <button type="button"
-                                    onclick="handleCancelMeeting({{ date.meetup_id|default:date.id|cut:'meetup-' }}, '{{ date.pet_name|default:date.title|escapejs }}')"
+                                    onclick="handleCancelMeeting('{{ clean_meetup_id }}', '{{ date.pet_name|default:date.title|escapejs }}');"
                                     class="font-bold text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
                                     title="{% translate 'Cancelar cita' %}">
                                     {% translate "Cancelar" %}
                                 </button>
+                                {% endwith %}
+                                {% endwith %}
                             </div>
                         </div>
                     </div>

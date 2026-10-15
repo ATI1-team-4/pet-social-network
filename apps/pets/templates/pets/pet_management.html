@@ -12,7 +12,7 @@
 {% block content %}
 <div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-6">
 
-    <!-- Mensajes flash del sistema si existen -->
+    <!-- Mensajes flash del sistema alineados con el contenedor de la página -->
     {% include 'components/messages.html' %}
 
     <!-- Miga de pan de navegación oficial -->
@@ -39,7 +39,7 @@
         </span>
     </div>
 
-    <!-- Cabecera principal para escritorio (reto 11, página 10 escritorio) -->
+    <!-- Cabecera principal de la pantalla para escritorio -->
     <div class="hidden lg:flex items-center justify-between">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0 shadow-xs">
@@ -133,7 +133,7 @@
             <!-- ========================================== -->
             <div class="contents lg:block lg:col-span-4 lg:space-y-6">
 
-                <!-- TARJETA 1: Fotografía y Resumen -->
+                <!-- Fotografía del perfil y resumen de la mascota -->
                 <div class="card-petly order-1 w-full p-6 bg-white border border-neutral-300/80 text-center flex flex-col items-center">
                     <!-- Contenedor del avatar circular oficial con insignia de cámara -->
                     <div class="relative w-36 h-36 sm:w-40 sm:h-40 mb-4 cursor-pointer" onclick="triggerPhotoUpload()" title="{% translate 'Subir nueva foto' %}">
@@ -167,7 +167,7 @@
                     </div>
                 </div>
 
-                <!-- TARJETA 2: Color de Perfil -->
+                <!-- Selector de color distintivo del perfil -->
                 <div class="card-petly order-4 w-full p-6 bg-white border border-neutral-300/80">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
@@ -186,7 +186,7 @@
                         {% translate "Este color personalizará la tarjeta de descubrimiento y destacados de tu mascota en el buscador de parejas." %}
                     </p>
 
-                    <!-- Paleta de 4 muestras circulares interactivas con checkmark activo -->
+                    <!-- Paleta de muestras circulares con indicador de selección activa -->
                     <div class="flex items-center justify-between pt-1">
                         <!-- Muestra: Coral -->
                         {% translate 'Coral' as name_coral %}
@@ -226,7 +226,7 @@
                     </div>
                 </div>
 
-                <!-- TARJETA 3: Objetivos en PetMatch -->
+                <!-- Objetivos de emparejamiento y socialización -->
                 <div class="card-petly order-5 w-full p-6 bg-white border border-neutral-300/80">
                     <div class="flex items-center gap-2 mb-4">
                         <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
@@ -238,7 +238,7 @@
                     </div>
 
                     <div class="space-y-4 pt-1">
-                        <!-- Toggle 1: Buscando Pareja -->
+                        <!-- Interruptor para búsqueda activa de pareja -->
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-semibold text-neutral-800">
                                 {% translate "Buscando pareja" %}
@@ -246,7 +246,7 @@
                             {% include 'components/toggle.html' with id="toggle-matching" name="is_matching" checked=active_pet.is_matching onchange="handleGoalToggle('is_matching', this.checked)" %}
                         </div>
 
-                        <!-- Toggle 2: Buscando Socializar -->
+                        <!-- Interruptor para socialización y juego -->
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-semibold text-neutral-800">
                                 {% translate "Buscando socializar" %}
@@ -254,7 +254,7 @@
                             {% include 'components/toggle.html' with id="toggle-socializing" name="is_socializing" checked=active_pet.is_socializing onchange="handleGoalToggle('is_socializing', this.checked)" %}
                         </div>
 
-                        <!-- Toggle 3: En Adopción -->
+                        <!-- Interruptor para disponibilidad en adopción -->
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-semibold text-neutral-800">
                                 {% translate "En adopción" %}
@@ -270,7 +270,7 @@
             <!-- ============================================== -->
             <div class="contents lg:block lg:col-span-8 lg:space-y-6">
 
-                <!-- TARJETA 4: Datos básicos de la mascota -->
+                <!-- Datos básicos y características de la mascota -->
                 <div class="card-petly order-2 w-full p-6 sm:p-8 bg-white border border-neutral-300/80">
                     <div class="flex items-center gap-2 mb-6">
                         <div class="w-7 h-7 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0">
@@ -349,7 +349,7 @@
                     </div>
                 </div>
 
-                <!-- TARJETA 5: Temperamento y personalidad -->
+                <!-- Rasgos de temperamento y personalidad -->
                 <div class="card-petly order-3 w-full p-6 sm:p-8 bg-white border border-neutral-300/80">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-7 h-7 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
@@ -452,7 +452,7 @@
                         {% translate "Vista previa" as preview_label %}
                         {% include 'components/button.html' with text=preview_label type="button" variant="outline" onclick="openPreviewModal()" icon="eye" class="flex-1 sm:flex-initial text-xs px-5 py-2.5 bg-white shadow-xs" %}
                         {% translate "Guardar cambios" as save_label %}
-                        {% include 'components/button.html' with text=save_label type="submit" variant="primary" icon="check" icon_class="w-4 h-4 text-white" class="flex-1 sm:flex-initial text-xs px-7 py-2.5 font-bold shadow-md" %}
+                        {% include 'components/button.html' with id="btn-save-pet" text_id="btn-save-pet-text" text=save_label type="submit" variant="primary" icon="check" icon_class="w-4 h-4 text-white" class="flex-1 sm:flex-initial text-xs px-7 py-2.5 font-bold shadow-md cursor-pointer" %}
                     </div>
                 </div>
 
@@ -598,7 +598,7 @@
                         </div>
                     </div>
 
-                    <!-- Fila de métricas clave (3 cajas redondeadas) -->
+                    <!-- Fila de métricas clave con fecha de nacimiento, especie y pedigrí -->
                     <div id="modal-preview-metrics-box" class="grid grid-cols-3 gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-2xl border text-center" style="border-color: rgba(250, 125, 130, 0.3); background-color: rgba(250, 125, 130, 0.05);">
                         <div class="flex flex-col">
                             <span class="text-[9px] sm:text-[10px] font-semibold text-neutral-500 uppercase">
@@ -1047,7 +1047,7 @@
         }
     }
 
-    // Notificación toast visual reactiva
+    // Notificación toast visual reactiva para acciones asíncronas
     function showGoalToast(message, type = 'success') {
         let toast = document.getElementById('goal-toast');
         if (!toast) {
@@ -1112,6 +1112,22 @@
         if (certInput) {
             certInput.addEventListener('change', (e) => {
                 handleCertificateChange(e.target.value);
+            });
+        }
+
+        // Feedback visual inmediato y prevención de doble clic al enviar el formulario
+        const petForm = document.getElementById('pet-management-form');
+        if (petForm) {
+            petForm.addEventListener('submit', () => {
+                const saveBtn = document.getElementById('btn-save-pet');
+                const saveText = document.getElementById('btn-save-pet-text');
+                if (saveText) {
+                    saveText.textContent = '{% filter escapejs %}{% translate "Guardando cambios..." %}{% endfilter %}';
+                }
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.classList.add('opacity-80', 'cursor-wait');
+                }
             });
         }
     });
