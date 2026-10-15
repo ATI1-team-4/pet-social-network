@@ -5,14 +5,14 @@
     {% if is_new %}
         {% translate "Registrar mascota" %} | Petly
     {% else %}
-        {% translate "Gestión de perfil de mascota" %} - {{ active_pet.name|default:"Toby" }} | Petly
+        {% translate "Gestión de perfil de mascota" %} - {{ active_pet.name|default:_("Mascota") }} | Petly
     {% endif %}
 {% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-6">
 
-    <!-- Mensajes flash del sistema si existen -->
+    <!-- Mensajes flash del sistema alineados con el contenedor de la página -->
     {% include 'components/messages.html' %}
 
     <!-- Miga de pan de navegación oficial -->
@@ -31,15 +31,15 @@
             {% translate "Ficha de registro" %}
         </span>
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-petly-blue text-neutral-800">
-            {% if is_new %}
+            {% if is_new or not active_pet.id %}
                 {% translate "Nuevo ingreso" %}
             {% else %}
-                ID #{{ active_pet.id|default:"1234" }}
+                ID #{{ active_pet.id }}
             {% endif %}
         </span>
     </div>
 
-    <!-- Cabecera principal para escritorio (reto 11, página 10 escritorio) -->
+    <!-- Cabecera principal de la pantalla para escritorio -->
     <div class="hidden lg:flex items-center justify-between">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0 shadow-xs">
@@ -49,14 +49,14 @@
                 <h1 class="title-h3 text-neutral-900 font-bold">
                     {% translate "Gestión de perfil de mascota" %}
                 </h1>
-                {% if not is_new and active_pet %}
+                {% if not is_new and active_pet and active_pet.id %}
                     <span class="text-petly-coral font-bold text-lg">
                         {{ active_pet.name }}
                     </span>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-petly-ice text-neutral-700 border border-petly-blue/80">
                         ID #{{ active_pet.id }}
                     </span>
-                {% elif is_new %}
+                {% else %}
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
                         {% translate "Nueva mascota" %}
                     </span>
@@ -65,12 +65,37 @@
         </div>
     </div>
 
+    {% if not pets %}
+        <!-- Banner de bienvenida para nuevos tutores sin mascotas registradas -->
+        <div class="bg-gradient-to-r from-petly-blue/40 via-petly-ice to-amber-50 border border-petly-coral/40 rounded-2xl p-4 sm:p-5 flex items-start sm:items-center gap-4 shadow-xs">
+            <div class="w-10 h-10 rounded-full bg-petly-coral text-white flex items-center justify-center shrink-0 shadow-xs">
+                {% include 'components/icon.html' with name="sparkles" class="w-5 h-5" %}
+            </div>
+            <div class="flex-1">
+                <h2 class="title-h4 text-neutral-900 font-bold">
+                    {% translate "¡Te damos la bienvenida a Petly!" %}
+                </h2>
+                <p class="text-caption sm:text-body-sm text-neutral-600 mt-0.5">
+                    {% translate "Aún no tienes ninguna mascota registrada. Para acceder a las funciones de emparejamiento, citas y comunidad, es obligatorio registrar a tu primer compañero de cuatro patas completando este formulario." %}
+                </p>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Formulario oculto para alternar de mascota activa en sesión sin parámetros GET -->
+    <form id="switch-pet-form" method="post" action="{% url 'pets:pet_set_active' %}" class="hidden">
+        {% csrf_token %}
+        <input type="hidden" name="selected_pet_id" id="switch-pet-id-input" value="">
+        <input type="hidden" name="next" value="{% url 'pets:pet_management' %}">
+        <input type="hidden" name="is_form_submission" value="true">
+    </form>
+
     <!-- Barra de pestañas para alternar entre mascotas del tutor o registrar nueva (escritorio y móvil) -->
     <div class="bg-petly-ice/60 border border-neutral-300/70 rounded-2xl p-1.5 flex flex-wrap items-center justify-between gap-2 shadow-xs">
         <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 max-w-full">
             {% for pet in pets %}
-                <a href="{% url 'pets:pet_management' %}?pet={{ pet.name|lower }}"
-                   class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all select-none no-underline shrink-0 {% if not is_new and active_pet.id == pet.id %}bg-white text-neutral-900 shadow-xs border border-neutral-300/80{% else %}text-neutral-600 hover:text-neutral-900 hover:bg-white/60{% endif %}">
+                <button type="button" onclick="switchActivePet('{{ pet.id }}')"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all select-none cursor-pointer shrink-0 {% if not is_new and active_pet.id == pet.id %}bg-white text-neutral-900 shadow-xs border border-neutral-300/80{% else %}text-neutral-600 hover:text-neutral-900 hover:bg-white/60{% endif %}">
                     <span class="w-2.5 h-2.5 rounded-full {% if pet.is_active %}bg-petly-coral{% else %}bg-neutral-400{% endif %}"></span>
                     <span>{{ pet.tab_label|default:pet.name }}</span>
                     {% if pet.is_active %}
@@ -78,7 +103,7 @@
                             {% translate "Activo" %}
                         </span>
                     {% endif %}
-                </a>
+                </button>
             {% endfor %}
         </div>
 
@@ -108,7 +133,7 @@
             <!-- ========================================== -->
             <div class="contents lg:block lg:col-span-4 lg:space-y-6">
 
-                <!-- TARJETA 1: Fotografía y Resumen -->
+                <!-- Fotografía del perfil y resumen de la mascota -->
                 <div class="card-petly order-1 w-full p-6 bg-white border border-neutral-300/80 text-center flex flex-col items-center">
                     <!-- Contenedor del avatar circular oficial con insignia de cámara -->
                     <div class="relative w-36 h-36 sm:w-40 sm:h-40 mb-4 cursor-pointer" onclick="triggerPhotoUpload()" title="{% translate 'Subir nueva foto' %}">
@@ -142,7 +167,7 @@
                     </div>
                 </div>
 
-                <!-- TARJETA 2: Color de Perfil -->
+                <!-- Selector de color distintivo del perfil -->
                 <div class="card-petly order-4 w-full p-6 bg-white border border-neutral-300/80">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
@@ -161,7 +186,7 @@
                         {% translate "Este color personalizará la tarjeta de descubrimiento y destacados de tu mascota en el buscador de parejas." %}
                     </p>
 
-                    <!-- Paleta de 4 muestras circulares interactivas con checkmark activo -->
+                    <!-- Paleta de muestras circulares con indicador de selección activa -->
                     <div class="flex items-center justify-between pt-1">
                         <!-- Muestra: Coral -->
                         {% translate 'Coral' as name_coral %}
@@ -201,7 +226,7 @@
                     </div>
                 </div>
 
-                <!-- TARJETA 3: Objetivos en PetMatch -->
+                <!-- Objetivos de emparejamiento y socialización -->
                 <div class="card-petly order-5 w-full p-6 bg-white border border-neutral-300/80">
                     <div class="flex items-center gap-2 mb-4">
                         <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
@@ -213,7 +238,7 @@
                     </div>
 
                     <div class="space-y-4 pt-1">
-                        <!-- Toggle 1: Buscando Pareja -->
+                        <!-- Interruptor para búsqueda activa de pareja -->
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-semibold text-neutral-800">
                                 {% translate "Buscando pareja" %}
@@ -221,7 +246,7 @@
                             {% include 'components/toggle.html' with id="toggle-matching" name="is_matching" checked=active_pet.is_matching onchange="handleGoalToggle('is_matching', this.checked)" %}
                         </div>
 
-                        <!-- Toggle 2: Buscando Socializar -->
+                        <!-- Interruptor para socialización y juego -->
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-semibold text-neutral-800">
                                 {% translate "Buscando socializar" %}
@@ -229,7 +254,7 @@
                             {% include 'components/toggle.html' with id="toggle-socializing" name="is_socializing" checked=active_pet.is_socializing onchange="handleGoalToggle('is_socializing', this.checked)" %}
                         </div>
 
-                        <!-- Toggle 3: En Adopción -->
+                        <!-- Interruptor para disponibilidad en adopción -->
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-semibold text-neutral-800">
                                 {% translate "En adopción" %}
@@ -245,7 +270,7 @@
             <!-- ============================================== -->
             <div class="contents lg:block lg:col-span-8 lg:space-y-6">
 
-                <!-- TARJETA 4: Datos básicos de la mascota -->
+                <!-- Datos básicos y características de la mascota -->
                 <div class="card-petly order-2 w-full p-6 sm:p-8 bg-white border border-neutral-300/80">
                     <div class="flex items-center gap-2 mb-6">
                         <div class="w-7 h-7 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center shrink-0">
@@ -324,7 +349,7 @@
                     </div>
                 </div>
 
-                <!-- TARJETA 5: Temperamento y personalidad -->
+                <!-- Rasgos de temperamento y personalidad -->
                 <div class="card-petly order-3 w-full p-6 sm:p-8 bg-white border border-neutral-300/80">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-7 h-7 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
@@ -427,7 +452,7 @@
                         {% translate "Vista previa" as preview_label %}
                         {% include 'components/button.html' with text=preview_label type="button" variant="outline" onclick="openPreviewModal()" icon="eye" class="flex-1 sm:flex-initial text-xs px-5 py-2.5 bg-white shadow-xs" %}
                         {% translate "Guardar cambios" as save_label %}
-                        {% include 'components/button.html' with text=save_label type="submit" variant="primary" icon="check" icon_class="w-4 h-4 text-white" class="flex-1 sm:flex-initial text-xs px-7 py-2.5 font-bold shadow-md" %}
+                        {% include 'components/button.html' with id="btn-save-pet" text_id="btn-save-pet-text" text=save_label type="submit" variant="primary" icon="check" icon_class="w-4 h-4 text-white" class="flex-1 sm:flex-initial text-xs px-7 py-2.5 font-bold shadow-md cursor-pointer" %}
                     </div>
                 </div>
 
@@ -531,7 +556,7 @@
                         <div>
                             <div class="flex items-center gap-1.5 sm:gap-2">
                                 <h2 id="modal-preview-name" class="title-h3 sm:title-h2 text-white font-bold tracking-tight drop-shadow-md">
-                                    {{ active_pet.name|default:"Toby" }}
+                                    {{ active_pet.name|default:_("Mascota") }}
                                 </h2>
                                 <span id="modal-preview-gender-symbol" class="inline-flex items-center drop-shadow-md" style="color: #FA7D82;">
                                     {% if active_pet.is_hembra or active_pet.gender == 'H' or active_pet.gender == 'hembra' %}
@@ -573,7 +598,7 @@
                         </div>
                     </div>
 
-                    <!-- Fila de métricas clave (3 cajas redondeadas) -->
+                    <!-- Fila de métricas clave con fecha de nacimiento, especie y pedigrí -->
                     <div id="modal-preview-metrics-box" class="grid grid-cols-3 gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-2xl border text-center" style="border-color: rgba(250, 125, 130, 0.3); background-color: rgba(250, 125, 130, 0.05);">
                         <div class="flex flex-col">
                             <span class="text-[9px] sm:text-[10px] font-semibold text-neutral-500 uppercase">
@@ -604,7 +629,7 @@
                     <!-- Biografía: Sobre la mascota -->
                     <div>
                         <h3 class="text-xs font-bold text-neutral-900 mb-0.5">
-                            {% translate "Sobre" %} <span id="modal-preview-about-name">{{ active_pet.name|default:"Toby" }}</span>
+                            {% translate "Sobre" %} <span id="modal-preview-about-name">{{ active_pet.name|default:_("tu mascota") }}</span>
                         </h3>
                         <p id="modal-preview-desc" class="text-xs text-neutral-600 leading-relaxed italic">
                             "{{ active_pet.description|default:'Adora correr en el parque, jugar con pelotas y dormir siestas al sol.' }}"
@@ -640,10 +665,10 @@
                             {% include 'components/icon.html' with name="close" class="w-4 h-4 text-neutral-400" %}
                         </div>
                         <div id="modal-preview-btn-like"
-                             class="flex-1 py-2 px-3 rounded-full {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}text-neutral-900{% else %}text-white{% endif %} text-xs sm:text-sm font-bold shadow-md inline-flex items-center justify-center gap-1.5 select-none"
-                             style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; color: {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}#171717{% else %}#ffffff{% endif %};">
+                             class="flex-1 py-2 px-3 rounded-full text-white text-xs sm:text-sm font-bold shadow-md inline-flex items-center justify-center gap-1.5 select-none"
+                             style="background-color: #FA7D82;">
                             {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5" %}
-                            <span class="truncate">{% translate "Mostrar interés en" %} <span id="modal-preview-btn-name">{{ active_pet.name|default:"Toby" }}</span></span>
+                            <span class="truncate">{% translate "Mostrar interés en" %} <span id="modal-preview-btn-name">{{ active_pet.name|default:_("tu mascota") }}</span></span>
                         </div>
                     </div>
 
@@ -663,6 +688,16 @@
 
 {% block extra_js %}
 <script>
+    // Cambiar mascota activa en sesión sin parámetros GET
+    function switchActivePet(petId) {
+        const input = document.getElementById('switch-pet-id-input');
+        const form = document.getElementById('switch-pet-form');
+        if (input && form) {
+            input.value = petId;
+            form.submit();
+        }
+    }
+
     // Configuración reactiva del perfil de mascota
     const COLOR_HEX_MAP = {
         coral: '#FA7D82',
@@ -841,9 +876,9 @@
     // Abrir modal de vista previa dinámico con estructura de Buscar Pareja
     function openPreviewModal() {
         const nameInput = document.getElementById('pet-name-input');
-        const name = (nameInput && nameInput.value.trim()) || '{{ active_pet.name|default:"Toby" }}';
+        const name = (nameInput && nameInput.value.trim()) || '{{ active_pet.name|default:_("Mascota")|escapejs }}';
         const breedInput = document.getElementById('pet-breed-input');
-        const breed = (breedInput && breedInput.value.trim()) || '{{ active_pet.breed|default:"Bulldog Francés" }}';
+        const breed = (breedInput && breedInput.value.trim()) || '{{ active_pet.breed|default:_("Raza no especificada")|escapejs }}';
         const descInput = document.getElementById('pet-description-input');
         const desc = (descInput && descInput.value.trim()) || '{{ active_pet.description|default:"Sin descripción" }}';
         const color = document.getElementById('input-profile-color').value || 'coral';
@@ -1012,7 +1047,7 @@
         }
     }
 
-    // Notificación toast visual reactiva
+    // Notificación toast visual reactiva para acciones asíncronas
     function showGoalToast(message, type = 'success') {
         let toast = document.getElementById('goal-toast');
         if (!toast) {
@@ -1077,6 +1112,22 @@
         if (certInput) {
             certInput.addEventListener('change', (e) => {
                 handleCertificateChange(e.target.value);
+            });
+        }
+
+        // Feedback visual inmediato y prevención de doble clic al enviar el formulario
+        const petForm = document.getElementById('pet-management-form');
+        if (petForm) {
+            petForm.addEventListener('submit', () => {
+                const saveBtn = document.getElementById('btn-save-pet');
+                const saveText = document.getElementById('btn-save-pet-text');
+                if (saveText) {
+                    saveText.textContent = '{% filter escapejs %}{% translate "Guardando cambios..." %}{% endfilter %}';
+                }
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.classList.add('opacity-80', 'cursor-wait');
+                }
             });
         }
     });

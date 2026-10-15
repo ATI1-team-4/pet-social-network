@@ -7,17 +7,19 @@ Define las siluetas de las funciones especializadas para:
 - Concertación de citas y agenda de encuentros seguros (#65).
 """
 
+import json
 import math
 from datetime import date, datetime, time
 from typing import Any, Optional
 
 from django.contrib.auth import get_user_model
-from django.db.models import Case, IntegerField, Q, QuerySet, Value, When
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Case, F, IntegerField, Q, QuerySet, Value, When
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.accounts.models import UserReport
-from apps.pets.models import MatchRequest, Pet, PetMeetup
+from apps.pets.models import MatchRequest, Pet, PetMeetup, PetSpecies
 
 User = get_user_model()
 
@@ -80,7 +82,7 @@ def calculate_candidate_distance(active_pet: Pet, candidate_pet: Pet) -> str:
         return _('A menos de 500 m')
     elif km < 1.0:
         return _('A menos de 1 km')
-    return f'A {km} km'
+    return _('A %(km)s km') % {'km': km}
 
 
 def calculate_candidate_compatibility(active_pet: Pet, candidate_pet: Pet) -> int:
@@ -93,7 +95,7 @@ def calculate_candidate_compatibility(active_pet: Pet, candidate_pet: Pet) -> in
     - Misma especie + Mismo sexo + Misma raza: 60%
     - Misma especie + Mismo sexo + Distinta raza: 50%
     """
-    # 1. Especie: Deben pertenecer a la misma especie
+    # Especie: Deben pertenecer a la misma especie
     same_species = False
     if getattr(active_pet, 'species_id', None) and getattr(candidate_pet, 'species_id', None):
         same_species = active_pet.species_id == candidate_pet.species_id
@@ -105,14 +107,14 @@ def calculate_candidate_compatibility(active_pet: Pet, candidate_pet: Pet) -> in
     if not same_species:
         return 0
 
-    # 2. Sexo: Compatibilidad biológica (opuesto vs mismo sexo)
+    # Sexo: Compatibilidad biológica (opuesto vs mismo sexo)
     is_opposite_sex = (
         (active_pet.is_macho and candidate_pet.is_hembra)
         or (active_pet.is_hembra and candidate_pet.is_macho)
         or (active_pet.gender != candidate_pet.gender)
     )
 
-    # 3. Raza: Coincidencia exacta de raza
+    # Raza: Coincidencia exacta de raza
     same_breed = bool(
         active_pet.breed
         and candidate_pet.breed
@@ -142,18 +144,20 @@ def serialize_candidate(active_pet: Pet, candidate_pet: Pet) -> dict[str, Any]:
     )
 
     tutor_rating = '5.0'
-    tutor_reviews = '12 citas'
+    tutor_reviews = _('12 citas')
     if owner_profile:
         tutor_rating = str(owner_profile.rating)
         meetings = owner_profile.completed_meetings_count
-        tutor_reviews = f'{meetings} citas' if meetings > 0 else '5 citas'
+        tutor_reviews = _('%(count)s citas') % {'count': meetings} if meetings > 0 else _('5 citas')
 
     birth_str = (
         candidate_pet.birth_date.strftime('%d / %b / %Y')
         if candidate_pet.birth_date
-        else 'No especificada'
+        else _('No especificada')
     )
-    weight_str = f'{candidate_pet.weight_kg} kg' if candidate_pet.weight_kg else 'No especificado'
+    weight_str = (
+        f'{candidate_pet.weight_kg} kg' if candidate_pet.weight_kg else _('No especificado')
+    )
     if candidate_pet.has_pedigree:
         cert_str = (
             candidate_pet.certificate_number
@@ -192,7 +196,7 @@ def serialize_candidate(active_pet: Pet, candidate_pet: Pet) -> dict[str, Any]:
         'profile_color_hex': candidate_pet.profile_color_hex,
         'photo_url': candidate_pet.photo_url,
         'photo_clean_url': candidate_pet.photo_clean_url,
-        'temperaments': candidate_pet.temperament_list or ['Sociable', 'Juguetón'],
+        'temperaments': candidate_pet.temperament_list or [_('Sociable'), _('Juguetón')],
         'description': candidate_pet.description
         or _('Mascota amistosa en busca de nuevos amigos y compañía.'),
         'tutors': {
@@ -254,39 +258,18 @@ def get_match_candidates(
         if filters.get('breed'):
             queryset = queryset.filter(breed__icontains=filters['breed'])
         if filters.get('has_pedigree'):
-            queryset = queryset.filter(
-                (
-                    (
-                        Q(certificate_number__isnull=False)
-                        & ~Q(certificate_number='')
-                        & ~Q(certificate_number__icontains='sin')
-                    )
-                    | Q(certificate_type__icontains='fci')
-                    | Q(certificate_type__icontains='pedigr')
-                    | Q(certificate_type__icontains='pedigree')
-                )
-                & ~Q(certificate_type__icontains='sin')
-                & ~Q(certificate_type__icontains='tramite')
-                & ~Q(certificate_type__icontains='trámite')
-            )
+            queryset = queryset.filter(has_pedigree=True)
         elif filters.get('without_pedigree'):
-            queryset = queryset.filter(
-                Q(certificate_type__icontains='sin')
-                | Q(certificate_type__icontains='tramite')
-                | Q(certificate_type__icontains='trámite')
-                | (
-                    (
-                        Q(certificate_number__isnull=True)
-                        | Q(certificate_number='')
-                        | Q(certificate_number__icontains='sin')
-                    )
-                    & ~Q(certificate_type__icontains='fci')
-                    & ~Q(certificate_type__icontains='pedigr')
-                    & ~Q(certificate_type__icontains='pedigree')
-                )
-            )
-        if filters.get('purpose'):
-            queryset = queryset.filter(purpose=filters['purpose'])
+            queryset = queryset.filter(has_pedigree=False)
+        if filters.get('purpose') and filters['purpose'] != 'all':
+            if filters['purpose'] == 'both':
+                queryset = queryset.filter(purpose=Pet.Purpose.BOTH)
+            elif filters['purpose'] == 'mating':
+                queryset = queryset.filter(purpose=Pet.Purpose.MATING)
+            elif filters['purpose'] == 'play':
+                queryset = queryset.filter(purpose__in=[Pet.Purpose.PLAY, Pet.Purpose.BOTH])
+            else:
+                queryset = queryset.filter(purpose=filters['purpose'])
         if filters.get('max_distance') is not None:
             try:
                 max_dist = float(filters['max_distance'])
@@ -317,6 +300,9 @@ def record_candidate_like(active_pet: Pet, candidate_pet: Pet) -> tuple[MatchReq
       ambas solicitudes transicionan a `ACCEPTED` y retorna `(match_request, is_mutual=True)`.
     - De lo contrario, crea o actualiza `MatchRequest` en estado `PENDING` y retorna `is_mutual=False`.
     """
+    if active_pet.id == candidate_pet.id or active_pet.owner_id == candidate_pet.owner_id:
+        raise ValueError(_('No puedes dar me gusta a tus propias mascotas ni a la misma mascota.'))
+
     reverse_request = MatchRequest.objects.filter(
         from_pet=candidate_pet,
         to_pet=active_pet,
@@ -352,6 +338,9 @@ def record_candidate_pass(active_pet: Pet, candidate_pet: Pet) -> MatchRequest:
     Registra el descarte de un candidato en el feed para excluirlo de futuras recomendaciones.
     Crea o actualiza la solicitud saliente con estado `REJECTED`.
     """
+    if active_pet.id == candidate_pet.id or active_pet.owner_id == candidate_pet.owner_id:
+        raise ValueError(_('No puedes descartar a tus propias mascotas ni a la misma mascota.'))
+
     match_request, _created = MatchRequest.objects.update_or_create(
         from_pet=active_pet,
         to_pet=candidate_pet,
@@ -400,12 +389,14 @@ def get_interested_match_requests(
     Obtiene las solicitudes de match recibidas hacia la mascota activa (Interesados).
     Optimizado con select_related y orden descendente por fecha de creación.
     Excluye solicitudes rechazadas por defecto salvo que se especifique un estado.
+    Garantiza que no aparezcan mascotas del mismo dueño.
     """
     if not active_pet or not getattr(active_pet, 'id', None):
         return MatchRequest.objects.none()
 
     qs = (
         MatchRequest.objects.filter(to_pet=active_pet)
+        .exclude(from_pet__owner=active_pet.owner)
         .select_related('from_pet', 'from_pet__owner', 'from_pet__owner__profile')
         .order_by('-created_at')
     )
@@ -423,12 +414,14 @@ def get_sent_match_requests(
     Obtiene las solicitudes de match enviadas por la mascota activa hacia otros candidatos.
     Optimizado con select_related y orden descendente por fecha de creación.
     Excluye solicitudes rechazadas por defecto salvo que se especifique un estado.
+    Garantiza que no aparezcan mascotas del mismo dueño.
     """
     if not active_pet or not getattr(active_pet, 'id', None):
         return MatchRequest.objects.none()
 
     qs = (
         MatchRequest.objects.filter(from_pet=active_pet)
+        .exclude(to_pet__owner=active_pet.owner)
         .select_related('to_pet', 'to_pet__owner', 'to_pet__owner__profile')
         .order_by('-created_at')
     )
@@ -445,12 +438,14 @@ def get_all_match_requests_for_pet(
     """
     Obtiene todas las solicitudes de match (recibidas y enviadas) asociadas a la mascota activa.
     Excluye solicitudes rechazadas por defecto salvo que se especifique un estado.
+    Garantiza que no aparezcan mascotas del mismo dueño.
     """
     if not active_pet or not getattr(active_pet, 'id', None):
         return MatchRequest.objects.none()
 
     qs = (
         MatchRequest.objects.filter(Q(to_pet=active_pet) | Q(from_pet=active_pet))
+        .exclude(from_pet__owner=F('to_pet__owner'))
         .select_related(
             'from_pet',
             'to_pet',
@@ -491,6 +486,7 @@ def get_requests_tab_counters(active_pet: Optional[Pet]) -> dict[str, int]:
     interested_count = received_qs.count()
     sent_count = sent_qs.count()
     pending_count = received_qs.filter(status=MatchRequest.RequestStatus.PENDING).count()
+    matches_count = all_qs.filter(status=MatchRequest.RequestStatus.ACCEPTED).count()
     all_count = all_qs.count()
 
     return {
@@ -498,6 +494,7 @@ def get_requests_tab_counters(active_pet: Optional[Pet]) -> dict[str, int]:
         'interested': interested_count,
         'sent': sent_count,
         'pending': pending_count,
+        'matches': matches_count,
     }
 
 
@@ -527,15 +524,34 @@ def accept_match_request(request_id: int, active_pet: Pet) -> MatchRequest:
 
 def reject_match_request(request_id: int, active_pet: Pet) -> MatchRequest:
     """
-    Rechaza o descarta una solicitud de match en la bandeja.
+    Rechaza o descarta una solicitud o cancela un match en la bandeja.
     Valida que pertenezca a la mascota activa (como destinataria o remitente) y actualiza a REJECTED.
+    Si el match estaba aceptado, sincroniza la solicitud inversa y cancela citas asociadas.
     """
     match_request = MatchRequest.objects.select_related('from_pet', 'to_pet').get(
         Q(to_pet=active_pet) | Q(from_pet=active_pet),
         id=request_id,
     )
+    was_accepted = match_request.status == MatchRequest.RequestStatus.ACCEPTED
     match_request.status = MatchRequest.RequestStatus.REJECTED
     match_request.save(update_fields=['status', 'updated_at'])
+
+    if was_accepted:
+        # Sincronizar solicitud inversa para coherencia bidireccional
+        other_pet = (
+            match_request.to_pet if match_request.from_pet == active_pet else match_request.from_pet
+        )
+        MatchRequest.objects.filter(
+            from_pet=other_pet,
+            to_pet=active_pet,
+        ).update(status=MatchRequest.RequestStatus.REJECTED)
+
+        # Cancelar citas asociadas pendientes o confirmadas si las hubiera
+        PetMeetup.objects.filter(
+            match_request=match_request,
+            status__in=[PetMeetup.MeetupStatus.PROPOSED, PetMeetup.MeetupStatus.CONFIRMED],
+        ).update(status=PetMeetup.MeetupStatus.CANCELLED)
+
     return match_request
 
 
@@ -572,6 +588,23 @@ def send_initial_match_note(
     }
 
 
+def get_translated_certificate(cert_str: str, has_pedigree: bool) -> str:
+    """Retorna la etiqueta traducible de certificación de la mascota."""
+    if not cert_str and not has_pedigree:
+        return ''
+    raw = (cert_str or '').strip()
+    raw_lower = raw.lower()
+    if 'pedigr' in raw_lower or 'fci' in raw_lower:
+        return _('Pedigrí certificado')
+    elif 'tramite' in raw_lower or 'trámite' in raw_lower:
+        return _('En trámite')
+    elif 'sin' in raw_lower:
+        return _('Sin pedigrí')
+    elif has_pedigree:
+        return _('Pedigrí certificado')
+    return _(raw)
+
+
 def serialize_match_request(active_pet: Pet, req: MatchRequest) -> dict[str, Any]:
     """
     Serializa un registro real de `MatchRequest` para su renderizado en la plantilla `match_interested.html`.
@@ -596,7 +629,60 @@ def serialize_match_request(active_pet: Pet, req: MatchRequest) -> dict[str, Any
     tutor_full_name = tutor.get_full_name().strip() if hasattr(tutor, 'get_full_name') else ''
     if not tutor_full_name:
         tutor_full_name = tutor.username
-    tutor_signature = f'{tutor_full_name} ({_("Tutor de")} {candidate.name})'
+    tutor_signature = _('%(name)s (Tutor de %(pet)s)') % {
+        'name': tutor_full_name,
+        'pet': candidate.name,
+    }
+
+    if is_received:
+        # Petición recibida hacia active_pet: la nota fue redactada por el tutor solicitante
+        raw_note = req.notes
+        if raw_note and 'Interés registrado desde el feed' in raw_note:
+            card_quote = _('Interés registrado desde el feed de descubrimiento.')
+        elif raw_note:
+            card_quote = raw_note
+        elif candidate.description:
+            card_quote = candidate.description
+        else:
+            card_quote = _('Interesado en conectar y evaluar compatibilidad.')
+        sent_note = ''
+    else:
+        # Petición enviada desde active_pet hacia candidate:
+        # En la tarjeta del candidato debe aparecer la nota / presentación del candidato a quien se le envió el match
+        if candidate.description:
+            card_quote = candidate.description
+        else:
+            card_quote = _('Mascota disponible para conectar y evaluar compatibilidad.')
+        sent_note = req.notes or ''
+
+    # Traducción dinámica de rasgos de temperamento
+    translated_temperaments = []
+    for trait in candidate.temperament_list:
+        clean_trait = trait.strip()
+        tl = clean_trait.lower()
+        if tl in ('sociable',):
+            translated_temperaments.append(_('Sociable'))
+        elif tl in ('jugueton', 'juguetón'):
+            translated_temperaments.append(_('Juguetón'))
+        elif tl in ('carinoso', 'cariñoso'):
+            translated_temperaments.append(_('Cariñoso'))
+        elif tl in ('tranquila', 'tranquilo'):
+            translated_temperaments.append(_('Tranquila'))
+        elif tl in ('calmada', 'calmado'):
+            translated_temperaments.append(_('Calmada'))
+        elif tl in ('curiosa', 'curioso'):
+            translated_temperaments.append(_('Curiosa'))
+        elif tl in ('inteligente',):
+            translated_temperaments.append(_('Inteligente'))
+        elif tl in ('mimosa', 'mimoso'):
+            translated_temperaments.append(_('Mimosa'))
+        elif tl in ('silenciosa', 'silencioso'):
+            translated_temperaments.append(_('Silenciosa'))
+        else:
+            translated_temperaments.append(_(clean_trait))
+
+    if not translated_temperaments:
+        translated_temperaments = [_('Sociable'), _('Juguetón')]
 
     is_recent = True
     recent_label = _('Nueva solicitud')
@@ -622,8 +708,9 @@ def serialize_match_request(active_pet: Pet, req: MatchRequest) -> dict[str, Any
         'species_label': str(candidate.species_label),
         'age': str(candidate.age_text),
         'birth_date': candidate.birth_date.strftime('%d/%m/%Y') if candidate.birth_date else '',
-        'certificate': candidate.certificate_type
-        or (_('Certificado FCI') if candidate.has_pedigree else ''),
+        'certificate': get_translated_certificate(
+            candidate.certificate_type, candidate.has_pedigree
+        ),
         'distance': calculate_candidate_distance(active_pet, candidate),
         'distance_val': calculate_candidate_distance_km(active_pet, candidate),
         'location': candidate.location,
@@ -634,17 +721,22 @@ def serialize_match_request(active_pet: Pet, req: MatchRequest) -> dict[str, Any
         'recent_label': recent_label,
         'badge_label': badge_label,
         'photo_url': candidate.photo_url,
-        'temperaments': candidate.temperament_list or [_('Sociable'), _('Juguetón')],
-        'quote': req.notes
-        or candidate.description
-        or _('Interesado en conectar y evaluar compatibilidad.'),
+        'temperaments': translated_temperaments,
+        'quote': card_quote,
+        'sent_note': sent_note,
         'tutor_name': tutor_full_name,
         'tutor_signature': tutor_signature,
         'status': req.status,
         'status_label': req.get_status_display(),
         'is_received': is_received,
         'is_sent': not is_received,
+        'is_sent_num': 1 if not is_received else 0,
+        'action_type': 'match'
+        if req.status == MatchRequest.RequestStatus.ACCEPTED
+        else ('sent' if not is_received else 'received'),
         'type': 'interested' if is_received else 'sent',
+        'created_at': req.created_at,
+        'created_timestamp': int(req.created_at.timestamp()) if req.created_at else 0,
     }
 
 
@@ -662,6 +754,7 @@ def get_upcoming_pet_meetups(active_pet: Optional[Pet]) -> QuerySet[PetMeetup]:
         return PetMeetup.objects.none()
     return (
         PetMeetup.objects.filter(Q(pet1=active_pet) | Q(pet2=active_pet))
+        .exclude(pet1__owner=F('pet2__owner'))
         .filter(
             date__gte=date.today(),
             status__in=[PetMeetup.MeetupStatus.CONFIRMED, PetMeetup.MeetupStatus.PROPOSED],
@@ -716,8 +809,12 @@ def schedule_pet_meetup(
     if requester_pet.owner_id != requester_user.id and requester_pet.owner != requester_user:
         raise PermissionError(_('El usuario no es el tutor de la mascota solicitante.'))
 
-    if requester_pet.id == target_pet.id:
-        raise ValueError(_('No se puede programar un encuentro de una mascota consigo misma.'))
+    if requester_pet.id == target_pet.id or requester_pet.owner_id == target_pet.owner_id:
+        raise ValueError(
+            _(
+                'No se puede programar un encuentro entre mascotas del mismo tutor ni con la misma mascota.'
+            )
+        )
 
     now = timezone.localtime() if timezone.is_aware(timezone.now()) else datetime.now()
     meeting_dt = datetime.combine(meeting_date, meeting_time)
@@ -734,14 +831,16 @@ def schedule_pet_meetup(
 
     has_conflict = PetMeetup.objects.filter(
         Q(pet1__in=[requester_pet, target_pet]) | Q(pet2__in=[requester_pet, target_pet]),
+        date=meeting_date,
+        time=meeting_time,
         status__in=active_statuses,
     ).exists()
 
     if has_conflict:
         raise ValueError(
             _(
-                'Una de las mascotas ya tiene una cita activa. '
-                'Cancela o completa la cita existente antes de agendar otra.'
+                'Una de las mascotas ya tiene un encuentro programado para esa misma fecha y hora. '
+                'Por favor selecciona otro horario.'
             )
         )
 
@@ -812,3 +911,541 @@ def complete_pet_meetup(meetup_id: int, user: Optional[Any] = None) -> PetMeetup
     meetup.status = PetMeetup.MeetupStatus.COMPLETED
     meetup.save(update_fields=['status', 'updated_at'])
     return meetup
+
+
+# ==============================================================================
+# Servicios de Gestión de Mascotas y Contexto de Vistas
+# ==============================================================================
+
+
+def serialize_pet_for_management(pet: Pet) -> dict[str, Any]:
+    """Serializa una mascota de la base de datos para la vista de gestión de perfiles."""
+    return {
+        'id': str(pet.id),
+        'name': pet.name,
+        'species': pet.species.slug if pet.species else 'perro',
+        'species_label': str(pet.species_label),
+        'gender': pet.gender,
+        'gender_label': str(pet.gender_label),
+        'gender_icon': pet.gender_icon,
+        'breed': pet.breed,
+        'birth_date': pet.birth_date.strftime('%m/%d/%Y') if pet.birth_date else '',
+        'birth_date_iso': pet.birth_date.isoformat() if pet.birth_date else '',
+        'age_years': pet.age_years,
+        'age_text': str(pet.age_text),
+        'age_completed': _('%(years)s años cumplidos') % {'years': pet.age_years},
+        'certificate': pet.certificate,
+        'certificate_label': str(pet.certificate_type or _('Certificado FCI / con pedigrí')),
+        'temperaments': [t.strip() for t in pet.temperaments.split(',') if t.strip()]
+        if pet.temperaments
+        else [_('Juguetón')],
+        'description': pet.description,
+        'profile_color': pet.profile_color,
+        'profile_color_hex': pet.profile_color_hex,
+        'is_matching': pet.is_matching,
+        'is_socializing': pet.is_socializing,
+        'is_adoption': pet.is_adoption,
+        'photo_url': pet.photo_url,
+        'is_active': pet.is_matching,
+        'status_label': _('Activo') if pet.is_matching else _('Inactiva'),
+        'tab_label': pet.name,
+    }
+
+
+def get_default_new_pet_data() -> dict[str, Any]:
+    """Retorna la estructura inicial con valores por defecto para el formulario de registro de mascota."""
+    return {
+        'id': '',
+        'name': '',
+        'species': 'perro',
+        'species_label': _('Perro'),
+        'gender': 'M',
+        'gender_label': _('Macho'),
+        'gender_icon': 'male',
+        'breed': '',
+        'birth_date': '',
+        'birth_date_iso': '',
+        'age_years': 0,
+        'age_text': _('0 años'),
+        'certificate': 'fci',
+        'certificate_label': _('Certificado FCI'),
+        'temperaments': [_('Juguetón')],
+        'description': '',
+        'profile_color': 'coral',
+        'profile_color_hex': '#FA7D82',
+        'is_matching': True,
+        'is_socializing': True,
+        'is_adoption': False,
+        'photo_url': '',
+        'is_active': True,
+        'status_label': _('Activo'),
+        'tab_label': _('Nueva mascota'),
+    }
+
+
+def save_or_update_pet(user: Any, data: dict[str, Any], files: dict[str, Any]) -> tuple[Pet, bool]:
+    """
+    Guarda una nueva mascota o actualiza una existente perteneciente al tutor autenticado.
+    Procesa atributos de especie, raza, fecha de nacimiento, color, temperamentos,
+    objetivos en PetMatch, certificados y fotografía.
+    Retorna la tupla (instancia_mascota, es_creada).
+    """
+    pet_name = str(data.get('name', 'Mascota')).strip()
+    pet_id = str(data.get('pet_id', '')).strip()
+
+    profile_color = data.get('profile_color', 'coral')
+    species_slug = str(data.get('species', 'perro')).strip().lower()
+    raw_gender = data.get('gender', 'M')
+    gender = Pet.Gender.HEMBRA if raw_gender in ('H', 'hembra') else Pet.Gender.MACHO
+
+    uploaded_photo = files.get('photo')
+    remove_photo = str(data.get('remove_photo', '')).lower() == 'true'
+
+    # Procesar fecha de nacimiento admitiendo distintos formatos habituales
+    birth_date_val = None
+    birth_date_str = str(data.get('birth_date', '')).strip()
+    if birth_date_str:
+        for fmt in ('%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y'):
+            try:
+                birth_date_val = datetime.strptime(birth_date_str, fmt).date()
+                break
+            except ValueError:
+                pass
+    if not birth_date_val:
+        birth_date_val = timezone.now().date()
+
+    # Mapear el objetivo de cruza, socialización y adopción
+    is_matching = data.get('is_matching') in ('true', 'on', '1', True)
+    is_socializing = data.get('is_socializing') in ('true', 'on', '1', True)
+    is_adoption = data.get('is_adoption') in ('true', 'on', '1', True)
+
+    if is_matching and is_socializing:
+        purpose_val = Pet.Purpose.BOTH
+    elif is_matching and not is_socializing:
+        purpose_val = Pet.Purpose.MATING
+    elif not is_matching and is_socializing:
+        purpose_val = Pet.Purpose.PLAY
+    else:
+        purpose_val = Pet.Purpose.MATING
+
+    # Mapear el tipo de certificado
+    raw_cert = str(data.get('certificate', '')).strip().lower()
+    cert_map = {
+        'fci': 'Certificado FCI',
+        'tramite': 'En trámite',
+        'sin_pedigri': 'Sin pedigrí',
+    }
+    cert_label = cert_map.get(raw_cert, 'Certificado FCI')
+
+    # Obtener o registrar la especie asociada
+    species_obj, _sp_created = PetSpecies.objects.get_or_create(
+        slug=species_slug,
+        defaults={'name': species_slug.capitalize(), 'icon_name': 'dog'},
+    )
+
+    # Buscar la mascota en base de datos si ya existe para este usuario
+    db_pet = None
+    if pet_id.isdigit():
+        db_pet = Pet.objects.filter(id=int(pet_id), owner=user).first()
+    if not db_pet:
+        db_pet = Pet.objects.filter(name__iexact=pet_name, owner=user).first()
+
+    is_created = False
+    if db_pet:
+        db_pet.name = pet_name
+        db_pet.breed = data.get('breed', db_pet.breed)
+        db_pet.species = species_obj
+        db_pet.gender = gender
+        db_pet.birth_date = birth_date_val
+        db_pet.description = data.get('description', db_pet.description)
+        db_pet.profile_color = profile_color
+        db_pet.temperaments = data.get('temperaments', db_pet.temperaments)
+        db_pet.is_active_for_match = is_matching
+        db_pet.is_socializing = is_socializing
+        db_pet.purpose = purpose_val
+        db_pet.is_for_adoption = is_adoption
+        if cert_label:
+            db_pet.certificate_type = cert_label
+            if raw_cert in ('sin_pedigri', 'tramite'):
+                db_pet.certificate_number = ''
+
+        if remove_photo and db_pet.photo:
+            db_pet.photo.delete(save=False)
+            db_pet.photo = None
+
+        if uploaded_photo:
+            db_pet.photo = uploaded_photo
+
+        db_pet.save()
+    else:
+        db_pet = Pet.objects.create(
+            owner=user,
+            name=pet_name,
+            species=species_obj,
+            breed=data.get('breed', 'Mestizo'),
+            gender=gender,
+            birth_date=birth_date_val,
+            profile_color=profile_color,
+            description=data.get('description', ''),
+            temperaments=data.get('temperaments', ''),
+            is_active_for_match=is_matching,
+            is_socializing=is_socializing,
+            purpose=purpose_val,
+            is_for_adoption=is_adoption,
+            certificate_type=cert_label,
+        )
+        if uploaded_photo:
+            db_pet.photo = uploaded_photo
+            db_pet.save()
+        is_created = True
+
+    return db_pet, is_created
+
+
+def update_pet_certificate(user: Any, pet_id: Any, certificate_val: str) -> tuple[Pet, str, str]:
+    """
+    Actualiza el certificado de pedigrí de una mascota perteneciente al usuario.
+    Retorna la tupla (mascota, valor_certificado, etiqueta_certificado).
+    """
+    clean_val = certificate_val.strip().lower()
+    cert_map = {
+        'fci': _('Certificado FCI'),
+        'tramite': _('En trámite'),
+        'sin_pedigri': _('Sin pedigrí'),
+    }
+    cert_label = cert_map.get(clean_val, _('Certificado FCI'))
+
+    pet = None
+    if str(pet_id).isdigit():
+        pet = Pet.objects.filter(id=int(pet_id), owner=user).first()
+    if not pet:
+        pet = Pet.objects.filter(name__iexact=str(pet_id), owner=user).first()
+
+    if not pet:
+        raise Pet.DoesNotExist(_('Mascota no encontrada o no pertenece al usuario actual.'))
+
+    pet.certificate_type = cert_label
+    if clean_val in ('sin_pedigri', 'tramite'):
+        pet.certificate_number = ''
+    pet.save(update_fields=['certificate_type', 'certificate_number', 'updated_at'])
+    return pet, clean_val, cert_label
+
+
+def toggle_pet_goal(user: Any, pet_id: Any, goal: str, is_enabled: bool) -> Pet:
+    """
+    Actualiza uno de los objetivos de la mascota (búsqueda de pareja, socialización, adopción).
+    Recalcula automáticamente el propósito principal derivado.
+    """
+    pet = None
+    if str(pet_id).isdigit():
+        pet = Pet.objects.filter(id=int(pet_id), owner=user).first()
+    if not pet:
+        pet = Pet.objects.filter(name__iexact=str(pet_id), owner=user).first()
+
+    if not pet:
+        raise Pet.DoesNotExist(_('Mascota no encontrada o no pertenece al usuario actual.'))
+
+    if goal == 'is_matching':
+        pet.is_active_for_match = is_enabled
+        if is_enabled:
+            pet.purpose = Pet.Purpose.BOTH if pet.is_socializing else Pet.Purpose.MATING
+        else:
+            pet.purpose = Pet.Purpose.PLAY if pet.is_socializing else Pet.Purpose.MATING
+    elif goal == 'is_socializing':
+        pet.is_socializing = is_enabled
+        if is_enabled:
+            pet.purpose = Pet.Purpose.BOTH if pet.is_matching else Pet.Purpose.PLAY
+        else:
+            pet.purpose = Pet.Purpose.MATING
+    elif goal == 'is_adoption':
+        pet.is_for_adoption = is_enabled
+    else:
+        raise ValueError(_('Objetivo no válido.'))
+
+    pet.save(
+        update_fields=[
+            'is_active_for_match',
+            'is_socializing',
+            'is_for_adoption',
+            'purpose',
+            'updated_at',
+        ]
+    )
+    return pet
+
+
+def delete_user_pet(user: Any, pet_id: Any) -> tuple[str, Optional[Pet]]:
+    """
+    Elimina una mascota de forma segura validando que pertenezca al usuario tutor.
+    Retorna el nombre de la mascota eliminada y la siguiente mascota del usuario si existe.
+    """
+    pet = None
+    if str(pet_id).isdigit():
+        pet = Pet.objects.filter(id=int(pet_id), owner=user).first()
+    if not pet:
+        pet = Pet.objects.filter(name__iexact=str(pet_id), owner=user).first()
+
+    if not pet:
+        raise Pet.DoesNotExist(
+            _('La mascota especificada no existe o no tienes permisos para eliminarla.')
+        )
+
+    pet_name = pet.name
+    pet.delete()
+    remaining_pet = Pet.objects.filter(owner=user).first()
+    return pet_name, remaining_pet
+
+
+def serialize_pet_for_select(pet: Pet, active_pet_id: str) -> dict[str, Any]:
+    """Serializa una mascota para la tarjeta visual del selector interactivo."""
+    has_fci = bool(pet.has_pedigree and pet.certificate == 'fci')
+    interested_count = get_interested_match_requests(pet).count()
+    return {
+        'id': str(pet.id),
+        'name': pet.name,
+        'species': pet.species.slug if pet.species else 'perro',
+        'species_label': str(pet.species_label),
+        'gender': pet.gender,
+        'gender_label': str(pet.gender_label),
+        'gender_icon': pet.gender_icon,
+        'is_hembra': pet.is_hembra,
+        'breed': pet.breed,
+        'age_text': str(pet.age_text),
+        'photo_url': pet.photo_url,
+        'is_active': pet.is_active_for_match,
+        'is_matching': pet.is_active_for_match,
+        'has_pedigree': pet.has_pedigree,
+        'certificate': 'fci' if has_fci else pet.certificate,
+        'certificate_label': str(pet.certificate_type or ''),
+        'profile_color': pet.profile_color,
+        'profile_color_hex': pet.profile_color_hex,
+        'interested_count': interested_count,
+        'is_selected': str(pet.id) == str(active_pet_id),
+    }
+
+
+def get_pet_select_context(
+    user: Any,
+    active_pet_obj: Pet,
+    user_pets: list[Pet],
+    pedigree_preference: str,
+) -> dict[str, Any]:
+    """Construye el contexto de datos para la pantalla de selección de mascota."""
+    selected_id = str(active_pet_obj.id)
+    pets_display = [serialize_pet_for_select(p, selected_id) for p in user_pets]
+    active_pet_dict = next(
+        (p for p in pets_display if p['id'] == selected_id),
+        pets_display[0] if pets_display else {},
+    )
+    interested_count = active_pet_dict.get('interested_count', 0)
+
+    clean_pedigree = (
+        pedigree_preference
+        if pedigree_preference in ('with_pedigree', 'without_pedigree', 'both')
+        else 'both'
+    )
+
+    return {
+        'pets': pets_display,
+        'active_pet': active_pet_dict,
+        'interested_count': interested_count,
+        'pedigree_preference': clean_pedigree,
+    }
+
+
+def get_match_feed_context(
+    active_pet: Pet,
+    user_pets: list[Pet],
+    session: Any,
+    get_params: Any,
+) -> dict[str, Any]:
+    """
+    Construye el contexto de datos para la pantalla del feed de descubrimiento y compatibilidad.
+    Procesa filtros de recarga, pedigrí, distancia máxima y propósito de cruza.
+    """
+    other_pet = next((p for p in user_pets if p.id != active_pet.id), None)
+
+    # Recarga del feed limpiando descartes previos si se solicita
+    if get_params.get('reload') == 'true':
+        MatchRequest.objects.filter(
+            from_pet=active_pet,
+            status=MatchRequest.RequestStatus.REJECTED,
+        ).delete()
+        session.pop('match_pedigree_preference', None)
+        session.pop('match_max_distance', None)
+        session.pop('match_purpose_preference', None)
+
+    # Restablecimiento de filtros de búsqueda
+    if get_params.get('reset_filters') == 'true':
+        session.pop('match_pedigree_preference', None)
+        session.pop('match_max_distance', None)
+        session.pop('match_purpose_preference', None)
+
+    # Preferencia de pedigrí
+    pedigree_param = get_params.get('pedigree') or session.get('match_pedigree_preference', 'both')
+    if pedigree_param not in ('with_pedigree', 'without_pedigree', 'both'):
+        pedigree_param = 'both'
+    session['match_pedigree_preference'] = pedigree_param
+
+    # Distancia máxima permitida en kilómetros
+    pet_default_dist = getattr(active_pet, 'max_search_distance_km', None) or 25
+    raw_max_distance = get_params.get('max_distance')
+    if raw_max_distance is not None:
+        try:
+            max_distance = int(float(raw_max_distance))
+            if max_distance < 1:
+                max_distance = 1
+            elif max_distance > 50:
+                max_distance = 50
+            session['match_max_distance'] = max_distance
+        except (ValueError, TypeError):
+            max_distance = session.get('match_max_distance', pet_default_dist)
+    else:
+        max_distance = session.get('match_max_distance', pet_default_dist)
+
+    # Propósito de cruza o socialización
+    purpose_param = get_params.get('purpose') or session.get('match_purpose_preference', 'all')
+    if purpose_param not in ('all', 'mating', 'play', 'both'):
+        purpose_param = 'all'
+    session['match_purpose_preference'] = purpose_param
+
+    # Configurar filtros para la consulta ORM de candidatos
+    match_filters = {'max_distance': max_distance}
+    if pedigree_param == 'with_pedigree':
+        match_filters['has_pedigree'] = True
+    elif pedigree_param == 'without_pedigree':
+        match_filters['without_pedigree'] = True
+    if purpose_param != 'all':
+        match_filters['purpose'] = purpose_param
+
+    # Consultar y serializar candidatos compatibles
+    candidates_qs = get_match_candidates(active_pet, filters=match_filters)
+    candidates_data = [serialize_candidate(active_pet, c) for c in candidates_qs]
+    current_candidate = candidates_data[0] if candidates_data else None
+
+    # Contadores de solicitudes asociadas a la mascota activa
+    tab_counters = get_requests_tab_counters(active_pet)
+    total_requests_count = tab_counters['all']
+    interested_count = tab_counters['interested']
+    pending_interested_count = tab_counters['pending']
+
+    # Consultar solicitudes entrantes pendientes para la barra lateral
+    interested_requests = (
+        MatchRequest.objects.filter(
+            to_pet=active_pet,
+            status=MatchRequest.RequestStatus.PENDING,
+        )
+        .select_related('from_pet', 'from_pet__owner', 'from_pet__owner__profile')
+        .order_by('-created_at')
+    )
+    interested_sidebar = []
+    for req in interested_requests[:5]:
+        cand = req.from_pet
+        interested_sidebar.append(
+            {
+                'id': str(req.id),
+                'candidate_pet_id': cand.id,
+                'name': cand.name,
+                'age': str(cand.age_text),
+                'breed': cand.breed,
+                'distance': calculate_candidate_distance(active_pet, cand),
+                'photo_url': cand.photo_url,
+            }
+        )
+
+    return {
+        'active_pet': active_pet,
+        'other_pet': other_pet,
+        'candidates': candidates_data,
+        'current_candidate': current_candidate,
+        'candidates_json': json.dumps(candidates_data, cls=DjangoJSONEncoder),
+        'interested_sidebar': interested_sidebar,
+        'interested_count': interested_count,
+        'pending_interested_count': pending_interested_count,
+        'total_requests_count': total_requests_count,
+        'tab_counters': tab_counters,
+        'pedigree_preference': pedigree_param,
+        'max_distance': max_distance,
+        'purpose_preference': purpose_param,
+    }
+
+
+def get_match_interested_context(
+    active_pet: Pet,
+    user_pets: list[Pet],
+    tab: str = 'all',
+    sort_by: str = 'compatibility',
+) -> dict[str, Any]:
+    """
+    Construye el contexto de datos para la bandeja de interesados y solicitudes de emparejamiento.
+    Filtra por pestaña, ordena candidatos y obtiene los encuentros próximos.
+    """
+    other_pet = next((p for p in user_pets if p.id != active_pet.id), None)
+
+    # Obtener contadores para las pestañas de navegación
+    tab_counters = get_requests_tab_counters(active_pet)
+
+    # Filtrar solicitudes según la pestaña seleccionada
+    clean_tab = tab.strip().lower()
+    if clean_tab == 'interested':
+        requests_qs = get_interested_match_requests(active_pet)
+    elif clean_tab == 'sent':
+        requests_qs = get_sent_match_requests(active_pet)
+    elif clean_tab == 'matches':
+        requests_qs = (
+            MatchRequest.objects.filter(
+                Q(to_pet=active_pet) | Q(from_pet=active_pet),
+                status=MatchRequest.RequestStatus.ACCEPTED,
+            )
+            .exclude(from_pet__owner=F('to_pet__owner'))
+            .select_related(
+                'from_pet',
+                'to_pet',
+                'from_pet__owner',
+                'to_pet__owner',
+                'from_pet__owner__profile',
+                'to_pet__owner__profile',
+            )
+            .order_by('-created_at')
+        )
+    else:
+        clean_tab = 'all'
+        requests_qs = get_all_match_requests_for_pet(active_pet)
+
+    suitors = [serialize_match_request(active_pet, r) for r in requests_qs] if active_pet else []
+
+    # Ordenar pretendientes según el criterio elegido
+    clean_sort = sort_by.strip().lower()
+    if clean_sort not in ['compatibility', 'distance', 'recent']:
+        clean_sort = 'compatibility'
+
+    if suitors:
+        if clean_sort == 'compatibility':
+            suitors.sort(
+                key=lambda s: (s.get('compatibility_val', 0), s.get('created_timestamp', 0)),
+                reverse=True,
+            )
+        elif clean_sort == 'distance':
+            suitors.sort(
+                key=lambda s: (s.get('distance_val', 999.0), -s.get('created_timestamp', 0))
+            )
+        elif clean_sort == 'recent':
+            suitors.sort(key=lambda s: s.get('created_timestamp', 0), reverse=True)
+
+    # Obtener encuentros confirmados y propuestos para la agenda
+    meetups_qs = get_upcoming_pet_meetups(active_pet) if active_pet else []
+    confirmed_dates = [serialize_pet_meetup(active_pet, m) for m in meetups_qs]
+
+    return {
+        'active_pet': active_pet,
+        'other_pet': other_pet,
+        'suitors': suitors,
+        'requests': suitors,
+        'featured_suitor': suitors[0] if suitors else None,
+        'secondary_suitors': suitors[1:] if len(suitors) > 1 else [],
+        'interested_count': tab_counters.get('interested', 0),
+        'tab_counters': tab_counters,
+        'current_tab': clean_tab,
+        'current_sort': clean_sort,
+        'confirmed_dates': confirmed_dates,
+    }

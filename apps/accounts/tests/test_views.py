@@ -44,7 +44,7 @@ class AccountsViewsTests(TestCase):
             'next': 'https://malicious-external-site.com/steal-token',
         }
         response_unsafe = self.client.post(reverse('accounts:login'), unsafe_data)
-        self.assertRedirects(response_unsafe, reverse('pets:pet_select'))
+        self.assertRedirects(response_unsafe, reverse('pets:pet_select'), target_status_code=302)
 
     def test_register_url_and_view(self):
         url = reverse('accounts:register')
@@ -157,7 +157,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'password_confirm': 'Password123',
         }
         response = self.client.post(reverse('accounts:register'), register_data)
-        self.assertRedirects(response, reverse('pets:pet_select'))
+        self.assertRedirects(response, reverse('pets:pet_select'), target_status_code=302)
 
         user = User.objects.filter(email='carlos@petly.com').first()
         self.assertIsNotNone(user)
@@ -211,7 +211,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'password_confirm': 'Password123',
         }
         response = self.client.post(reverse('accounts:register'), foreigner_data)
-        self.assertRedirects(response, reverse('pets:pet_select'))
+        self.assertRedirects(response, reverse('pets:pet_select'), target_status_code=302)
 
         user = User.objects.filter(email='hans.muller@petly.com').first()
         self.assertIsNotNone(user)
@@ -228,7 +228,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'remember_me': True,
         }
         response = self.client.post(reverse('accounts:login'), login_data)
-        self.assertRedirects(response, reverse('pets:pet_select'))
+        self.assertRedirects(response, reverse('pets:pet_select'), target_status_code=302)
 
         user = User.objects.get(username='edwyn')
         login_log = AuditLog.objects.filter(action='LOGIN_SUCCESS', user=user).first()

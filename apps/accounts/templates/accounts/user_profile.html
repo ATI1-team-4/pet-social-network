@@ -9,10 +9,13 @@
     {% translate "Mi perfil" as current_bc %}
     {% include 'components/breadcrumbs.html' with current_label=current_bc %}
 
-    <!-- Banner superior de perfil del dueño de mascotas-->
+    <!-- Mensajes flash del sistema alineados con el contenedor de la página -->
+    {% include 'components/messages.html' %}
+
+    <!-- Banner superior con resumen de perfil del tutor -->
     <div class="card-petly min-w-0 p-3 sm:p-6 mb-4 sm:mb-6 bg-white border border-neutral-300/80 shadow-xs">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
-            <!-- Bloque de información basica del dueño de mascotas -->
+            <!-- Bloque de información básica y avatar del tutor -->
             <div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3 sm:gap-5 min-w-0 flex-1">
                 {% translate "Cambiar foto de perfil" as change_avatar_label %}
                 <div class="relative shrink-0 w-20 h-20 sm:w-20 sm:h-20 cursor-pointer" onclick="document.getElementById('user-avatar-input').click()" title="{{ change_avatar_label }}">
@@ -45,8 +48,9 @@
                 </div>
             </div>
 
+            <!-- Fila de métricas clave del tutor -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 w-full lg:w-auto min-w-0 lg:shrink-0">
-                <!-- Mascotas registradas -->
+                <!-- Conteo de mascotas registradas -->
                 <div class="stat-pill-petly min-w-0 min-h-14 px-2.5 sm:px-3.5 py-2 flex items-center gap-3 bg-white border border-neutral-300/80 rounded-2xl shadow-2xs">
                     <div class="w-8 h-8 rounded-full bg-petly-coral-light flex items-center justify-center text-petly-coral shrink-0">
                         {% include 'components/icon.html' with name="paw" class="w-4 h-4 text-petly-coral" %}
@@ -57,7 +61,7 @@
                     </div>
                 </div>
 
-                <!-- Conexiones activas -->
+                <!-- Conteo de conexiones activas -->
                 <div class="stat-pill-petly min-w-0 min-h-14 px-2.5 sm:px-3.5 py-2 flex items-center gap-3 bg-white border border-neutral-300/80 rounded-2xl shadow-2xs">
                     <div class="w-8 h-8 rounded-full bg-petly-blue flex items-center justify-center text-neutral-700 shrink-0">
                         {% include 'components/icon.html' with name="users" class="w-4 h-4 text-neutral-700" %}
@@ -68,7 +72,7 @@
                     </div>
                 </div>
 
-                <!-- Mascota activa en búsqueda -->
+                <!-- Indicador de mascota activa en búsqueda -->
                 <div class="stat-pill-petly min-w-0 min-h-14 px-2.5 sm:px-3.5 py-2 flex items-center gap-3 bg-white border border-neutral-300/80 rounded-2xl shadow-2xs">
                     {% if active_pet %}
                         <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
@@ -95,7 +99,7 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <!-- Sección Mis Mascotas -->
+        <!-- Columna lateral con listado de mascotas del usuario -->
         <aside class="lg:col-span-4 w-full min-w-0" aria-label="{% translate 'Mis mascotas registradas' %}">
             <div class="flex items-center justify-between mb-3 px-1">
                 <h2 class="title-h4 text-neutral-900 font-bold flex items-center gap-2">
@@ -107,7 +111,7 @@
                 </span>
             </div>
 
-            <!-- Lista de tarjetas de mascotas  -->
+            <!-- Lista de tarjetas de mascotas del tutor -->
             <div class="space-y-3 mb-4">
                 {% for pet in user_pets %}
                 <div class="card-petly w-full min-w-0 p-3.5 sm:p-4 bg-white border border-neutral-200 rounded-2xl shadow-sm hover:border-petly-coral/40 hover:shadow-md transition-all group">
@@ -134,11 +138,17 @@
                             {% include 'components/badge.html' with text=_("Solo paseos") variant="tag" class="text-[11px] py-0.5 px-2.5" %}
                         {% endif %}
 
-                        <a href="{% url 'pets:pet_management' %}?pet={{ pet.id }}"
-                           class="inline-flex items-center gap-1 font-semibold text-neutral-600 hover:text-petly-coral transition-colors no-underline text-xs">
-                            {% include 'components/icon.html' with name="palette" class="w-3.5 h-3.5 text-petly-coral" %}
-                            <span>{% translate "Editar perfil" %}</span>
-                        </a>
+                        <form method="post" action="{% url 'pets:pet_set_active' %}" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="selected_pet_id" value="{{ pet.id }}">
+                            <input type="hidden" name="next" value="{% url 'pets:pet_management' %}">
+                            <input type="hidden" name="is_form_submission" value="true">
+                            <button type="submit"
+                                    class="inline-flex items-center gap-1 font-semibold text-neutral-600 hover:text-petly-coral transition-colors no-underline text-xs bg-transparent border-0 cursor-pointer p-0">
+                                {% include 'components/icon.html' with name="palette" class="w-3.5 h-3.5 text-petly-coral" %}
+                                <span>{% translate "Editar perfil" %}</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
                 {% empty %}
@@ -157,196 +167,221 @@
             {% include 'components/button.html' with href=pet_mgmt_url text=reg_pet_label variant="soft" icon="plus" class="w-full py-3 text-xs font-semibold rounded-full justify-center shadow-2xs hover:shadow-xs transition-all" %}
         </aside>
 
+        <!-- Columna principal con formulario de edición de datos personales -->
         <main class="lg:col-span-8 w-full min-w-0" aria-label="{% translate 'Formulario de datos personales del tutor' %}">
-            <div class="card-petly w-full min-w-0 p-3 sm:p-8 bg-white border border-neutral-300/80 shadow-xs">
-                <!-- Cabecera del formulario -->
-                <div class="flex items-center justify-between pb-4 mb-6 border-b border-neutral-200/80">
-                    <h2 class="title-h4 text-neutral-900 font-bold flex items-center gap-2">
-                        {% include 'components/icon.html' with name="user" class="w-4 h-4 text-petly-coral" %}
-                        <span>{% translate "Datos del tutor" %}</span>
-                    </h2>
-                    <span class="text-neutral-400" title="{% translate 'Perfil verificado' %}">
-                        {% include 'components/icon.html' with name="id-card" class="w-5 h-5 text-neutral-400" %}
-                    </span>
-                </div>
+            <form id="profile-edit-form" method="post" action="{% url 'accounts:profile_save' %}" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                <!-- Entrada oculta para actualización de fotografía de perfil -->
+                <input type="file" id="user-avatar-input" name="avatar" accept="image/*" class="hidden" onchange="previewUserAvatar(event)">
+                <input type="hidden" name="remove_avatar" id="remove-avatar-flag" value="false">
 
-                <!-- Formulario -->
-                <form method="post" action="{% url 'accounts:profile_save' %}" enctype="multipart/form-data" class="space-y-4 sm:space-y-5">
-                    {% csrf_token %}
-                    <!-- Input de archivo oculto para el avatar del tutor -->
-                    <input type="file" id="user-avatar-input" name="avatar" accept="image/*" class="hidden" onchange="previewUserAvatar(event)">
-                    <input type="hidden" name="remove_avatar" id="remove-avatar-flag" value="false">
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5 min-w-0">
-                        <!-- Nombre Completo -->
-                        <div class="flex flex-col gap-1.5">
-                            <label for="profile-full-name" class="text-xs font-semibold text-neutral-700">
-                                {% translate "Nombre completo" %}
-                            </label>
-                            {% include 'components/input.html' with name="full_name" id="profile-full-name" value=request.user.get_full_name placeholder=request.user.username icon="user" %}
-                        </div>
-
-                        <!-- Correo Electrónico -->
-                        <div class="flex flex-col gap-1.5">
-                            <label for="profile-email" class="text-xs font-semibold text-neutral-700">
-                                {% translate "Correo electrónico" %}
-                            </label>
-                            {% include 'components/input.html' with name="email" id="profile-email" type="email" value=request.user.email placeholder="correo@ejemplo.com" icon="mail" %}
-                        </div>
-
-                        <!-- Teléfono de Contacto -->
-                        <div class="flex flex-col gap-1.5">
-                            <label for="profile-phone" class="text-xs font-semibold text-neutral-700">
-                                {% translate "Teléfono de contacto" %}
-                            </label>
-                            {% include 'components/input.html' with name="phone" id="profile-phone" type="tel" value=request.user.profile.phone_number placeholder="+58 424 123 4567" icon="phone" %}
-                        </div>
-
-                        <!-- Fecha de Cumpleaños -->
-                        <div class="flex flex-col gap-1.5">
-                            <label for="profile-birth-date" class="text-xs font-semibold text-neutral-700">
-                                {% translate "Fecha de cumpleaños" %}
-                            </label>
-                            {% include 'components/input.html' with name="birth_date" id="profile-birth-date" type="date" value=request.user.profile.birth_date|date:"Y-m-d" icon="calendar" %}
-                        </div>
-
-                        <!-- Bloque de Ubicación: Estado, Municipio y Parroquia / Sector -->
-                        <div class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
-                            <!-- Estado -->
-                            <div class="flex flex-col gap-1.5">
-                                <label for="profile-state" class="text-xs font-semibold text-neutral-700">
-                                    {% translate "Estado" %}
-                                </label>
-                                {% include 'components/input.html' with name="state" id="profile-state" value=request.user.profile.state placeholder="Ej. Miranda" icon="location" %}
+                <!-- Sección: Información personal del tutor -->
+                <div class="card-petly w-full min-w-0 p-6 sm:p-8 bg-white border border-neutral-300/80 shadow-xs space-y-5">
+                    <div class="flex items-center justify-between pb-4 border-b border-neutral-200/80">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-petly-coral-light/70 text-petly-coral flex items-center justify-center shrink-0">
+                                {% include 'components/icon.html' with name="user" class="w-4 h-4 text-petly-coral" %}
                             </div>
-
-                            <!-- Municipio -->
-                            <div class="flex flex-col gap-1.5">
-                                <label for="profile-municipality" class="text-xs font-semibold text-neutral-700">
-                                    {% translate "Municipio" %}
-                                </label>
-                                {% include 'components/input.html' with name="municipality" id="profile-municipality" value=request.user.profile.municipality placeholder="Ej. Chacao" icon="location" %}
-                            </div>
-
-                            <!-- Parroquia / Urbanización / Sector -->
-                            <div class="flex flex-col gap-1.5">
-                                <label for="profile-neighborhood" class="text-xs font-semibold text-neutral-700">
-                                    {% translate "Parroquia / Sector" %}
-                                </label>
-                                {% include 'components/input.html' with name="neighborhood" id="profile-neighborhood" value=request.user.profile.neighborhood placeholder="Ej. Los Palos Grandes" icon="location" %}
+                            <div>
+                                <h2 class="title-h4 text-neutral-900 font-bold leading-tight">
+                                    {% translate "Datos personales" %}
+                                </h2>
+                                <p class="text-caption text-neutral-500 mt-0.5">
+                                    {% translate "Información básica de contacto y cuenta del tutor." %}
+                                </p>
                             </div>
                         </div>
+                        <span class="text-neutral-400" title="{% translate 'Perfil verificado' %}">
+                            {% include 'components/icon.html' with name="id-card" class="w-5 h-5 text-neutral-400" %}
+                        </span>
+                    </div>
 
-                        <!-- Bloque de Geolocalización GPS del Tutor -->
-                        <div class="sm:col-span-2 p-4 rounded-2xl bg-petly-ice/60 border border-petly-blue/80 space-y-3">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        {% include 'components/icon.html' with name="location" class="w-4 h-4 text-petly-coral" %}
-                                        <h3 class="text-xs font-bold text-neutral-900">
-                                            {% translate "Ubicación GPS para calcular distancia entre mascotas" %}
-                                        </h3>
-                                    </div>
-                                    <p class="text-[11px] text-neutral-500 mt-0.5">
-                                        {% translate "Permite calcular la distancia real en kilómetros hacia otras mascotas en el feed de parejas y solicitudes." %}
-                                    </p>
-                                </div>
-                                {% translate "Detectar mi ubicación GPS" as btn_gps_label %}
-                                {% include 'components/button.html' with id="btn-detect-gps" text_id="btn-detect-gps-text" text=btn_gps_label variant="secondary" icon="location" icon_class="w-3.5 h-3.5 text-petly-coral" onclick="detectGPSLocation()" class="text-xs px-3.5 py-2 rounded-full font-bold shadow-xs cursor-pointer hover:border-petly-coral hover:text-petly-coral" %}
-                            </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 min-w-0">
+                        <!-- Entrada: Nombre completo -->
+                        {% translate "Nombre completo" as full_name_profile_label %}
+                        {% include 'components/input.html' with name="full_name" id="profile-full-name" label=full_name_profile_label value=request.user.get_full_name placeholder=request.user.username icon="user" %}
 
-                            <!-- Campos de latitud y longitud con componente reutilizable -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                                {% translate "Latitud GPS" as lat_label %}
-                                {% include 'components/input.html' with name="latitude" id="profile-latitude" type="number" attrs='step="any"' label=lat_label value=request.user.profile.latitude|default_if_none:'' placeholder="Ej. 10.4930" input_class="font-mono bg-white text-xs" %}
+                        <!-- Entrada: Correo electrónico -->
+                        {% translate "Correo electrónico" as email_profile_label %}
+                        {% include 'components/input.html' with name="email" id="profile-email" label=email_profile_label type="email" value=request.user.email placeholder="correo@ejemplo.com" icon="mail" %}
 
-                                {% translate "Longitud GPS" as lon_label %}
-                                {% include 'components/input.html' with name="longitude" id="profile-longitude" type="number" attrs='step="any"' label=lon_label value=request.user.profile.longitude|default_if_none:'' placeholder="Ej. -66.8530" input_class="font-mono bg-white text-xs" %}
-                            </div>
+                        <!-- Entrada: Teléfono de contacto -->
+                        {% translate "Teléfono de contacto" as phone_profile_label %}
+                        {% include 'components/input.html' with name="phone" id="profile-phone" label=phone_profile_label type="tel" value=request.user.profile.phone_number placeholder="+58 424 123 4567" icon="phone" %}
 
-                            <!-- Indicador de estado del GPS -->
-                            <div id="gps-status-feedback" class="{% if request.user.profile.latitude and request.user.profile.longitude %}flex{% else %}hidden{% endif %} items-center gap-2 text-[11px] text-emerald-700 font-medium">
-                                {% include 'components/icon.html' with name="check" class="w-3.5 h-3.5 text-emerald-600" %}
-                                <span id="gps-status-text">
-                                    {% if request.user.profile.latitude and request.user.profile.longitude %}
-                                        {% translate "Ubicación GPS registrada:" %} {{ request.user.profile.latitude|floatformat:4 }}, {{ request.user.profile.longitude|floatformat:4 }}
-                                    {% else %}
-                                        {% translate "Ubicación GPS registrada correctamente." %}
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
+                        <!-- Entrada: Fecha de cumpleaños -->
+                        {% translate "Fecha de cumpleaños" as birth_profile_label %}
+                        {% include 'components/input.html' with name="birth_date" id="profile-birth-date" label=birth_profile_label type="date" value=request.user.profile.birth_date|date:"Y-m-d" icon="calendar" %}
 
-                        <!-- Selector de Género -->
-                        <div class="flex flex-col gap-1.5 sm:col-span-2">
+                        <!-- Selector segmentado de género -->
+                        <div class="flex flex-col gap-1.5 sm:col-span-2 pt-1">
                             <label class="text-xs font-semibold text-neutral-700">{% translate "Género" %}</label>
                             {% translate "Masculino" as txt_masculino %}
                             {% translate "Femenino" as txt_femenino %}
                             {% translate "Otro" as txt_otro %}
                             {% include 'components/segmented.html' with id="gender-segmented-control" name="gender" input_id="gender-input" text_1=txt_masculino value_1="Masculino" text_2=txt_femenino value_2="Femenino" text_3=txt_otro value_3="Otro" active_value=request.user.profile.gender_label|default:"Otro" class="w-full flex h-11" button_class="flex-1 h-full py-0 justify-center text-center" %}
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Color Favorito -->
-                        <div class="flex flex-col gap-1.5">
-                            <label for="profile-favorite-color" class="text-xs font-semibold text-neutral-700">
-                                {% translate "Color favorito" %}
-                            </label>
-                            {% include 'components/input.html' with name="favorite_color" id="profile-favorite-color" value=request.user.profile.favorite_color placeholder="Azul, Coral..." icon="palette" %}
+                <!-- Sección: Ubicación residencial y geolocalización GPS -->
+                <div class="card-petly w-full min-w-0 p-6 sm:p-8 bg-white border border-neutral-300/80 shadow-xs space-y-5">
+                    <div class="flex items-center justify-between pb-4 border-b border-neutral-200/80">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                                {% include 'components/icon.html' with name="location" class="w-4 h-4 text-rose-600" %}
+                            </div>
+                            <div>
+                                <h2 class="title-h4 text-neutral-900 font-bold leading-tight">
+                                    {% translate "Ubicación y geolocalización" %}
+                                </h2>
+                                <p class="text-caption text-neutral-500 mt-0.5">
+                                    {% translate "Indica tu zona residencial y coordenadas GPS para calcular la distancia real hacia otras mascotas." %}
+                                </p>
+                            </div>
                         </div>
+                        <span class="text-rose-500" title="{% translate 'Geolocalización activa' %}">
+                            {% include 'components/icon.html' with name="map-pin" class="w-5 h-5 text-rose-500" %}
+                        </span>
+                    </div>
 
-                        <!-- Libro Favorito -->
-                        <div class="flex flex-col gap-1.5">
-                            <label for="profile-favorite-book" class="text-xs font-semibold text-neutral-700">
-                                {% translate "Libro favorito" %}
-                            </label>
-                            {% include 'components/input.html' with name="favorite_book" id="profile-favorite-book" value=request.user.profile.favorite_book placeholder="Escribe tu libro favorito" %}
-                        </div>
+                    <!-- Sector y división territorial -->
+                    <div class="space-y-3">
+                        <h3 class="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                            {% translate "Zona de residencia" %}
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                            <!-- Entrada: Estado -->
+                            {% translate "Estado" as state_label %}
+                            {% translate "Ej. Miranda" as state_placeholder %}
+                            {% include 'components/input.html' with name="state" id="profile-state" label=state_label value=request.user.profile.state placeholder=state_placeholder icon="location" %}
 
-                        <!-- Música Favorita -->
-                        <div class="flex flex-col gap-1.5">
-                            <label for="profile-favorite-music" class="text-xs font-semibold text-neutral-700">
-                                {% translate "Música favorita" %}
-                            </label>
-                            {% include 'components/input.html' with name="favorite_music" id="profile-favorite-music" value=request.user.profile.favorite_music placeholder="Rock, Pop, Clásica..." %}
-                        </div>
+                            <!-- Entrada: Municipio -->
+                            {% translate "Municipio" as muni_label %}
+                            {% translate "Ej. Sucre" as muni_placeholder %}
+                            {% include 'components/input.html' with name="municipality" id="profile-municipality" label=muni_label value=request.user.profile.municipality placeholder=muni_placeholder icon="location" %}
 
-                        <!-- Videojuego Favorito -->
-                        <div class="flex flex-col gap-1.5">
-                            <label for="profile-favorite-game" class="text-xs font-semibold text-neutral-700">
-                                {% translate "Videojuego favorito" %}
-                            </label>
-                            {% include 'components/input.html' with name="favorite_game" id="profile-favorite-game" value=request.user.profile.favorite_videogame placeholder="Escribe tu videojuego favorito" %}
+                            <!-- Entrada: Parroquia o Sector -->
+                            {% translate "Parroquia / Sector" as neigh_label %}
+                            {% translate "Ej. Los Dos Caminos" as neigh_placeholder %}
+                            {% include 'components/input.html' with name="neighborhood" id="profile-neighborhood" label=neigh_label value=request.user.profile.neighborhood placeholder=neigh_placeholder icon="location" %}
                         </div>
                     </div>
 
-                    <!-- Descripción / Biografía -->
-                    <div class="flex flex-col gap-1.5 pt-2">
+                    <!-- Subtarjeta para captura interactiva de coordenadas GPS -->
+                    <div class="p-4 sm:p-5 rounded-2xl bg-neutral-50/80 border border-neutral-200/90 shadow-2xs space-y-3.5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="space-y-0.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-petly-coral"></span>
+                                    <h4 class="text-xs sm:text-sm font-bold text-neutral-900">
+                                        {% translate "Coordenadas GPS para distancia entre mascotas" %}
+                                    </h4>
+                                </div>
+                                <p class="text-[11px] text-neutral-500 leading-relaxed max-w-lg">
+                                    {% translate "Permite calcular la distancia real en kilómetros hacia otras mascotas en el feed de parejas y solicitudes." %}
+                                </p>
+                            </div>
+                            {% translate "Detectar mi ubicación GPS" as btn_gps_label %}
+                            {% include 'components/button.html' with id="btn-detect-gps" text_id="btn-detect-gps-text" text=btn_gps_label variant="secondary" icon="location" icon_class="w-3.5 h-3.5 text-petly-coral" onclick="detectGPSLocation()" class="text-xs px-4 py-2 rounded-full font-bold shadow-xs cursor-pointer hover:border-petly-coral hover:text-petly-coral shrink-0" %}
+                        </div>
+
+                        <!-- Entradas para Latitud y Longitud GPS -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            {% translate "Latitud GPS" as lat_label %}
+                            {% translate "Ej. 10.4940" as lat_placeholder %}
+                            {% include 'components/input.html' with name="latitude" id="profile-latitude" label=lat_label type="number" attrs='step="any"' value=request.user.profile.latitude|default_if_none:'' placeholder=lat_placeholder input_class="font-mono bg-white text-xs" %}
+
+                            {% translate "Longitud GPS" as lon_label %}
+                            {% translate "Ej. -66.8320" as lon_placeholder %}
+                            {% include 'components/input.html' with name="longitude" id="profile-longitude" label=lon_label type="number" attrs='step="any"' value=request.user.profile.longitude|default_if_none:'' placeholder=lon_placeholder input_class="font-mono bg-white text-xs" %}
+                        </div>
+
+                        <!-- Indicador visual de estado del GPS -->
+                        <div id="gps-status-feedback" class="{% if request.user.profile.latitude and request.user.profile.longitude %}flex{% else %}hidden{% endif %} items-center gap-2 pt-1 text-[11px] text-emerald-700 font-medium">
+                            {% include 'components/icon.html' with name="check" class="w-3.5 h-3.5 text-emerald-600 shrink-0" %}
+                            <span id="gps-status-text">
+                                {% if request.user.profile.latitude and request.user.profile.longitude %}
+                                    {% translate "Ubicación GPS registrada:" %} {{ request.user.profile.latitude|floatformat:4 }}, {{ request.user.profile.longitude|floatformat:4 }}
+                                {% else %}
+                                    {% translate "Ubicación GPS registrada correctamente." %}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Gustos, pasatiempos y biografía del tutor -->
+                <div class="card-petly w-full min-w-0 p-6 sm:p-8 bg-white border border-neutral-300/80 shadow-xs space-y-5">
+                    <div class="flex items-center justify-between pb-4 border-b border-neutral-200/80">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                                {% include 'components/icon.html' with name="smile" class="w-4 h-4 text-purple-600" %}
+                            </div>
+                            <div>
+                                <h2 class="title-h4 text-neutral-900 font-bold leading-tight">
+                                    {% translate "Gustos y pasatiempos" %}
+                                </h2>
+                                <p class="text-caption text-neutral-500 mt-0.5">
+                                    {% translate "Comparte tus preferencias para romper el hielo en las notas de match." %}
+                                </p>
+                            </div>
+                        </div>
+                        <span class="text-neutral-400">
+                            {% include 'components/icon.html' with name="palette" class="w-5 h-5 text-neutral-400" %}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 min-w-0">
+                        <!-- Entrada: Color Favorito -->
+                        {% translate "Color favorito" as color_label %}
+                        {% translate "Azul, Coral..." as color_placeholder %}
+                        {% include 'components/input.html' with name="favorite_color" id="profile-favorite-color" label=color_label value=request.user.profile.favorite_color placeholder=color_placeholder icon="palette" %}
+
+                        <!-- Entrada: Libro Favorito -->
+                        {% translate "Libro favorito" as book_label %}
+                        {% translate "Escribe tu libro favorito" as book_placeholder %}
+                        {% include 'components/input.html' with name="favorite_book" id="profile-favorite-book" label=book_label value=request.user.profile.favorite_book placeholder=book_placeholder %}
+
+                        <!-- Entrada: Música Favorita -->
+                        {% translate "Música favorita" as music_label %}
+                        {% translate "Rock, Pop, Clásica..." as music_placeholder %}
+                        {% include 'components/input.html' with name="favorite_music" id="profile-favorite-music" label=music_label value=request.user.profile.favorite_music placeholder=music_placeholder %}
+
+                        <!-- Entrada: Videojuego Favorito -->
+                        {% translate "Videojuego favorito" as game_label %}
+                        {% translate "Escribe tu videojuego favorito" as game_placeholder %}
+                        {% include 'components/input.html' with name="favorite_game" id="profile-favorite-game" label=game_label value=request.user.profile.favorite_videogame placeholder=game_placeholder %}
+                    </div>
+
+                    <!-- Entrada: Biografía y descripción personal -->
+                    <div class="flex flex-col gap-1.5 pt-1">
                         <label for="profile-bio" class="text-xs font-semibold text-neutral-700">
-                            {% translate "Descripción" %}
+                            {% translate "Sobre mí" %}
                         </label>
                         <textarea id="profile-bio"
                                   name="bio"
                                   rows="3"
                                   placeholder="{% translate 'Escribe una breve descripción sobre ti y tus mascotas...' %}"
-                                  class="textarea-petly">{% translate "Me gusta pasar el día con mis mascotas y salir a pasear." %}</textarea>
+                                  class="textarea-petly text-xs">{% if request.user.profile.bio %}{{ request.user.profile.bio }}{% else %}{% translate "Me gusta pasar el día con mis mascotas y salir a pasear." %}{% endif %}</textarea>
                         <span class="text-caption text-neutral-400">
                             {% translate "Comparte un poco sobre tu rutina o lo que te gusta hacer con tus mascotas." %}
                         </span>
                     </div>
+                </div>
 
-                    <!-- Botón de guardado -->
-                    <div class="pt-3 flex items-center justify-between flex-wrap gap-3">
-                        <div class="w-full sm:w-auto">
-                            {% include 'components/button.html' with text=_("Guardar información personal") type="submit" variant="primary" icon="check" class="w-full sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3 text-xs sm:text-sm font-semibold rounded-full shadow-xs justify-center" %}
-                        </div>
-
-                        <span class="text-xs text-neutral-400 hidden sm:inline">
-                            {% translate "Los cambios se guardan al presionar el botón" %}
-                        </span>
+                <!-- Barra inferior de guardado con feedback visual interactivo -->
+                <div class="card-petly w-full p-4 sm:p-5 bg-white border border-neutral-300/80 shadow-xs flex items-center justify-between flex-wrap gap-3">
+                    <div class="w-full sm:w-auto">
+                        {% translate "Guardar información personal" as save_profile_btn_text %}
+                        {% include 'components/button.html' with id="btn-save-profile" text=save_profile_btn_text type="submit" variant="primary" icon="check" class="w-full sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3 text-xs sm:text-sm font-semibold rounded-full shadow-md justify-center cursor-pointer" %}
                     </div>
-                </form>
-            </div>
 
+                    <span class="text-xs text-neutral-400 hidden sm:inline">
+                        {% translate "Los cambios se guardan al presionar el botón" %}
+                    </span>
+                </div>
+            </form>
         </main>
     </div>
 </div>

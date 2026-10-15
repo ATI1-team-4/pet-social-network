@@ -30,9 +30,26 @@ class HomeViewTests(TestCase):
 
     def test_home_page_authenticated_redirects_to_pet_select(self):
         """Verifica que un usuario autenticado que ingrese al inicio sea redirigido a seleccionar mascota."""
+        from datetime import date
+
         from django.contrib.auth import get_user_model
+
+        from apps.pets.models import Pet, PetSpecies
 
         user = get_user_model().objects.get(username='edwyn')
         self.client.force_login(user)
+        species, _ = PetSpecies.objects.get_or_create(
+            slug='perro',
+            defaults={'name': 'Perro', 'icon_name': 'dog'},
+        )
+        Pet.objects.create(
+            owner=user,
+            name='Simba',
+            species=species,
+            breed='Golden Retriever',
+            gender=Pet.Gender.MACHO,
+            birth_date=date(2022, 5, 10),
+            is_active_for_match=True,
+        )
         response = self.client.get(reverse('core:home'))
         self.assertRedirects(response, reverse('pets:pet_select'))

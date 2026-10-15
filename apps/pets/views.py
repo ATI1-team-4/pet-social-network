@@ -1,534 +1,118 @@
 import json
-from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
-from django.utils import timezone
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.pets.forms import ScheduleMeetupForm
-from apps.pets.models import MatchRequest, Pet, PetMeetup, PetSpecies
+from apps.pets.models import MatchRequest, Pet, PetMeetup
 from apps.pets.services import (
     accept_match_request,
-    calculate_candidate_distance,
     cancel_pet_meetup,
-    get_all_match_requests_for_pet,
-    get_interested_match_requests,
-    get_match_candidates,
+    delete_user_pet,
+    get_default_new_pet_data,
+    get_match_feed_context,
+    get_match_interested_context,
+    get_pet_select_context,
     get_requests_tab_counters,
-    get_sent_match_requests,
-    get_upcoming_pet_meetups,
     record_candidate_like,
     record_candidate_pass,
     reject_match_request,
     report_candidate_pet,
+    save_or_update_pet,
     schedule_pet_meetup,
     send_initial_match_note,
-    serialize_candidate,
-    serialize_match_request,
+    serialize_pet_for_management,
     serialize_pet_meetup,
+    toggle_pet_goal,
+    update_pet_certificate,
 )
 
-# Perfiles de mascotas de referencia según prototipo oficial (reto 11, páginas 10 y 11)
-DEFAULT_PETS = [
-    {
-        'id': '1234',
-        'name': 'Toby',
-        'species': 'perro',
-        'species_label': 'Perro',
-        'gender': 'M',
-        'gender_label': 'Macho',
-        'gender_icon': 'male',
-        'breed': 'Bulldog Francés',
-        'birth_date': '04/15/2022',
-        'birth_date_iso': '2022-04-15',
-        'age_years': 3,
-        'age_text': '3 años',
-        'age_completed': '3 años cumplidos',
-        'certificate': 'fci',
-        'certificate_label': 'Certificado FCI / con pedigrí',
-        'temperaments': ['Juguetón', 'Sociable', 'Cariñoso'],
-        'description': 'Adora correr en el parque, jugar con pelotas y dormir siestas al sol. Muy amigable con otros perros.',
-        'profile_color': 'coral',
-        'profile_color_hex': '#FA7D82',
-        'is_matching': True,
-        'is_socializing': True,
-        'is_adoption': False,
-        'photo_url': '/static/images/pets/default_avatar.svg',
-        'is_active': True,
-        'status_label': 'Activo',
-        'tab_label': 'Toby',
-    },
-    {
-        'id': '5678',
-        'name': 'Luna',
-        'species': 'perro',
-        'species_label': 'Perro',
-        'gender': 'H',
-        'gender_label': 'Hembra',
-        'gender_icon': 'female',
-        'breed': 'Golden Retriever',
-        'birth_date': '06/20/2021',
-        'birth_date_iso': '2021-06-20',
-        'age_years': 4,
-        'age_text': '4 años',
-        'age_completed': '4 años cumplidos',
-        'certificate': 'fci',
-        'certificate_label': 'Pedigrí certificado',
-        'temperaments': ['Tranquilo', 'Cariñoso', 'Curioso'],
-        'description': 'Le encanta nadar, buscar pelotas en el parque y descansar en familia.',
-        'profile_color': 'lilac',
-        'profile_color_hex': '#8A4AF3',
-        'is_matching': True,
-        'is_socializing': False,
-        'is_adoption': False,
-        'photo_url': '/static/images/pets/default_avatar.svg',
-        'is_active': False,
-        'status_label': 'Inactiva',
-        'tab_label': 'Luna (Golden Retriever)',
-    },
-]
+
+def parse_request_payload(request) -> dict:
+    """Extrae uniformemente los datos enviados por JSON o formulario POST."""
+    if request.content_type == 'application/json':
+        try:
+            return json.loads(request.body.decode('utf-8'))
+        except Exception:
+            pass
+    return request.POST
 
 
-@login_required
-@require_POST
-def pet_save_view(request):
+def get_user_active_pet(request):
     """
-    Guarda o actualiza la información del perfil de una mascota.
-    Procesa atributos de color, especie, sexo, temperamentos, biografía y
-    la fotografía subida por el usuario almacenándola en media/pets/.
-    Redirige a la pantalla de gestión con mensaje flash de éxito.
+    Obtiene la mascota activa del usuario autenticado basándose estrictamente en la cookie de sesión.
+    Criterios de resolución:
+    - Mascota indicada en request.session['active_pet_id'] si aún pertenece a una mascota válida del usuario.
+    - Primera mascota del usuario registrada en base de datos por defecto.
+
+    Retorna tupla: (active_pet, user_pets_list).
+    Si el usuario no tiene mascotas registradas, limpia la sesión y retorna (None, []).
     """
-    pet_name = request.POST.get('name', 'Mascota').strip()
-    pet_id = request.POST.get('pet_id', '').strip()
+    # Consultar mascotas registradas del usuario autenticado
+    user_pets = list(Pet.objects.filter(owner=request.user).order_by('id'))
+    if not user_pets:
+        request.session.pop('active_pet_id', None)
+        request.session.modified = True
+        return None, []
 
-    profile_color = request.POST.get('profile_color', 'coral')
-    color_hex_map = {
-        'coral': '#FA7D82',
-        'lilac': '#8A4AF3',
-        'mint': '#8FFFB4',
-        'peach': '#FFDAD9',
-    }
-    color_hex = color_hex_map.get(profile_color, '#FA7D82')
-
-    species_slug = request.POST.get('species', 'perro').strip().lower()
-    raw_gender = request.POST.get('gender', 'M')
-    gender = Pet.Gender.HEMBRA if raw_gender in ('H', 'hembra') else Pet.Gender.MACHO
-
-    uploaded_photo = request.FILES.get('photo')
-    remove_photo = request.POST.get('remove_photo') == 'true'
-
-    birth_date_val = None
-    birth_date_str = request.POST.get('birth_date', '').strip()
-    if birth_date_str:
-        for fmt in ('%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y'):
-            try:
-                birth_date_val = datetime.strptime(birth_date_str, fmt).date()
-                break
-            except ValueError:
-                pass
-    if not birth_date_val:
-        birth_date_val = timezone.now().date()
-
-    # Buscar mascota en base de datos si existe
-    db_pet = None
-    if pet_id.isdigit():
-        db_pet = Pet.objects.filter(id=int(pet_id), owner=request.user).first()
-    if not db_pet:
-        db_pet = Pet.objects.filter(name__iexact=pet_name, owner=request.user).first()
-
-    if db_pet:
-        db_pet.name = pet_name
-        db_pet.breed = request.POST.get('breed', db_pet.breed)
-        species_obj, _sp_created = PetSpecies.objects.get_or_create(
-            slug=species_slug,
-            defaults={'name': species_slug.capitalize(), 'icon_name': 'dog'},
-        )
-        db_pet.species = species_obj
-        db_pet.gender = gender
-        db_pet.birth_date = birth_date_val
-        db_pet.description = request.POST.get('description', db_pet.description)
-        db_pet.profile_color = profile_color
-        db_pet.temperaments = request.POST.get('temperaments', db_pet.temperaments)
-
-        # Objetivos en PetMatch
-        is_matching = request.POST.get('is_matching') in ('true', 'on', '1', True)
-        is_socializing = request.POST.get('is_socializing') in ('true', 'on', '1', True)
-        is_adoption = request.POST.get('is_adoption') in ('true', 'on', '1', True)
-
-        db_pet.is_active_for_match = is_matching
-        if is_matching and is_socializing:
-            db_pet.purpose = Pet.Purpose.BOTH
-        elif is_matching and not is_socializing:
-            db_pet.purpose = Pet.Purpose.MATING
-        elif not is_matching and is_socializing:
-            db_pet.purpose = Pet.Purpose.PLAY
-        else:
-            db_pet.purpose = Pet.Purpose.MATING
-        db_pet.is_for_adoption = is_adoption
-
-        raw_cert = request.POST.get('certificate', '').strip().lower()
-        cert_map = {
-            'fci': 'Certificado FCI',
-            'tramite': 'En trámite',
-            'sin_pedigri': 'Sin pedigrí',
-        }
-        cert_label = cert_map.get(raw_cert)
-        if cert_label:
-            db_pet.certificate_type = cert_label
-            if raw_cert in ('sin_pedigri', 'tramite'):
-                db_pet.certificate_number = ''
-
-        if remove_photo and db_pet.photo:
-            db_pet.photo.delete(save=False)
-            db_pet.photo = None
-
-        if uploaded_photo:
-            db_pet.photo = uploaded_photo
-
-        db_pet.save()
-        final_photo_url = db_pet.photo_url
-        pet_id = str(db_pet.id)
-    else:
-        # Crear nueva mascota oficial en BD para el tutor autenticado
-        species_obj, _sp_created = PetSpecies.objects.get_or_create(
-            slug=species_slug,
-            defaults={'name': species_slug.capitalize(), 'icon_name': 'dog'},
-        )
-        is_matching = request.POST.get('is_matching') in ('true', 'on', '1', True)
-        is_socializing = request.POST.get('is_socializing') in ('true', 'on', '1', True)
-        is_adoption = request.POST.get('is_adoption') in ('true', 'on', '1', True)
-
-        purpose_val = Pet.Purpose.BOTH
-        if is_matching and not is_socializing:
-            purpose_val = Pet.Purpose.MATING
-        elif not is_matching and is_socializing:
-            purpose_val = Pet.Purpose.PLAY
-
-        raw_cert = request.POST.get('certificate', '').strip().lower()
-        cert_map = {
-            'fci': 'Certificado FCI',
-            'tramite': 'En trámite',
-            'sin_pedigri': 'Sin pedigrí',
-        }
-        cert_label = cert_map.get(raw_cert, 'Certificado FCI')
-
-        db_pet = Pet.objects.create(
-            owner=request.user,
-            name=pet_name,
-            species=species_obj,
-            breed=request.POST.get('breed', 'Mestizo'),
-            gender=gender,
-            birth_date=birth_date_val,
-            profile_color=profile_color,
-            description=request.POST.get('description', ''),
-            temperaments=request.POST.get('temperaments', ''),
-            is_active_for_match=is_matching,
-            purpose=purpose_val,
-            is_for_adoption=is_adoption,
-            certificate_type=cert_label,
-        )
-        if uploaded_photo:
-            db_pet.photo = uploaded_photo
-            db_pet.save()
-        final_photo_url = db_pet.photo_url
-        pet_id = str(db_pet.id)
-
-    # Actualizar la mascota en DEFAULT_PETS en memoria para consistencia
-    for pet in DEFAULT_PETS:
-        if pet['id'] == pet_id or (not pet_id and pet['name'] == pet_name):
-            pet['name'] = pet_name
-            pet['breed'] = request.POST.get('breed', pet['breed'])
-            pet['species'] = species_slug
-            pet['species_label'] = (
-                _('Gato')
-                if species_slug == 'gato'
-                else (_('Otro') if species_slug == 'otro' else _('Perro'))
-            )
-            pet['gender'] = 'H' if gender == Pet.Gender.HEMBRA else 'M'
-            pet['gender_icon'] = 'female' if gender == Pet.Gender.HEMBRA else 'male'
-            pet['gender_label'] = _('Hembra') if gender == Pet.Gender.HEMBRA else _('Macho')
-            pet['birth_date'] = request.POST.get('birth_date', pet.get('birth_date', '04/15/2022'))
-            pet['description'] = request.POST.get('description', pet.get('description', ''))
-            pet['profile_color'] = profile_color
-            pet['profile_color_hex'] = color_hex
-            pet['is_matching'] = is_matching
-            pet['is_socializing'] = is_socializing
-            pet['is_adoption'] = is_adoption
-            pet['is_active'] = is_matching
-            if raw_cert and raw_cert in cert_map:
-                pet['certificate'] = raw_cert
-                pet['certificate_label'] = cert_map[raw_cert]
-            if final_photo_url:
-                pet['photo_url'] = final_photo_url
-            temperaments_str = request.POST.get('temperaments', '')
-            if temperaments_str:
-                pet['temperaments'] = [t.strip() for t in temperaments_str.split(',') if t.strip()]
-            break
-
-    messages.success(
-        request, _('Los datos de %(name)s se guardaron exitosamente.') % {'name': pet_name}
-    )
-    return redirect('pets:pet_management')
-
-
-@login_required
-@require_POST
-def pet_update_certificate_view(request):
-    """
-    Actualiza de forma asíncrona (AJAX / fetch) el tipo de certificado / pedigrí de una mascota.
-    """
-    try:
-        data = (
-            json.loads(request.body) if request.content_type == 'application/json' else request.POST
-        )
-    except Exception:
-        data = request.POST
-
-    pet_id = data.get('pet_id')
-    certificate_val = data.get('certificate', '').strip().lower()
-
-    if not pet_id or not certificate_val:
-        return JsonResponse(
-            {'status': 'error', 'message': _('Parámetros incompletos.')},
-            status=400,
+    # Buscar la mascota activa correspondiente al ID guardado en la cookie de sesión
+    active_pet = None
+    session_pet_id = str(request.session.get('active_pet_id', '')).strip().lower()
+    if session_pet_id:
+        active_pet = next(
+            (
+                p
+                for p in user_pets
+                if str(p.id) == session_pet_id or p.name.lower() == session_pet_id
+            ),
+            None,
         )
 
-    cert_map = {
-        'fci': 'Certificado FCI',
-        'tramite': 'En trámite',
-        'sin_pedigri': 'Sin pedigrí',
-    }
-    cert_label = cert_map.get(certificate_val, 'Certificado FCI')
+    # Si no hay mascota activa en sesión, asignar la primera del tutor
+    if not active_pet:
+        active_pet = user_pets[0]
 
-    db_pet = None
-    if str(pet_id).isdigit():
-        db_pet = Pet.objects.filter(id=int(pet_id), owner=request.user).first()
-    if not db_pet:
-        db_pet = Pet.objects.filter(name__iexact=str(pet_id), owner=request.user).first()
-
-    if not db_pet:
-        # Fallback a DEFAULT_PETS en memoria si no está en BD
-        for p in DEFAULT_PETS:
-            if p['id'] == str(pet_id) or p['name'].lower() == str(pet_id).lower():
-                p['certificate'] = certificate_val
-                p['certificate_label'] = cert_label
-                return JsonResponse(
-                    {
-                        'status': 'success',
-                        'message': _('Certificado actualizado correctamente.'),
-                        'pet_id': p['id'],
-                        'certificate': certificate_val,
-                        'certificate_label': cert_label,
-                    }
-                )
-        return JsonResponse(
-            {'status': 'error', 'message': _('Mascota no encontrada.')},
-            status=404,
-        )
-
-    db_pet.certificate_type = cert_label
-    if certificate_val in ('sin_pedigri', 'tramite'):
-        db_pet.certificate_number = ''
-    db_pet.save()
-
-    return JsonResponse(
-        {
-            'status': 'success',
-            'message': _('Certificado actualizado correctamente.'),
-            'pet_id': db_pet.id,
-            'certificate': db_pet.certificate,
-            'certificate_label': db_pet.certificate_type,
-        }
-    )
+    # Sincronizar el identificador de la mascota activa en la sesión del usuario
+    request.session['active_pet_id'] = str(active_pet.id)
+    request.session.modified = True
+    return active_pet, user_pets
 
 
-@login_required
-@require_POST
-def pet_toggle_goal_view(request):
-    """
-    Actualiza de forma asíncrona (AJAX / fetch) uno de los objetivos en PetMatch
-    (is_matching, is_socializing o is_adoption) para la mascota del tutor.
-    """
-    try:
-        data = (
-            json.loads(request.body) if request.content_type == 'application/json' else request.POST
-        )
-    except Exception:
-        data = request.POST
-
-    pet_id = data.get('pet_id')
-    goal = data.get('goal')
-    value = data.get('value')
-
-    if not pet_id or not goal:
-        return JsonResponse(
-            {'status': 'error', 'message': _('Parámetros incompletos.')},
-            status=400,
-        )
-
-    db_pet = None
-    if str(pet_id).isdigit():
-        db_pet = Pet.objects.filter(id=int(pet_id), owner=request.user).first()
-    if not db_pet:
-        db_pet = Pet.objects.filter(name__iexact=str(pet_id), owner=request.user).first()
-
-    if not db_pet:
-        # Fallback a DEFAULT_PETS en memoria si no está en BD
-        for p in DEFAULT_PETS:
-            if p['id'] == str(pet_id) or p['name'].lower() == str(pet_id).lower():
-                is_enabled = value in (True, 'true', 'on', '1', 1)
-                p[goal] = is_enabled
-                if goal == 'is_matching':
-                    p['is_active'] = is_enabled
-                    p['status_label'] = _('Activo') if is_enabled else _('Inactiva')
-                return JsonResponse(
-                    {
-                        'status': 'success',
-                        'message': _('Objetivo actualizado correctamente.'),
-                        'pet_id': p['id'],
-                        'goal': goal,
-                        'value': is_enabled,
-                    }
-                )
-
-        return JsonResponse(
-            {'status': 'error', 'message': _('Mascota no encontrada.')},
-            status=404,
-        )
-
-    is_enabled = value in (True, 'true', 'on', '1', 1)
-
-    if goal == 'is_matching':
-        db_pet.is_active_for_match = is_enabled
-        if is_enabled:
-            db_pet.purpose = Pet.Purpose.BOTH if db_pet.is_socializing else Pet.Purpose.MATING
-        else:
-            db_pet.purpose = Pet.Purpose.PLAY if db_pet.is_socializing else Pet.Purpose.MATING
-
-    elif goal == 'is_socializing':
-        if is_enabled:
-            db_pet.purpose = Pet.Purpose.BOTH if db_pet.is_matching else Pet.Purpose.PLAY
-        else:
-            db_pet.purpose = Pet.Purpose.MATING
-
-    elif goal == 'is_adoption':
-        db_pet.is_for_adoption = is_enabled
-
-    else:
-        return JsonResponse(
-            {'status': 'error', 'message': _('Objetivo no válido.')},
-            status=400,
-        )
-
-    db_pet.save()
-
-    return JsonResponse(
-        {
-            'status': 'success',
-            'message': _('Objetivo actualizado correctamente.'),
-            'pet_id': db_pet.id,
-            'goal': goal,
-            'value': is_enabled,
-            'is_matching': db_pet.is_matching,
-            'is_socializing': db_pet.is_socializing,
-            'is_adoption': db_pet.is_adoption,
-        }
-    )
+# ==============================================================================
+# Vistas de Perfil y Gestión de Mascotas
+# ==============================================================================
 
 
 @login_required
 def pet_management_view(request):
     """
     Renderiza la pantalla oficial de Gestión de perfiles de mascotas.
-    Permite alternar pestañas entre las mascotas del tutor, visualizar datos y marcas,
-    o desplegar el formulario para registrar una nueva mascota.
+    Permite alternar entre las mascotas del tutor o desplegar el formulario para registrar una nueva.
+    Si el tutor no tiene mascotas registradas, fuerza el modo de creación de nueva mascota.
     """
-    pet_param = request.GET.get('pet', '').strip().lower()
     is_new = request.GET.get('new', '').strip().lower() == 'true'
 
-    user_pets = list(Pet.objects.filter(owner=request.user).order_by('id'))
-    if user_pets:
-        pets_list = []
-        for p in user_pets:
-            pets_list.append(
-                {
-                    'id': str(p.id),
-                    'name': p.name,
-                    'species': p.species.slug if p.species else 'perro',
-                    'species_label': str(p.species_label),
-                    'gender': p.gender,
-                    'gender_label': str(p.gender_label),
-                    'gender_icon': p.gender_icon,
-                    'breed': p.breed,
-                    'birth_date': p.birth_date.strftime('%m/%d/%Y')
-                    if p.birth_date
-                    else '04/15/2022',
-                    'birth_date_iso': p.birth_date.isoformat() if p.birth_date else '2022-04-15',
-                    'age_years': p.age_years,
-                    'age_text': str(p.age_text),
-                    'age_completed': f'{p.age_years} años cumplidos',
-                    'certificate': p.certificate,
-                    'certificate_label': str(p.certificate_type or 'Certificado FCI / con pedigrí'),
-                    'temperaments': [t.strip() for t in p.temperaments.split(',') if t.strip()]
-                    if p.temperaments
-                    else ['Juguetón'],
-                    'description': p.description,
-                    'profile_color': p.profile_color,
-                    'profile_color_hex': p.profile_color_hex,
-                    'is_matching': p.is_matching,
-                    'is_socializing': p.is_socializing,
-                    'is_adoption': p.is_adoption,
-                    'photo_url': p.photo_url,
-                    'is_active': p.is_matching,
-                    'status_label': 'Activo' if p.is_matching else 'Inactiva',
-                    'tab_label': p.name,
-                }
-            )
-    else:
-        pets_list = DEFAULT_PETS
+    # Resolver mascota activa y listado de mascotas del usuario
+    active_pet_obj, user_pets = get_user_active_pet(request)
+    pets_list = [serialize_pet_for_management(p) for p in user_pets]
 
-    active_pet = None
-    if is_new:
-        active_pet = {
-            'id': '',
-            'name': '',
-            'species': 'perro',
-            'species_label': _('Perro'),
-            'gender': 'M',
-            'gender_label': _('Macho'),
-            'gender_icon': 'male',
-            'breed': '',
-            'birth_date': '',
-            'birth_date_iso': '',
-            'age_years': 0,
-            'age_text': _('0 años'),
-            'certificate': 'fci',
-            'certificate_label': _('Certificado FCI'),
-            'temperaments': ['Juguetón'],
-            'description': '',
-            'profile_color': 'coral',
-            'profile_color_hex': '#FA7D82',
-            'is_matching': True,
-            'is_socializing': True,
-            'is_adoption': False,
-            'photo_url': '',
-            'is_active': True,
-            'status_label': _('Activo'),
-            'tab_label': _('Nueva mascota'),
-        }
-    elif pets_list:
-        if pet_param:
-            active_pet = next(
-                (p for p in pets_list if p['name'].lower() == pet_param or p['id'] == pet_param),
-                pets_list[0],
-            )
-        else:
-            active_pet = pets_list[0]
+    # Determinar si se presenta el formulario vacío de nueva mascota o la mascota activa
+    if not user_pets:
+        is_new = True
+        active_pet = get_default_new_pet_data()
+    elif is_new:
+        active_pet = get_default_new_pet_data()
+    else:
+        active_pet = next(
+            (p for p in pets_list if p['id'] == str(active_pet_obj.id)),
+            pets_list[0] if pets_list else get_default_new_pet_data(),
+        )
 
     context = {
         'pets': pets_list,
@@ -541,35 +125,145 @@ def pet_management_view(request):
 
 @login_required
 @require_POST
+def pet_save_view(request):
+    """
+    Guarda o actualiza la información del perfil de una mascota.
+    Delega la persistencia a la capa de servicios y sincroniza la sesión activa.
+    Redirige a la pantalla de gestión con mensaje de confirmación.
+    """
+    # Delegar la validación y persistencia de la mascota a la capa de servicios
+    pet, _is_created = save_or_update_pet(request.user, request.POST, request.FILES)
+
+    # Establecer la mascota guardada como activa en la cookie de sesión
+    request.session['active_pet_id'] = str(pet.id)
+    request.session.modified = True
+
+    # Notificar al tutor y redirigir limpiamente sin parámetros en la URL
+    messages.success(
+        request, _('Los datos de %(name)s se guardaron exitosamente.') % {'name': pet.name}
+    )
+    return redirect('pets:pet_management')
+
+
+@login_required
+@require_POST
+def pet_update_certificate_view(request):
+    """
+    Actualiza de forma asíncrona (AJAX / fetch) el tipo de certificado o pedigrí de una mascota.
+    """
+    data = parse_request_payload(request)
+    pet_id = data.get('pet_id')
+    certificate_val = str(data.get('certificate', '')).strip().lower()
+
+    if not pet_id or not certificate_val:
+        return JsonResponse(
+            {'status': 'error', 'message': _('Parámetros incompletos.')},
+            status=400,
+        )
+
+    # Delegar la actualización del certificado a la capa de servicios
+    try:
+        pet, clean_val, cert_label = update_pet_certificate(request.user, pet_id, certificate_val)
+        return JsonResponse(
+            {
+                'status': 'success',
+                'message': _('Certificado actualizado correctamente.'),
+                'pet_id': pet.id,
+                'certificate': clean_val,
+                'certificate_label': cert_label,
+            }
+        )
+    except Pet.DoesNotExist:
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': _('Mascota no encontrada o no pertenece al usuario actual.'),
+            },
+            status=404,
+        )
+
+
+@login_required
+@require_POST
+def pet_toggle_goal_view(request):
+    """
+    Actualiza de forma asíncrona (AJAX / fetch) uno de los objetivos en PetMatch
+    (is_matching, is_socializing o is_adoption) para la mascota del tutor.
+    """
+    data = parse_request_payload(request)
+    pet_id = data.get('pet_id')
+    goal = data.get('goal')
+    value = data.get('value')
+
+    if not pet_id or not goal:
+        return JsonResponse(
+            {'status': 'error', 'message': _('Parámetros incompletos.')},
+            status=400,
+        )
+
+    is_enabled = value in (True, 'true', 'on', '1', 1)
+
+    # Delegar la alternancia del objetivo a la capa de servicios
+    try:
+        pet = toggle_pet_goal(request.user, pet_id, goal, is_enabled)
+        return JsonResponse(
+            {
+                'status': 'success',
+                'message': _('Objetivo actualizado correctamente.'),
+                'pet_id': pet.id,
+                'goal': goal,
+                'value': is_enabled,
+                'is_matching': pet.is_matching,
+                'is_socializing': pet.is_socializing,
+                'is_adoption': pet.is_adoption,
+            }
+        )
+    except Pet.DoesNotExist:
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': _('Mascota no encontrada o no pertenece al usuario actual.'),
+            },
+            status=404,
+        )
+    except ValueError as ve:
+        return JsonResponse(
+            {'status': 'error', 'message': str(ve)},
+            status=400,
+        )
+
+
+@login_required
+@require_POST
 def pet_delete_view(request, pet_id):
     """
     Elimina de forma segura una mascota perteneciente al usuario autenticado.
-    Verifica que el usuario sea el dueño legítimo de la mascota antes de proceder.
+    Verifica pertenencia y sincroniza la mascota activa restante en la sesión.
     """
-    pet = None
-    if str(pet_id).isdigit():
-        pet = Pet.objects.filter(id=int(pet_id), owner=request.user).first()
-    if not pet:
-        pet = Pet.objects.filter(name__iexact=str(pet_id), owner=request.user).first()
+    was_active = str(request.session.get('active_pet_id', '')) == str(pet_id)
 
-    if pet:
-        pet_name = pet.name
-        pet.delete()
-        messages.success(
+    # Delegar la eliminación de la mascota a la capa de servicios
+    try:
+        pet_name, remaining_pet = delete_user_pet(request.user, pet_id)
+    except Pet.DoesNotExist:
+        messages.error(
             request,
-            _('La mascota %(name)s ha sido eliminada exitosamente.') % {'name': pet_name},
+            _('La mascota especificada no existe o no tienes permisos para eliminarla.'),
         )
-    else:
-        # Fallback para mascotas en memoria durante transición
-        pet_name = str(pet_id)
-        for dp in DEFAULT_PETS:
-            if dp['id'] == str(pet_id) or dp['name'].lower() == str(pet_id).lower():
-                pet_name = dp['name']
-                break
-        messages.success(
-            request,
-            _('La mascota %(name)s ha sido eliminada exitosamente.') % {'name': pet_name},
-        )
+        return redirect('pets:pet_management')
+
+    # Reasignar la mascota activa en sesión si la eliminada era la activa
+    if was_active:
+        if remaining_pet:
+            request.session['active_pet_id'] = str(remaining_pet.id)
+        else:
+            request.session.pop('active_pet_id', None)
+        request.session.modified = True
+
+    messages.success(
+        request,
+        _('La mascota %(name)s ha sido eliminada exitosamente.') % {'name': pet_name},
+    )
     return redirect('pets:pet_management')
 
 
@@ -578,18 +272,53 @@ def pet_delete_view(request, pet_id):
 def pet_set_active_view(request):
     """
     Establece la mascota activa seleccionada y la preferencia de pedigrí en la sesión
-    del usuario y redirige al flujo de emparejamiento (match feed).
+    del usuario (cookie) y redirige a la vista solicitada (o match feed), o retorna JSON si es AJAX.
     """
-    selected_id = request.POST.get('selected_pet_id', '').strip()
-    if not selected_id:
-        user_first = Pet.objects.filter(owner=request.user).first()
-        selected_id = str(user_first.id) if user_first else '1234'
-    request.session['active_pet_id'] = selected_id
+    data = parse_request_payload(request)
+    selected_id = str(data.get('selected_pet_id', '')).strip()
+    next_url = data.get('next', '') or data.get('next_url', '') or request.GET.get('next', '')
 
-    pedigree_filter = request.POST.get('pedigree_filter', 'both').strip().lower()
+    user_pets = list(Pet.objects.filter(owner=request.user).order_by('id'))
+    if not user_pets:
+        messages.info(
+            request,
+            _('Para comenzar la búsqueda de pareja, primero debes registrar a tu mascota.'),
+        )
+        return redirect(f'{reverse("pets:pet_management")}?new=true')
+
+    # Localizar la mascota seleccionada o usar la primera registrada
+    active_pet = None
+    if selected_id:
+        target_str = selected_id.lower()
+        active_pet = next(
+            (p for p in user_pets if str(p.id) == target_str or p.name.lower() == target_str),
+            None,
+        )
+    if not active_pet:
+        active_pet = user_pets[0]
+
+    # Guardar identificador en la cookie de sesión del usuario
+    resolved_id = str(active_pet.id)
+    request.session['active_pet_id'] = resolved_id
+    request.session.modified = True
+
+    # Almacenar filtro de preferencia de pedigrí en sesión
+    pedigree_filter = str(data.get('pedigree_filter', 'both')).strip().lower()
     if pedigree_filter not in ('with_pedigree', 'without_pedigree', 'both'):
         pedigree_filter = 'both'
     request.session['match_pedigree_preference'] = pedigree_filter
+
+    # Responder en formato JSON para peticiones asíncronas no originadas por formulario
+    is_ajax = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or request.content_type == 'application/json'
+    )
+    if is_ajax and not data.get('is_form_submission'):
+        return JsonResponse({'status': 'success', 'active_pet_id': resolved_id})
+
+    # Redirigir a la URL siguiente solicitada si es segura
+    if next_url and next_url.startswith('/'):
+        return redirect(next_url)
 
     return redirect('pets:match_feed')
 
@@ -599,100 +328,29 @@ def pet_select_view(request):
     """
     Renderiza la pantalla intermedia oficial de Selección de Mascota activa (reto 11, página 11)
     antes de avanzar hacia el flujo de emparejamiento (match feed).
-    Carga las mascotas registradas por el usuario tutor autenticado y sincroniza
-    la mascota elegida en la sesión.
     """
-    selected_param = request.GET.get('selected', '').strip().lower()
-    session_pet_id = str(request.session.get('active_pet_id', '')).strip().lower()
+    # Resolver la mascota activa del tutor autenticado desde la sesión
+    active_pet_obj, user_pets = get_user_active_pet(request)
 
-    user_pets = list(Pet.objects.filter(owner=request.user).order_by('id'))
-    if user_pets:
-        pets_source = []
-        for p in user_pets:
-            has_fci = bool(p.has_pedigree and p.certificate == 'fci')
-            pets_source.append(
-                {
-                    'id': str(p.id),
-                    'name': p.name,
-                    'species': p.species.slug if p.species else 'perro',
-                    'species_label': str(p.species_label),
-                    'gender': p.gender,
-                    'gender_label': str(p.gender_label),
-                    'gender_icon': p.gender_icon,
-                    'is_hembra': p.is_hembra,
-                    'breed': p.breed,
-                    'age_text': str(p.age_text),
-                    'photo_url': p.photo_url,
-                    'is_active': p.is_active_for_match,
-                    'is_matching': p.is_active_for_match,
-                    'has_pedigree': p.has_pedigree,
-                    'certificate': 'fci' if has_fci else p.certificate,
-                    'certificate_label': str(p.certificate_type or ''),
-                    'profile_color': p.profile_color,
-                    'profile_color_hex': p.profile_color_hex,
-                }
-            )
-    else:
-        # Fallback de compatibilidad con datos de demostración
-        pets_source = [dict(pet) for pet in DEFAULT_PETS]
-
-    # Determinar la mascota activa (prioridad: parámetro GET > sesión activa > primera mascota)
-    active_pet_obj = None
-    if selected_param:
-        active_pet_obj = next(
-            (
-                p
-                for p in pets_source
-                if str(p['id']).lower() == selected_param or p['name'].lower() == selected_param
+    if not user_pets:
+        messages.info(
+            request,
+            _(
+                'Para comenzar la búsqueda de pareja y explorar pretendientes, primero debes registrar a tu mascota.'
             ),
-            None,
         )
-    if not active_pet_obj and session_pet_id:
-        active_pet_obj = next(
-            (
-                p
-                for p in pets_source
-                if str(p['id']).lower() == session_pet_id or p['name'].lower() == session_pet_id
-            ),
-            None,
-        )
-    if not active_pet_obj and pets_source:
-        active_pet_obj = pets_source[0]
+        return redirect(f'{reverse("pets:pet_management")}?new=true')
 
-    selected_id = str(active_pet_obj['id']) if active_pet_obj else ''
-
-    # Marcar 'is_selected' para cada tarjeta
-    pets_display = []
-    for pet in pets_source:
-        pet_copy = dict(pet)
-        pet_copy['is_selected'] = str(pet['id']) == selected_id
-        pets_display.append(pet_copy)
-
-    # Sincronizar en la sesión
-    if selected_id:
-        request.session['active_pet_id'] = selected_id
-
-    # Contabilizar solicitudes de match pendientes entrantes hacia la mascota activa
-    interested_count = 0
-    if active_pet_obj and str(active_pet_obj.get('id', '')).isdigit():
-        interested_count = MatchRequest.objects.filter(
-            to_pet_id=int(active_pet_obj['id']),
-            status=MatchRequest.RequestStatus.PENDING,
-        ).count()
-    elif active_pet_obj:
-        interested_count = 4
-
+    # Obtener el contexto estructurado a través de la capa de servicios
     pedigree_preference = request.session.get('match_pedigree_preference', 'both')
-    if pedigree_preference not in ('with_pedigree', 'without_pedigree', 'both'):
-        pedigree_preference = 'both'
+    context = get_pet_select_context(request.user, active_pet_obj, user_pets, pedigree_preference)
 
-    context = {
-        'pets': pets_display,
-        'active_pet': active_pet_obj or (pets_display[0] if pets_display else None),
-        'interested_count': interested_count,
-        'pedigree_preference': pedigree_preference,
-    }
     return render(request, 'pets/pet_select.html', context)
+
+
+# ==============================================================================
+# Vistas de Emparejamiento y Feed de Candidatos
+# ==============================================================================
 
 
 @login_required
@@ -702,38 +360,16 @@ def match_feed_view(request):
     Aplica el color de perfil personalizado de la mascota activa al contenedor de descubrimiento,
     soporta alternar candidatos dinámicos mediante el ORM y desplegar el diálogo modal interactivo de match.
     """
-    user_pets = list(Pet.objects.filter(owner=request.user).order_by('id'))
-    if not user_pets:
-        # Fallback a mascotas activas globales si el usuario aún no tiene mascotas registradas
-        user_pets = list(Pet.objects.filter(is_active_for_match=True).order_by('id'))
+    # Resolver la mascota activa del tutor autenticado desde la sesión
+    active_pet, user_pets = get_user_active_pet(request)
 
     if not user_pets:
-        messages.warning(
+        messages.info(
             request, _('Debes registrar al menos una mascota para acceder al feed de parejas.')
         )
-        return redirect('pets:pet_select')
+        return redirect(f'{reverse("pets:pet_management")}?new=true')
 
-    active_pet = None
-    active_pet_id = request.session.get('active_pet_id')
-    pet_param = request.GET.get('pet', '').strip().lower()
-
-    if pet_param:
-        if pet_param.isdigit():
-            active_pet = next((p for p in user_pets if str(p.id) == pet_param), None)
-        if not active_pet:
-            active_pet = next((p for p in user_pets if p.name.lower() == pet_param), None)
-
-    if not active_pet and active_pet_id:
-        active_pet = next((p for p in user_pets if str(p.id) == str(active_pet_id)), None)
-        if not active_pet and str(active_pet_id) == '5678':
-            active_pet = next((p for p in user_pets if p.name.lower() == 'luna'), None)
-        elif not active_pet and str(active_pet_id) == '1234':
-            active_pet = next((p for p in user_pets if p.name.lower() == 'toby'), None)
-
-    if not active_pet:
-        active_pet = user_pets[0]
-
-    # Validar que la mascota activa tenga habilitada la condición de búsqueda de pareja (UC-08.3)
+    # Validar que la mascota activa tenga habilitada la condición de búsqueda de pareja
     if not active_pet.is_active_for_match:
         messages.warning(
             request,
@@ -742,80 +378,15 @@ def match_feed_view(request):
         )
         return redirect('pets:pet_select')
 
-    if 'active_pet_id' not in request.session:
-        request.session['active_pet_id'] = str(active_pet.id)
-    other_pet = next((p for p in user_pets if p.id != active_pet.id), None)
+    # Notificar si se recargó el feed o se restablecieron los filtros
+    if request.GET.get('reload') == 'true':
+        messages.info(request, _('El feed ha sido recargado con éxito.'))
+    if request.GET.get('reset_filters') == 'true':
+        messages.info(request, _('Los filtros han sido restablecidos.'))
 
-    # Preferencia de pedigrí recibida vía GET o almacenada en la sesión
-    pedigree_param = request.GET.get('pedigree') or request.session.get(
-        'match_pedigree_preference', 'both'
-    )
-    if pedigree_param not in ('with_pedigree', 'without_pedigree', 'both'):
-        pedigree_param = 'both'
-    request.session['match_pedigree_preference'] = pedigree_param
+    # Obtener el contexto estructurado a través de la capa de servicios
+    context = get_match_feed_context(active_pet, user_pets, request.session, request.GET)
 
-    # Distancia máxima recibida vía GET o almacenada en la sesión
-    raw_max_distance = request.GET.get('max_distance')
-    if raw_max_distance is not None:
-        try:
-            max_distance = int(float(raw_max_distance))
-            if max_distance < 1:
-                max_distance = 1
-            elif max_distance > 50:
-                max_distance = 50
-            request.session['match_max_distance'] = max_distance
-        except (ValueError, TypeError):
-            max_distance = request.session.get('match_max_distance', 5)
-    else:
-        max_distance = request.session.get('match_max_distance', 5)
-
-    match_filters = {'max_distance': max_distance}
-    if pedigree_param == 'with_pedigree':
-        match_filters['has_pedigree'] = True
-    elif pedigree_param == 'without_pedigree':
-        match_filters['without_pedigree'] = True
-
-    # Consultar candidatos compatibles mediante el ORM a través de services.py
-    candidates_qs = get_match_candidates(active_pet, filters=match_filters)
-    candidates_data = [serialize_candidate(active_pet, c) for c in candidates_qs]
-    current_candidate = candidates_data[0] if candidates_data else None
-
-    # Consultar solicitudes de match entrantes para la barra lateral de interesados
-    interested_requests = (
-        MatchRequest.objects.filter(
-            to_pet=active_pet,
-            status=MatchRequest.RequestStatus.PENDING,
-        )
-        .select_related('from_pet', 'from_pet__owner', 'from_pet__owner__profile')
-        .order_by('-created_at')
-    )
-    interested_sidebar = []
-    for req in interested_requests[:5]:
-        cand = req.from_pet
-        interested_sidebar.append(
-            {
-                'id': str(req.id),
-                'candidate_pet_id': cand.id,
-                'name': cand.name,
-                'age': str(cand.age_text),
-                'breed': cand.breed,
-                'distance': calculate_candidate_distance(active_pet, cand),
-                'photo_url': cand.photo_url,
-            }
-        )
-    interested_count = interested_requests.count()
-
-    context = {
-        'active_pet': active_pet,
-        'other_pet': other_pet,
-        'candidates': candidates_data,
-        'current_candidate': current_candidate,
-        'candidates_json': json.dumps(candidates_data, cls=DjangoJSONEncoder),
-        'interested_sidebar': interested_sidebar,
-        'interested_count': interested_count,
-        'pedigree_preference': pedigree_param,
-        'max_distance': max_distance,
-    }
     return render(request, 'pets/match_feed.html', context)
 
 
@@ -823,125 +394,60 @@ def match_feed_view(request):
 def match_interested_view(request):
     """
     Renderiza la pantalla oficial de Interesados - Solicitudes de emparejamiento y citas (UC-08.2).
-    Permite al tutor revisar interesados (solicitudes recibidas), solicitudes enviadas,
-    filtrar por pestañas y concertar encuentros seguros.
-    Cumple con el Principio de Responsabilidad Única (SRP) delegando la lógica de consulta
-    y conteo a apps/pets/services.py.
+    Permite al tutor revisar interesados, solicitudes enviadas, filtrar por pestañas y concertar citas.
+    Delega la lógica de consulta y ordenamiento a la capa de servicios.
     """
-    user_pets = list(Pet.objects.filter(owner=request.user).order_by('id'))
+    # Resolver la mascota activa del tutor autenticado desde la sesión
+    active_pet, user_pets = get_user_active_pet(request)
+
     if not user_pets:
-        user_pets = list(Pet.objects.filter(is_active_for_match=True).order_by('id'))
+        messages.info(
+            request,
+            _('Debes registrar al menos una mascota antes de ver solicitudes e interesados.'),
+        )
+        return redirect(f'{reverse("pets:pet_management")}?new=true')
 
-    active_pet = None
-    active_pet_id = request.session.get('active_pet_id')
-    pet_param = request.GET.get('pet', '').strip().lower()
+    # Obtener el contexto de solicitudes y citas a través de la capa de servicios
+    tab = request.GET.get('tab', 'all')
+    sort_by = request.GET.get('sort', 'compatibility')
+    context = get_match_interested_context(active_pet, user_pets, tab=tab, sort_by=sort_by)
 
-    if pet_param:
-        if pet_param.isdigit():
-            active_pet = next((p for p in user_pets if str(p.id) == pet_param), None)
-        if not active_pet:
-            active_pet = next((p for p in user_pets if p.name.lower() == pet_param), None)
-
-    if not active_pet and active_pet_id:
-        active_pet = next((p for p in user_pets if str(p.id) == str(active_pet_id)), None)
-        if not active_pet and str(active_pet_id) == '5678':
-            active_pet = next((p for p in user_pets if p.name.lower() == 'luna'), None)
-        elif not active_pet and str(active_pet_id) == '1234':
-            active_pet = next((p for p in user_pets if p.name.lower() == 'toby'), None)
-
-    if not active_pet and user_pets:
-        active_pet = user_pets[0]
-
-    other_pet = (
-        next((p for p in user_pets if p.id != getattr(active_pet, 'id', None)), None)
-        if active_pet
-        else None
-    )
-
-    if active_pet and 'active_pet_id' not in request.session:
-        request.session['active_pet_id'] = str(active_pet.id)
-
-    # Contadores dinámicos por pestaña mediante services.py (SRP)
-    tab_counters = get_requests_tab_counters(active_pet)
-
-    # Filtrado por pestaña ('all', 'interested', 'sent')
-    tab = request.GET.get('tab', 'all').strip().lower()
-    if tab == 'interested':
-        requests_qs = get_interested_match_requests(active_pet)
-    elif tab == 'sent':
-        requests_qs = get_sent_match_requests(active_pet)
-    else:
-        tab = 'all'
-        requests_qs = get_all_match_requests_for_pet(active_pet)
-
-    suitors = [serialize_match_request(active_pet, r) for r in requests_qs] if active_pet else []
-
-    # Citas confirmadas o próximas desde PetMeetup
-    meetups_qs = get_upcoming_pet_meetups(active_pet) if active_pet else []
-    confirmed_dates = [serialize_pet_meetup(active_pet, m) for m in meetups_qs]
-
-    context = {
-        'active_pet': active_pet,
-        'other_pet': other_pet,
-        'suitors': suitors,
-        'requests': suitors,
-        'featured_suitor': suitors[0] if suitors else None,
-        'secondary_suitors': suitors[1:] if len(suitors) > 1 else [],
-        'interested_count': tab_counters.get('interested', 0),
-        'tab_counters': tab_counters,
-        'current_tab': tab,
-        'confirmed_dates': confirmed_dates,
-    }
     return render(request, 'pets/match_interested.html', context)
 
 
 # ==============================================================================
-# Controladores Atómicos: Feed y Swipe de Candidatos (Issue #63)
+# Controladores Atómicos: Feed y Swipe de Candidatos
 # ==============================================================================
 
 
 @login_required
 @require_POST
 def match_like_candidate_view(request):
-    """
-    Registra 'Me gusta' hacia un candidato del feed y verifica coincidencia recíproca.
-    """
-    try:
-        data = (
-            json.loads(request.body) if request.content_type == 'application/json' else request.POST
-        )
-    except Exception:
-        data = request.POST
-
+    """Registra interés hacia una mascota candidata del feed y evalúa coincidencia recíproca."""
+    data = parse_request_payload(request)
     candidate_id = data.get('candidate_id')
     if not candidate_id:
         return JsonResponse(
-            {'status': 'error', 'message': _('ID de candidato no especificado.')},
-            status=400,
+            {'status': 'error', 'message': _('ID de candidato no especificado.')}, status=400
         )
 
+    # Validar existencia del candidato en la base de datos
     try:
         candidate_pet = Pet.objects.get(id=candidate_id)
     except (Pet.DoesNotExist, ValueError):
         return JsonResponse(
-            {'status': 'error', 'message': _('Candidato no encontrado.')},
-            status=404,
+            {'status': 'error', 'message': _('Candidato no encontrado.')}, status=404
         )
 
-    # Identificar mascota activa del usuario autenticado
-    active_pet = None
-    active_pet_id = data.get('active_pet_id') or request.session.get('active_pet_id')
-    if active_pet_id and str(active_pet_id).isdigit():
-        active_pet = Pet.objects.filter(id=int(active_pet_id), owner=request.user).first()
-    if not active_pet:
-        active_pet = Pet.objects.filter(owner=request.user).first()
-
+    # Obtener la mascota activa del tutor desde la sesión
+    active_pet, _user_pets = get_user_active_pet(request)
     if not active_pet:
         return JsonResponse(
             {'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')},
             status=400,
         )
 
+    # Validar que la mascota activa tenga activada la búsqueda de pareja
     if not active_pet.is_active_for_match:
         return JsonResponse(
             {
@@ -951,12 +457,14 @@ def match_like_candidate_view(request):
             status=400,
         )
 
+    # Evitar interacción entre mascotas del mismo dueño
     if candidate_pet.id == active_pet.id or candidate_pet.owner_id == request.user.id:
         return JsonResponse(
             {'status': 'error', 'message': _('No puedes interactuar con tu propia mascota.')},
             status=400,
         )
 
+    # Delegar el registro del like a la capa de servicios
     match_request, is_mutual = record_candidate_like(active_pet, candidate_pet)
 
     return JsonResponse(
@@ -982,44 +490,31 @@ def match_like_candidate_view(request):
 @login_required
 @require_POST
 def match_pass_candidate_view(request):
-    """
-    Registra el descarte de un candidato en el feed para avanzar a la siguiente tarjeta.
-    """
-    try:
-        data = (
-            json.loads(request.body) if request.content_type == 'application/json' else request.POST
-        )
-    except Exception:
-        data = request.POST
-
+    """Registra el descarte de un candidato en el feed para avanzar a la siguiente tarjeta."""
+    data = parse_request_payload(request)
     candidate_id = data.get('candidate_id')
     if not candidate_id:
         return JsonResponse(
-            {'status': 'error', 'message': _('ID de candidato no especificado.')},
-            status=400,
+            {'status': 'error', 'message': _('ID de candidato no especificado.')}, status=400
         )
 
+    # Validar existencia del candidato
     try:
         candidate_pet = Pet.objects.get(id=candidate_id)
     except (Pet.DoesNotExist, ValueError):
         return JsonResponse(
-            {'status': 'error', 'message': _('Candidato no encontrado.')},
-            status=404,
+            {'status': 'error', 'message': _('Candidato no encontrado.')}, status=404
         )
 
-    active_pet = None
-    active_pet_id = data.get('active_pet_id') or request.session.get('active_pet_id')
-    if active_pet_id and str(active_pet_id).isdigit():
-        active_pet = Pet.objects.filter(id=int(active_pet_id), owner=request.user).first()
-    if not active_pet:
-        active_pet = Pet.objects.filter(owner=request.user).first()
-
+    # Obtener la mascota activa del tutor desde la sesión
+    active_pet, _user_pets = get_user_active_pet(request)
     if not active_pet:
         return JsonResponse(
             {'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')},
             status=400,
         )
 
+    # Delegar el registro del descarte a la capa de servicios
     match_request = record_candidate_pass(active_pet, candidate_pet)
 
     return JsonResponse(
@@ -1034,16 +529,8 @@ def match_pass_candidate_view(request):
 @login_required
 @require_POST
 def match_report_candidate_view(request):
-    """
-    Registra una denuncia o reporte contra una mascota candidata desde el feed.
-    """
-    try:
-        data = (
-            json.loads(request.body) if request.content_type == 'application/json' else request.POST
-        )
-    except Exception:
-        data = request.POST
-
+    """Registra una denuncia o reporte contra una mascota candidata desde el feed."""
+    data = parse_request_payload(request)
     reported_pet_id = data.get('candidate_id') or data.get('reported_pet_id')
     reason = data.get('reason', '').strip()
 
@@ -1053,28 +540,23 @@ def match_report_candidate_view(request):
             status=400,
         )
 
+    # Validar existencia de la mascota reportada
     try:
         reported_pet = Pet.objects.get(id=reported_pet_id)
     except (Pet.DoesNotExist, ValueError):
         return JsonResponse(
-            {'status': 'error', 'message': _('Mascota candidata no encontrada.')},
-            status=404,
+            {'status': 'error', 'message': _('Mascota candidata no encontrada.')}, status=404
         )
 
+    # Delegar la creación del reporte a la capa de servicios
     report = report_candidate_pet(
         reporter_user=request.user,
         reported_pet=reported_pet,
         reason=reason,
     )
 
-    # Registrar descarte automático para que no vuelva a aparecer en el feed
-    active_pet = None
-    active_pet_id = request.session.get('active_pet_id')
-    if active_pet_id and str(active_pet_id).isdigit():
-        active_pet = Pet.objects.filter(id=int(active_pet_id), owner=request.user).first()
-    if not active_pet:
-        active_pet = Pet.objects.filter(owner=request.user).first()
-
+    # Descartar automáticamente a la mascota reportada para que no vuelva a aparecer en el feed
+    active_pet, _user_pets = get_user_active_pet(request)
     if active_pet:
         record_candidate_pass(active_pet, reported_pet)
 
@@ -1090,30 +572,23 @@ def match_report_candidate_view(request):
 
 
 # ==============================================================================
-# Siluetas de Controladores: Solicitudes e Interesados (Issue #64)
+# Siluetas de Controladores: Solicitudes e Interesados
 # ==============================================================================
 
 
 @login_required
 @require_POST
 def match_accept_request_view(request, request_id):
-    """
-    Acepta una solicitud de match recibida en la bandeja de interesados.
-    Valida pertenencia a la mascota activa del usuario y delega a services.accept_match_request.
-    """
-    active_pet = None
-    active_pet_id = request.session.get('active_pet_id')
-    if active_pet_id and str(active_pet_id).isdigit():
-        active_pet = Pet.objects.filter(id=int(active_pet_id), owner=request.user).first()
-    if not active_pet:
-        active_pet = Pet.objects.filter(owner=request.user).first()
-
+    """Acepta una solicitud de match recibida en la bandeja de interesados."""
+    # Obtener la mascota activa del tutor
+    active_pet, _user_pets = get_user_active_pet(request)
     if not active_pet:
         return JsonResponse(
             {'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')},
             status=400,
         )
 
+    # Delegar la aceptación de la solicitud a la capa de servicios
     try:
         match_request = accept_match_request(request_id=request_id, active_pet=active_pet)
         tab_counters = get_requests_tab_counters(active_pet)
@@ -1137,32 +612,22 @@ def match_accept_request_view(request, request_id):
             status=404,
         )
     except Exception as e:
-        return JsonResponse(
-            {'status': 'error', 'message': str(e)},
-            status=400,
-        )
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
 @login_required
 @require_POST
 def match_reject_request_view(request, request_id):
-    """
-    Descarta o rechaza una solicitud de match en la bandeja de interesados.
-    Valida pertenencia a la mascota activa del usuario y delega a services.reject_match_request.
-    """
-    active_pet = None
-    active_pet_id = request.session.get('active_pet_id')
-    if active_pet_id and str(active_pet_id).isdigit():
-        active_pet = Pet.objects.filter(id=int(active_pet_id), owner=request.user).first()
-    if not active_pet:
-        active_pet = Pet.objects.filter(owner=request.user).first()
-
+    """Descarta o rechaza una solicitud de match en la bandeja de interesados."""
+    # Obtener la mascota activa del tutor
+    active_pet, _user_pets = get_user_active_pet(request)
     if not active_pet:
         return JsonResponse(
             {'status': 'error', 'message': _('No se encontró una mascota activa para el usuario.')},
             status=400,
         )
 
+    # Delegar el rechazo de la solicitud a la capa de servicios
     try:
         match_request = reject_match_request(request_id=request_id, active_pet=active_pet)
         tab_counters = get_requests_tab_counters(active_pet)
@@ -1186,48 +651,37 @@ def match_reject_request_view(request, request_id):
             status=404,
         )
     except Exception as e:
-        return JsonResponse(
-            {'status': 'error', 'message': str(e)},
-            status=400,
-        )
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
 @login_required
 @require_POST
-def send_initial_message_view(request, request_id):
+def send_initial_note_view(request, request_id):
     """
-    Registra o actualiza el mensaje o nota inicial de contacto tras un match aceptado
+    Registra o actualiza la nota inicial de contacto tras un match aceptado
     o durante la interacción con una solicitud de match.
-    Persiste en MatchRequest.notes mediante services.send_initial_match_note.
     """
-    data = {}
-    if request.content_type == 'application/json':
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-        except Exception:
-            pass
-    if not data:
-        data = request.POST
-
-    message_text = (
-        data.get('message')
+    data = parse_request_payload(request)
+    note_text = (
+        data.get('note')
         or data.get('notes')
         or data.get('note_text')
+        or data.get('message')
         or data.get('initial_message', '')
     )
-    message_text = str(message_text).strip()
+    clean_note = str(note_text).strip()
 
-    if not message_text:
+    if not clean_note:
         return JsonResponse(
-            {'status': 'error', 'message': _('El mensaje o nota no puede estar vacío.')},
-            status=400,
+            {'status': 'error', 'message': _('La nota no puede estar vacía.')}, status=400
         )
 
+    # Delegar el guardado de la nota a la capa de servicios
     try:
         result = send_initial_match_note(
             request_id=request_id,
             sender_user=request.user,
-            note_text=message_text,
+            note_text=clean_note,
         )
         return JsonResponse(result)
     except MatchRequest.DoesNotExist:
@@ -1236,44 +690,21 @@ def send_initial_message_view(request, request_id):
             status=404,
         )
     except PermissionError as pe:
-        return JsonResponse(
-            {'status': 'error', 'message': str(pe)},
-            status=403,
-        )
+        return JsonResponse({'status': 'error', 'message': str(pe)}, status=403)
     except Exception as e:
-        return JsonResponse(
-            {'status': 'error', 'message': str(e)},
-            status=400,
-        )
-
-
-send_initial_note_view = send_initial_message_view
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
 # ==============================================================================
-# Siluetas de Controladores: Citas y Encuentros Caninos (Issue #65)
+# Siluetas de Controladores: Citas y Encuentros Caninos
 # ==============================================================================
 
 
 @login_required
 @require_POST
 def schedule_meetup_view(request):
-    """
-    Procesa la concertación de un encuentro canino seguro desde el modal.
-    - Valida los datos recibidos mediante ScheduleMeetupForm(data).
-    - Identifica la mascota solicitante y la mascota destinataria.
-    - Delega la creación y persistencia a apps.pets.services.schedule_pet_meetup(...).
-    - Retorna JSON con confirmación y serialización del encuentro.
-    """
-    data = {}
-    if request.content_type == 'application/json':
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-        except Exception:
-            pass
-    if not data:
-        data = request.POST.copy()
-
+    """Procesa la concertación de un encuentro canino seguro desde el modal interactivo."""
+    data = parse_request_payload(request)
     form = ScheduleMeetupForm(data)
     if not form.is_valid():
         first_error = next(iter(form.errors.values()))[0]
@@ -1286,7 +717,7 @@ def schedule_meetup_view(request):
             status=400,
         )
 
-    # Identificar mascota solicitante del usuario
+    # Identificar la mascota solicitante del usuario
     requester_pet_id = (
         data.get('requester_pet_id')
         or data.get('from_pet_id')
@@ -1307,7 +738,7 @@ def schedule_meetup_view(request):
             status=400,
         )
 
-    # Identificar mascota destinataria
+    # Identificar la mascota destinataria del encuentro
     target_pet_id = data.get('target_pet_id') or data.get('to_pet_id') or data.get('pet_id')
     match_request_id = data.get('match_request_id') or data.get('request_id')
     target_pet = None
@@ -1338,6 +769,7 @@ def schedule_meetup_view(request):
             status=400,
         )
 
+    # Delegar la persistencia de la cita a la capa de servicios
     try:
         meetup = schedule_pet_meetup(
             requester_user=request.user,
@@ -1367,23 +799,11 @@ def schedule_meetup_view(request):
 @login_required
 @require_POST
 def cancel_meetup_view(request, meetup_id):
-    """
-    Cancela una cita de encuentro canino previamente acordada.
-    - Valida permisos del usuario sobre el encuentro.
-    - Delega la actualización a apps.pets.services.cancel_pet_meetup(meetup_id, request.user).
-    - Retorna JSON con confirmación de cancelación.
-    """
-    data = {}
-    if request.content_type == 'application/json':
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-        except Exception:
-            pass
-    if not data:
-        data = request.POST
-
+    """Cancela una cita de encuentro canino previamente acordada."""
+    data = parse_request_payload(request)
     reason = str(data.get('reason', '')).strip()
 
+    # Delegar la cancelación a la capa de servicios
     try:
         meetup = cancel_pet_meetup(meetup_id=meetup_id, user=request.user, reason=reason)
         return JsonResponse(

@@ -8,6 +8,9 @@
 
     <!-- Contenido principal de la aplicación -->
     <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-28 md:py-6">
+        <!-- Bloque opcional de mensajes del sistema -->
+        {% block messages %}{% endblock %}
+
         {% block content %}{% endblock %}
     </main>
 

@@ -6,7 +6,7 @@
 {% block content %}
 <div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-5">
 
-    <!-- Mensajes flash del sistema si existen -->
+    <!-- Mensajes flash del sistema alineados con el contenedor de la página -->
     {% include 'components/messages.html' %}
 
     <!-- Miga de pan de navegación -->
@@ -19,16 +19,14 @@
             <!-- Selector activo de mascota con enlace de retorno a Selección de Mascota -->
             <div class="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white border border-neutral-300/80 shadow-xs">
                 <div class="relative w-8 h-8 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200">
-                    <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}" class="w-full h-full object-cover">
-                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white"></span>
+                    <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}" class="w-full h-full object-cover">       
                 </div>
                 <div class="text-xs">
                     <span class="font-bold text-neutral-900">{{ active_pet.name }}</span>
                     <span class="text-neutral-500">({{ active_pet.breed }} • {{ active_pet.gender_label }}, {{ active_pet.age_text }})</span>
                 </div>
-                <a href="{% url 'pets:pet_select' %}" class="text-xs font-semibold text-petly-coral hover:text-petly-coral-dark hover:underline inline-flex items-center gap-1 transition-colors pl-1">
-                    <span>{% translate "Cambiar a" %} {{ other_pet.name }}</span>
-                    <span>⇄</span>
+                <a href="{% url 'pets:pet_select' %}" class="text-xs font-semibold text-petly-coral hover:text-petly-coral-dark hover:underline inline-flex items-center gap-1 transition-colors pl-1" title="{% translate 'Cambiar de mascota activa' %}">
+                    <span>{% translate "Cambiar" %}</span>
                 </a>
             </div>
 
@@ -39,9 +37,22 @@
                     <span>&lt; {{ max_distance|default:5 }} km</span>
                 </span>
                 <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-neutral-300/80 text-neutral-700 shadow-xs">
-                    {% include 'components/icon.html' with name="dog" class="w-3.5 h-3.5 text-neutral-500" %}
-                    <span>{% translate "Perros" %}</span>
+                    {% include 'components/icon.html' with name=active_pet.species.icon_name|default:"dog" class="w-3.5 h-3.5 text-neutral-500" %}
+                    <span>{{ active_pet.species_label }}</span>
                 </span>
+                {% if purpose_preference == 'mating' %}
+                    {% translate "Cruza responsable" as mating_pill_label %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-neutral-300/80 text-neutral-700 shadow-xs">
+                        {% include 'components/icon.html' with name="heart" class="w-3.5 h-3.5 text-petly-coral" %}
+                        <span>{{ mating_pill_label }}</span>
+                    </span>
+                {% elif purpose_preference == 'play' %}
+                    {% translate "Socialización" as play_pill_label %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-neutral-300/80 text-neutral-700 shadow-xs">
+                        {% include 'components/icon.html' with name="sparkles" class="w-3.5 h-3.5 text-emerald-600" %}
+                        <span>{{ play_pill_label }}</span>
+                    </span>
+                {% endif %}
                 {% if pedigree_preference == 'with_pedigree' %}
                     {% translate "Con pedigrí FCI" as fci_label %}
                     {% include 'components/badge.html' with text=fci_label variant="compat" icon="award" class="text-xs py-1.5 px-3 shadow-xs" %}
@@ -96,8 +107,21 @@
                     {% include 'components/icon.html' with name="location" class="w-3.5 h-3.5 text-neutral-500" %}
                     <span>&lt; {{ max_distance|default:5 }} km</span>
                 </span>
-                {% translate "Perros" as dogs_label_mob %}
-                {% include 'components/badge.html' with text=dogs_label_mob variant="neutral" icon="dog" class="bg-white text-xs py-1 px-3 whitespace-nowrap" %}
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white border border-neutral-200 text-neutral-700 shadow-xs whitespace-nowrap">
+                    {% include 'components/icon.html' with name=active_pet.species.icon_name|default:"dog" class="w-3.5 h-3.5 text-neutral-500" %}
+                    <span>{{ active_pet.species_label }}</span>
+                </span>
+                {% if purpose_preference == 'mating' %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-white border border-neutral-200 text-neutral-700 shadow-xs whitespace-nowrap">
+                        {% include 'components/icon.html' with name="heart" class="w-3.5 h-3.5 text-petly-coral" %}
+                        <span>{{ mating_pill_label }}</span>
+                    </span>
+                {% elif purpose_preference == 'play' %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-white border border-neutral-200 text-neutral-700 shadow-xs whitespace-nowrap">
+                        {% include 'components/icon.html' with name="sparkles" class="w-3.5 h-3.5 text-emerald-600" %}
+                        <span>{{ play_pill_label }}</span>
+                    </span>
+                {% endif %}
                 {% if pedigree_preference == 'with_pedigree' %}
                     {% translate "Con pedigrí FCI" as fci_label_mob %}
                     {% include 'components/badge.html' with text=fci_label_mob variant="compat" icon="award" class="text-xs py-1 px-3 whitespace-nowrap" %}
@@ -132,7 +156,7 @@
             <div id="discovery-card"
                  class="relative w-full max-w-2xl lg:max-w-none bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border border-neutral-200/80 mb-8 lg:mb-0 shadow-pet-discovery {% if not current_candidate %}hidden{% endif %}">
 
-                <!-- SECCIÓN 1: FOTOGRAFÍA PRINCIPAL CON GRADIENTE E INFORMACIÓN -->
+                <!-- Fotografía principal del candidato con gradiente informativo y etiquetas -->
                 <div class="relative w-full h-80 sm:h-96 md:h-[480px] lg:h-[500px] bg-neutral-100 overflow-hidden">
                     <img id="card-photo"
                          src="{{ current_candidate.photo_url|default:'' }}"
@@ -195,7 +219,7 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN 2: CUERPO DETALLADO DE LA MASCOTA -->
+                <!-- Información detallada del candidato, métricas y tutores -->
                 <div id="card-body-container" class="p-6 sm:p-7 space-y-5 bg-white">
 
                     <!-- Personalidad y Temperamento -->
@@ -212,7 +236,7 @@
                         </div>
                     </div>
 
-                    <!-- Fila de métricas clave (3 cajas redondeadas limpias como en UI Figma) -->
+                    <!-- Fila de métricas clave con compatibilidad, distancia y pedigrí -->
                     <div class="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl bg-[#F4F6F9] border border-slate-100 text-center">
                         <div class="flex flex-col">
                             <span class="text-[10px] sm:text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
@@ -274,7 +298,7 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN 3: BOTONES DE ACCIÓN RÁPIDA (✕, ♥ y ⚑) -->
+                <!-- Botones de acción rápida: descartar, mostrar interés y reportar -->
                 <!-- Versión Escritorio (md en adelante) -->
                 <div class="hidden md:flex p-4 sm:p-5 bg-neutral-50/80 border-t border-neutral-100 items-center justify-between gap-4">
                     <!-- Botón: Pasar / Descartar (✕) -->
@@ -329,20 +353,21 @@
                     {% translate "No hay más perfiles compatibles disponibles para evaluar en este momento. Revisa tus solicitudes de interesados o regresa más tarde para descubrir nuevas mascotas." %}
                 </p>
                 <div class="pt-2 flex flex-wrap gap-3 justify-center">
-                    <a href="{% url 'pets:match_feed' %}" class="btn-pet-dynamic-like px-5 py-2.5 rounded-full text-xs font-bold text-white shadow-xs no-underline inline-flex items-center gap-2">
+                    <a href="{% url 'pets:match_feed' %}?reload=true" class="btn-pet-dynamic-like px-5 py-2.5 rounded-full text-xs font-bold text-white shadow-xs no-underline inline-flex items-center gap-2 cursor-pointer">
                         <span>{% translate "Recargar feed" %}</span>
                     </a>
                     <a href="{% url 'pets:match_interested' %}" class="px-5 py-2.5 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 no-underline inline-flex items-center gap-1.5 transition-colors">
                         <span>{% translate "Ver solicitudes pendientes" %}</span>
+                        {% if pending_interested_count > 0 %}
+                            <span class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-petly-coral text-white">{{ pending_interested_count }}</span>
+                        {% endif %}
                     </a>
                 </div>
             </div>
 
         </div>
 
-        <!-- ============================================== -->
-        <!-- COLUMNA DERECHA: BANDEJA LATERAL DE INTERESADOS-->
-        <!-- ============================================== -->
+        <!-- Columna lateral con bandeja de pretendientes interesados -->
         <div class="hidden lg:block lg:col-span-4 sticky top-24 space-y-4">
 
             <!-- Tarjeta: Pretendientes interesados en Toby -->
@@ -354,9 +379,9 @@
                             {% blocktranslate with name=active_pet.name %}Interesadas en {{ name }}{% endblocktranslate %}
                         </h2>
                     </div>
-                    <!-- Badge '3 nuevas' en una sola línea sin desbordamiento -->
+                    <!-- Indicador de solicitudes pendientes sin desbordamiento -->
                     <span class="inline-flex items-center justify-center whitespace-nowrap shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold badge-pet-accent">
-                        {{ interested_count }} {% translate "nuevas" %}
+                        {{ pending_interested_count }} {% translate "nuevas" %}
                     </span>
                 </div>
 
@@ -378,7 +403,11 @@
                                 </div>
                             </div>
                             {% translate 'Responder con match' as aria_quick_match %}
-                            {% include 'components/button.html' with variant="custom" icon="heart-filled" icon_class="w-4 h-4" onclick="handleSidebarQuickMatch(this)" data_name=suitor.name data_photo=suitor.photo_url title=aria_quick_match class="btn-pet-quick-match w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer" %}
+                            {% include 'components/button.html' with variant="custom" icon="heart-filled" icon_class="w-4 h-4" onclick="handleSidebarQuickMatch(this)" data_id=suitor.candidate_pet_id data_name=suitor.name data_photo=suitor.photo_url title=aria_quick_match class="btn-pet-quick-match w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer" %}
+                        </div>
+                    {% empty %}
+                        <div class="p-4 rounded-2xl bg-[#F4F6F9] border border-slate-100 text-center text-xs text-neutral-500">
+                            {% translate "Aún no tienes nuevas solicitudes de interesados." %}
                         </div>
                     {% endfor %}
                 </div>
@@ -387,7 +416,7 @@
                 <div class="pt-2">
                     <a href="{% url 'pets:match_interested' %}"
                        class="w-full py-2.5 text-xs font-semibold inline-flex items-center justify-center gap-1.5 no-underline shadow-xs rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 transition-all">
-                        <span>{% translate "Ver todas las solicitudes" %} ({{ interested_count }})</span>
+                        <span>{% translate "Ver todas las solicitudes" %} ({{ total_requests_count }})</span>
                         <span>&rarr;</span>
                     </a>
                 </div>
@@ -503,11 +532,11 @@
             </div>
 
             <div>
-                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Propósito principal" %}</label>
-                <select class="input-petly text-xs">
-                    <option>{% translate "Cruza responsable y socialización" %}</option>
-                    <option>{% translate "Únicamente cruza con pedigrí" %}</option>
-                    <option>{% translate "Únicamente socialización y citas de juego" %}</option>
+                <label for="feed-filter-purpose" class="font-semibold text-neutral-700 block mb-1">{% translate "Propósito principal" %}</label>
+                <select id="feed-filter-purpose" name="purpose" class="input-petly text-xs">
+                    <option value="all" {% if not purpose_preference or purpose_preference == 'all' %}selected{% endif %}>{% translate "Cruza responsable y socialización" %}</option>
+                    <option value="mating" {% if purpose_preference == 'mating' %}selected{% endif %}>{% translate "Únicamente cruza responsable" %}</option>
+                    <option value="play" {% if purpose_preference == 'play' %}selected{% endif %}>{% translate "Únicamente socialización y citas de juego" %}</option>
                 </select>
             </div>
 
@@ -536,7 +565,10 @@
             </div>
         </div>
 
-        <div class="mt-6 flex justify-end gap-2">
+        <div class="mt-6 flex items-center justify-between gap-2">
+            <button type="button" onclick="resetFeedFilters()" class="text-xs text-neutral-500 hover:text-neutral-800 underline cursor-pointer">
+                {% translate "Restablecer filtros" %}
+            </button>
             {% translate "Aplicar filtros" as apply_flt_text %}
             {% include 'components/button.html' with text=apply_flt_text variant="primary" type="button" onclick="applyFeedFilters()" class="text-xs px-5 py-2 font-bold" %}
         </div>
@@ -568,6 +600,21 @@
         if (distanceInput) {
             url.searchParams.set('max_distance', distanceInput.value);
         }
+        const purposeSelect = document.getElementById('feed-filter-purpose');
+        if (purposeSelect) {
+            url.searchParams.set('purpose', purposeSelect.value);
+        }
+        url.searchParams.delete('reload');
+        url.searchParams.delete('reset_filters');
+        window.location.href = url.toString();
+    }
+
+    function resetFeedFilters() {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('pedigree');
+        url.searchParams.delete('max_distance');
+        url.searchParams.delete('purpose');
+        url.searchParams.set('reset_filters', 'true');
         window.location.href = url.toString();
     }
     function openModal(id) {
@@ -878,10 +925,9 @@
     function openCandidateReportModal() {
         if (!CANDIDATES || currentCandidateIndex >= CANDIDATES.length) return;
         const c = CANDIDATES[currentCandidateIndex];
-        const reason = prompt(
-            `{% translate "¿Deseas reportar el perfil de" %} ${c.name}? {% translate "Por favor indica el motivo del reporte:" %}`,
-            "{% translate "Información falsa o contenido inapropiado" %}"
-        );
+        const defaultReason = '{% filter escapejs %}{% translate "Información falsa o contenido inapropiado" %}{% endfilter %}';
+        const promptText = `{% filter escapejs %}{% translate "¿Deseas reportar el perfil de" %}{% endfilter %} ${c.name}? {% filter escapejs %}{% translate "Por favor indica el motivo del reporte:" %}{% endfilter %}`;
+        const reason = prompt(promptText, defaultReason);
         if (reason && reason.trim()) {
             fetch('{% url "pets:match_report_candidate" %}', {
                 method: 'POST',
@@ -891,9 +937,9 @@
                 },
                 body: JSON.stringify({ candidate_id: c.id, reason: reason.trim() })
             })
-            .then(r => r.json())
             .then(data => {
-                alert(data.message || "{% translate 'El reporte ha sido enviado al equipo de administración para su revisión.' %}");
+                const successMsg = data.message || '{% filter escapejs %}{% translate "El reporte ha sido enviado al equipo de administración para su revisión." %}{% endfilter %}';
+                alert(successMsg);
                 currentCandidateIndex++;
                 renderCandidate(currentCandidateIndex);
             })

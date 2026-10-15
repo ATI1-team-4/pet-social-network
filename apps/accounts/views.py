@@ -3,24 +3,30 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.accounts.forms import LoginForm, PasswordResetRequestForm, RegisterForm
-from apps.accounts.models import UserProfile
 from apps.accounts.services import (
     authenticate_by_email_or_username,
     create_tutor_user,
+    get_user_profile_context,
+    update_user_profile,
 )
 from apps.accounts.signals import get_client_ip
-from apps.pets.models import MatchRequest
+
+# ==============================================================================
+# Vistas Públicas de Autenticación y Registro
+# ==============================================================================
 
 
 def login_view(request):
-    """Procesa el inicio de sesión y renderiza la pantalla correspondiente."""
+    """
+    Procesa el inicio de sesión y renderiza la pantalla correspondiente.
+    Ruta pública: si el usuario ya está autenticado, redirige al selector de mascota.
+    """
     next_url = request.POST.get('next') or request.GET.get('next') or ''
     if request.user.is_authenticated:
         if next_url and url_has_allowed_host_and_scheme(
@@ -37,20 +43,25 @@ def login_view(request):
             password = form.cleaned_data['password']
             remember_me = form.cleaned_data.get('remember_me', False)
 
+            # Autenticar mediante correo electrónico o nombre de usuario
             user = authenticate_by_email_or_username(request, identifier, password)
             if user is not None:
                 login(request, user)
-                if remember_me:
-                    request.session.set_expiry(1209600)  # 2 semanas de sesión
-                else:
-                    request.session.set_expiry(0)  # Expira al cerrar el navegador
 
+                # Configurar caducidad de la cookie de sesión según preferencia
+                if remember_me:
+                    request.session.set_expiry(1209600)
+                else:
+                    request.session.set_expiry(0)
+
+                # Redirigir a la URL de destino solicitada si es segura
                 if next_url and url_has_allowed_host_and_scheme(
                     next_url, allowed_hosts={request.get_host()}
                 ):
                     return redirect(next_url)
                 return redirect('pets:pet_select')
 
+            # Notificar error de credenciales al usuario
             messages.error(
                 request,
                 _(
@@ -64,7 +75,10 @@ def login_view(request):
 
 
 def register_view(request):
-    """Procesa el registro de nuevos tutores y renderiza la pantalla correspondiente."""
+    """
+    Procesa el registro de nuevos tutores y renderiza la pantalla correspondiente.
+    Ruta pública: asigna automáticamente el rol de Tutor y crea el perfil asociado.
+    """
     next_url = request.POST.get('next') or request.GET.get('next') or ''
     if request.user.is_authenticated:
         if next_url and url_has_allowed_host_and_scheme(
@@ -73,17 +87,20 @@ def register_view(request):
             return redirect(next_url)
         return redirect('pets:pet_select')
 
-    # Garantizar que al ingresar a la pantalla de registro no se arrastren mensajes previos
+    # Limpiar mensajes acumulados al navegar a registro mediante GET
     if request.method == 'GET':
         storage = messages.get_messages(request)
-        for msg in storage:
+        for _message in storage:
             pass
 
     form = RegisterForm()
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
+            # Obtener dirección IP del cliente para registro en auditoría
             client_ip = get_client_ip(request)
+
+            # Delegar la creación del tutor a la capa de servicios
             user = create_tutor_user(
                 full_name=form.cleaned_data['full_name'],
                 email=form.cleaned_data['email'],
@@ -95,7 +112,7 @@ def register_view(request):
                 ip_address=client_ip,
             )
 
-            # Iniciar sesión automáticamente tras el registro y redirigir a selección de mascota o next
+            # Iniciar sesión automáticamente tras el registro
             login(request, user)
             if next_url and url_has_allowed_host_and_scheme(
                 next_url, allowed_hosts={request.get_host()}
@@ -103,8 +120,8 @@ def register_view(request):
                 return redirect(next_url)
             return redirect('pets:pet_select')
 
-        # Mostrar errores específicos del formulario en el banner de mensajes
-        for field, errors in form.errors.items():
+        # Mostrar errores específicos del formulario en el banner de notificaciones
+        for _field, errors in form.errors.items():
             for error in errors:
                 messages.error(request, f'{error}')
 
@@ -112,7 +129,10 @@ def register_view(request):
 
 
 def password_reset_view(request):
-    """Procesa la solicitud de recuperación de contraseña."""
+    """
+    Procesa la solicitud de recuperación de contraseña.
+    Ruta pública: emite el enlace de restablecimiento seguro.
+    """
     if request.method == 'POST':
         form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
@@ -135,51 +155,36 @@ def password_reset_view(request):
 
 
 def logout_view(request):
-    """Cierra la sesión activa del usuario y redirige al inicio."""
+    """
+    Cierra la sesión activa del usuario y redirige a la página principal.
+    Ruta pública: limpia la sesión y los mensajes residuales.
+    """
     if request.user.is_authenticated:
         logout(request)
-    # Limpiar cualquier mensaje residual para que no persista en cookies ni viaje a otras rutas
+
+    # Vaciar cualquier mensaje acumulado en la sesión
     storage = messages.get_messages(request)
-    for msg in storage:
+    for _message in storage:
         pass
+
     return redirect('core:home')
+
+
+# ==============================================================================
+# Vistas Protegidas de Perfil de Usuario
+# ==============================================================================
 
 
 @login_required
 def profile_view(request):
     """
-    Renderiza la pantalla oficial de Gestión de usuario.
-    Requiere que el tutor esté autenticado en el sistema.
-    Carga las mascotas reales del usuario, el total de conexiones y la mascota activa.
+    Renderiza la pantalla oficial de gestión del perfil del tutor autenticado.
+    Delega la consulta de mascotas, conexiones y mascota activa a la capa de servicios.
     """
-    user = request.user
-    user_pets = user.pets.select_related('species').all()
-    pets_count = user_pets.count()
+    # Construir el contexto del perfil a través de la capa de servicios
+    session_active_pet_id = request.session.get('active_pet_id')
+    context = get_user_profile_context(request.user, session_active_pet_id=session_active_pet_id)
 
-    # Conexiones activas: Solicitudes de match aceptadas donde intervenga alguna mascota del tutor
-    active_connections_count = MatchRequest.objects.filter(
-        Q(from_pet__in=user_pets) | Q(to_pet__in=user_pets),
-        status=MatchRequest.RequestStatus.ACCEPTED,
-    ).count()
-
-    # Mascota activa en búsqueda:
-    # 1) Mascota activa seleccionada en sesión (active_pet_id)
-    # 2) O primera mascota con is_active_for_match=True
-    # 3) O primera mascota del tutor
-    active_pet = None
-    active_pet_id = request.session.get('active_pet_id')
-    if active_pet_id and str(active_pet_id).isdigit():
-        active_pet = user_pets.filter(id=int(active_pet_id)).first()
-
-    if not active_pet:
-        active_pet = user_pets.filter(is_active_for_match=True).first() or user_pets.first()
-
-    context = {
-        'user_pets': user_pets,
-        'pets_count': pets_count,
-        'active_connections_count': active_connections_count,
-        'active_pet': active_pet,
-    }
     return render(request, 'accounts/user_profile.html', context)
 
 
@@ -187,80 +192,12 @@ def profile_view(request):
 @require_POST
 def profile_save_view(request):
     """
-    Actualiza la información personal y el avatar del tutor autenticado.
-    Almacena las fotografías subidas en media/avatars/ según la convención del proyecto.
+    Actualiza la información personal, ubicación y avatar del tutor autenticado.
+    Delega la persistencia transaccional y el manejo de archivos a la capa de servicios.
     """
-    user = request.user
-    profile, _created = UserProfile.objects.get_or_create(user=user)
+    # Delegar la actualización de datos personales y avatar a la capa de servicios
+    update_user_profile(request.user, request.POST, request.FILES)
 
-    full_name = request.POST.get('full_name', '').strip()
-    if full_name:
-        parts = full_name.split(' ', 1)
-        user.first_name = parts[0]
-        user.last_name = parts[1] if len(parts) > 1 else ''
-        user.save()
-
-    email = request.POST.get('email', '').strip()
-    if email:
-        user.email = email
-        user.save()
-
-    profile.phone_number = request.POST.get('phone', profile.phone_number).strip()
-    profile.state = request.POST.get('state', profile.state).strip()
-    profile.municipality = request.POST.get('municipality', profile.municipality).strip()
-    profile.neighborhood = request.POST.get('neighborhood', profile.neighborhood).strip()
-    if 'city' in request.POST and not request.POST.get('municipality'):
-        profile.municipality = request.POST.get('city', '').strip()
-
-    if 'latitude' in request.POST:
-        lat_val = request.POST.get('latitude', '').strip()
-        if lat_val:
-            try:
-                profile.latitude = float(lat_val)
-            except ValueError:
-                pass
-        else:
-            profile.latitude = None
-
-    if 'longitude' in request.POST:
-        lon_val = request.POST.get('longitude', '').strip()
-        if lon_val:
-            try:
-                profile.longitude = float(lon_val)
-            except ValueError:
-                pass
-        else:
-            profile.longitude = None
-
-    birth_date_val = request.POST.get('birth_date', '').strip()
-    if birth_date_val:
-        try:
-            profile.birth_date = birth_date_val
-        except (ValueError, TypeError):
-            pass
-
-    gender_val = request.POST.get('gender', '').strip()
-    if gender_val:
-        profile.gender = (
-            'F'
-            if gender_val in ('Femenino', 'F', 'f')
-            else ('M' if gender_val in ('Masculino', 'M', 'm') else 'O')
-        )
-
-    profile.favorite_color = request.POST.get('favorite_color', profile.favorite_color).strip()
-    profile.favorite_book = request.POST.get('favorite_book', profile.favorite_book).strip()
-    profile.favorite_music = request.POST.get('favorite_music', profile.favorite_music).strip()
-    profile.favorite_videogame = request.POST.get(
-        'favorite_game', profile.favorite_videogame
-    ).strip()
-
-    if request.POST.get('remove_avatar') == 'true' and profile.avatar:
-        profile.avatar.delete(save=False)
-        profile.avatar = None
-
-    if 'avatar' in request.FILES:
-        profile.avatar = request.FILES['avatar']
-
-    profile.save()
+    # Notificar al tutor y redirigir a la vista de perfil
     messages.success(request, _('Tu perfil ha sido actualizado exitosamente.'))
     return redirect('accounts:profile')

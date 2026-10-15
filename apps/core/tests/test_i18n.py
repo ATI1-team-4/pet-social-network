@@ -1,6 +1,10 @@
+from datetime import date
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+
+from apps.pets.models import Pet, PetSpecies
 
 User = get_user_model()
 
@@ -11,6 +15,19 @@ class InternationalizationTests(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='edwyn')
         self.client.force_login(self.user)
+        self.species, _ = PetSpecies.objects.get_or_create(
+            slug='perro',
+            defaults={'name': 'Perro', 'icon_name': 'dog'},
+        )
+        self.pet = Pet.objects.create(
+            owner=self.user,
+            name='Simba',
+            species=self.species,
+            breed='Golden Retriever',
+            gender=Pet.Gender.MACHO,
+            birth_date=date(2022, 5, 10),
+            is_active_for_match=True,
+        )
 
     def test_default_language_is_spanish(self):
         """Verifica que el idioma predeterminado del sistema sea español."""
