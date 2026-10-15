@@ -4,6 +4,7 @@ from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import F, Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -161,6 +162,7 @@ def pet_save_view(request):
         is_adoption = request.POST.get('is_adoption') in ('true', 'on', '1', True)
 
         db_pet.is_active_for_match = is_matching
+        db_pet.is_socializing = is_socializing
         if is_matching and is_socializing:
             db_pet.purpose = Pet.Purpose.BOTH
         elif is_matching and not is_socializing:
@@ -228,6 +230,7 @@ def pet_save_view(request):
             description=request.POST.get('description', ''),
             temperaments=request.POST.get('temperaments', ''),
             is_active_for_match=is_matching,
+            is_socializing=is_socializing,
             purpose=purpose_val,
             is_for_adoption=is_adoption,
             certificate_type=cert_label,
@@ -237,6 +240,8 @@ def pet_save_view(request):
             db_pet.save()
         final_photo_url = db_pet.photo_url
         pet_id = str(db_pet.id)
+        request.session['active_pet_id'] = pet_id
+        request.session.modified = True
 
     # Actualizar la mascota en DEFAULT_PETS en memoria para consistencia
     for pet in DEFAULT_PETS:
@@ -411,6 +416,7 @@ def pet_toggle_goal_view(request):
             db_pet.purpose = Pet.Purpose.PLAY if db_pet.is_socializing else Pet.Purpose.MATING
 
     elif goal == 'is_socializing':
+        db_pet.is_socializing = is_enabled
         if is_enabled:
             db_pet.purpose = Pet.Purpose.BOTH if db_pet.is_matching else Pet.Purpose.PLAY
         else:
@@ -524,11 +530,22 @@ def pet_management_view(request):
     elif pets_list:
         if pet_param:
             active_pet = next(
-                (p for p in pets_list if p['name'].lower() == pet_param or p['id'] == pet_param),
+                (p for p in pets_list if p['name'].lower() == pet_param or str(p['id']) == pet_param),
                 pets_list[0],
             )
         else:
-            active_pet = pets_list[0]
+            session_pet_id = str(request.session.get('active_pet_id', '')).strip().lower()
+            if session_pet_id:
+                active_pet = next(
+                    (p for p in pets_list if str(p['id']).lower() == session_pet_id or p['name'].lower() == session_pet_id),
+                    None,
+                )
+            if not active_pet:
+                active_pet = pets_list[0]
+
+        if active_pet and active_pet.get('id'):
+            request.session['active_pet_id'] = str(active_pet['id'])
+            request.session.modified = True
 
     context = {
         'pets': pets_list,
@@ -578,18 +595,34 @@ def pet_delete_view(request, pet_id):
 def pet_set_active_view(request):
     """
     Establece la mascota activa seleccionada y la preferencia de pedigrí en la sesión
-    del usuario y redirige al flujo de emparejamiento (match feed).
+    del usuario y redirige al flujo de emparejamiento (match feed), o retorna JSON si es AJAX.
     """
-    selected_id = request.POST.get('selected_pet_id', '').strip()
+    selected_id = ''
+    if request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body)
+            selected_id = str(data.get('selected_pet_id', '')).strip()
+        except Exception:
+            pass
+    if not selected_id:
+        selected_id = request.POST.get('selected_pet_id', '').strip()
     if not selected_id:
         user_first = Pet.objects.filter(owner=request.user).first()
         selected_id = str(user_first.id) if user_first else '1234'
     request.session['active_pet_id'] = selected_id
+    request.session.modified = True
 
     pedigree_filter = request.POST.get('pedigree_filter', 'both').strip().lower()
     if pedigree_filter not in ('with_pedigree', 'without_pedigree', 'both'):
         pedigree_filter = 'both'
     request.session['match_pedigree_preference'] = pedigree_filter
+
+    is_ajax = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or request.content_type == 'application/json'
+    )
+    if is_ajax and not request.POST.get('is_form_submission'):
+        return JsonResponse({'status': 'success', 'active_pet_id': selected_id})
 
     return redirect('pets:match_feed')
 
@@ -610,6 +643,7 @@ def pet_select_view(request):
         pets_source = []
         for p in user_pets:
             has_fci = bool(p.has_pedigree and p.certificate == 'fci')
+            p_interested_count = get_interested_match_requests(p).count()
             pets_source.append(
                 {
                     'id': str(p.id),
@@ -630,11 +664,16 @@ def pet_select_view(request):
                     'certificate_label': str(p.certificate_type or ''),
                     'profile_color': p.profile_color,
                     'profile_color_hex': p.profile_color_hex,
+                    'interested_count': p_interested_count,
                 }
             )
     else:
         # Fallback de compatibilidad con datos de demostración
-        pets_source = [dict(pet) for pet in DEFAULT_PETS]
+        pets_source = []
+        for pet in DEFAULT_PETS:
+            p_dict = dict(pet)
+            p_dict['interested_count'] = 4 if p_dict.get('name') == 'Toby' else 0
+            pets_source.append(p_dict)
 
     # Determinar la mascota activa (prioridad: parámetro GET > sesión activa > primera mascota)
     active_pet_obj = None
@@ -672,15 +711,8 @@ def pet_select_view(request):
     if selected_id:
         request.session['active_pet_id'] = selected_id
 
-    # Contabilizar solicitudes de match pendientes entrantes hacia la mascota activa
-    interested_count = 0
-    if active_pet_obj and str(active_pet_obj.get('id', '')).isdigit():
-        interested_count = MatchRequest.objects.filter(
-            to_pet_id=int(active_pet_obj['id']),
-            status=MatchRequest.RequestStatus.PENDING,
-        ).count()
-    elif active_pet_obj:
-        interested_count = 4
+    # Contabilizar solicitudes de match hacia la mascota activa
+    interested_count = active_pet_obj.get('interested_count', 0) if active_pet_obj else 0
 
     pedigree_preference = request.session.get('match_pedigree_preference', 'both')
     if pedigree_preference not in ('with_pedigree', 'without_pedigree', 'both'):
@@ -742,9 +774,28 @@ def match_feed_view(request):
         )
         return redirect('pets:pet_select')
 
-    if 'active_pet_id' not in request.session:
+    if active_pet and str(active_pet_id) not in ('5678', '1234'):
         request.session['active_pet_id'] = str(active_pet.id)
+        request.session.modified = True
     other_pet = next((p for p in user_pets if p.id != active_pet.id), None)
+
+    # Recarga manual del feed cuando no hay más candidatos o se desea reincorporar descartados
+    if request.GET.get('reload') == 'true':
+        MatchRequest.objects.filter(
+            from_pet=active_pet,
+            status=MatchRequest.RequestStatus.REJECTED,
+        ).delete()
+        request.session.pop('match_pedigree_preference', None)
+        request.session.pop('match_max_distance', None)
+        request.session.pop('match_purpose_preference', None)
+        messages.info(request, _('El feed ha sido recargado con éxito.'))
+
+    # Restablecimiento explícito de filtros
+    if request.GET.get('reset_filters') == 'true':
+        request.session.pop('match_pedigree_preference', None)
+        request.session.pop('match_max_distance', None)
+        request.session.pop('match_purpose_preference', None)
+        messages.info(request, _('Los filtros han sido restablecidos.'))
 
     # Preferencia de pedigrí recibida vía GET o almacenada en la sesión
     pedigree_param = request.GET.get('pedigree') or request.session.get(
@@ -769,16 +820,32 @@ def match_feed_view(request):
     else:
         max_distance = request.session.get('match_max_distance', 5)
 
+    # Propósito de cruza/socialización recibido vía GET o almacenado en la sesión
+    purpose_param = request.GET.get('purpose') or request.session.get(
+        'match_purpose_preference', 'all'
+    )
+    if purpose_param not in ('all', 'mating', 'play', 'both'):
+        purpose_param = 'all'
+    request.session['match_purpose_preference'] = purpose_param
+
     match_filters = {'max_distance': max_distance}
     if pedigree_param == 'with_pedigree':
         match_filters['has_pedigree'] = True
     elif pedigree_param == 'without_pedigree':
         match_filters['without_pedigree'] = True
+    if purpose_param != 'all':
+        match_filters['purpose'] = purpose_param
 
     # Consultar candidatos compatibles mediante el ORM a través de services.py
     candidates_qs = get_match_candidates(active_pet, filters=match_filters)
     candidates_data = [serialize_candidate(active_pet, c) for c in candidates_qs]
     current_candidate = candidates_data[0] if candidates_data else None
+
+    # Contadores sincronizados con la bandeja de solicitudes oficial (SRP)
+    tab_counters = get_requests_tab_counters(active_pet)
+    total_requests_count = tab_counters['all']
+    interested_count = tab_counters['interested']
+    pending_interested_count = tab_counters['pending']
 
     # Consultar solicitudes de match entrantes para la barra lateral de interesados
     interested_requests = (
@@ -803,7 +870,6 @@ def match_feed_view(request):
                 'photo_url': cand.photo_url,
             }
         )
-    interested_count = interested_requests.count()
 
     context = {
         'active_pet': active_pet,
@@ -813,8 +879,12 @@ def match_feed_view(request):
         'candidates_json': json.dumps(candidates_data, cls=DjangoJSONEncoder),
         'interested_sidebar': interested_sidebar,
         'interested_count': interested_count,
+        'pending_interested_count': pending_interested_count,
+        'total_requests_count': total_requests_count,
+        'tab_counters': tab_counters,
         'pedigree_preference': pedigree_param,
         'max_distance': max_distance,
+        'purpose_preference': purpose_param,
     }
     return render(request, 'pets/match_feed.html', context)
 
@@ -858,23 +928,59 @@ def match_interested_view(request):
         else None
     )
 
-    if active_pet and 'active_pet_id' not in request.session:
+    if active_pet and str(active_pet_id) not in ('5678', '1234'):
         request.session['active_pet_id'] = str(active_pet.id)
+        request.session.modified = True
 
     # Contadores dinámicos por pestaña mediante services.py (SRP)
     tab_counters = get_requests_tab_counters(active_pet)
 
-    # Filtrado por pestaña ('all', 'interested', 'sent')
+    # Filtrado por pestaña ('all', 'interested', 'sent', 'matches')
     tab = request.GET.get('tab', 'all').strip().lower()
     if tab == 'interested':
         requests_qs = get_interested_match_requests(active_pet)
     elif tab == 'sent':
         requests_qs = get_sent_match_requests(active_pet)
+    elif tab == 'matches':
+        requests_qs = (
+            MatchRequest.objects.filter(
+                Q(to_pet=active_pet) | Q(from_pet=active_pet),
+                status=MatchRequest.RequestStatus.ACCEPTED,
+            )
+            .exclude(from_pet__owner=F('to_pet__owner'))
+            .select_related(
+                'from_pet',
+                'to_pet',
+                'from_pet__owner',
+                'to_pet__owner',
+                'from_pet__owner__profile',
+                'to_pet__owner__profile',
+            )
+            .order_by('-created_at')
+        )
     else:
         tab = 'all'
         requests_qs = get_all_match_requests_for_pet(active_pet)
 
     suitors = [serialize_match_request(active_pet, r) for r in requests_qs] if active_pet else []
+
+    # Criterio de ordenamiento ('compatibility', 'distance', 'recent')
+    sort_by = request.GET.get('sort', 'compatibility').strip().lower()
+    if sort_by not in ['compatibility', 'distance', 'recent']:
+        sort_by = 'compatibility'
+
+    if suitors:
+        if sort_by == 'compatibility':
+            suitors.sort(
+                key=lambda s: (s.get('compatibility_val', 0), s.get('created_timestamp', 0)),
+                reverse=True,
+            )
+        elif sort_by == 'distance':
+            suitors.sort(
+                key=lambda s: (s.get('distance_val', 999.0), -s.get('created_timestamp', 0))
+            )
+        elif sort_by == 'recent':
+            suitors.sort(key=lambda s: s.get('created_timestamp', 0), reverse=True)
 
     # Citas confirmadas o próximas desde PetMeetup
     meetups_qs = get_upcoming_pet_meetups(active_pet) if active_pet else []
@@ -890,6 +996,7 @@ def match_interested_view(request):
         'interested_count': tab_counters.get('interested', 0),
         'tab_counters': tab_counters,
         'current_tab': tab,
+        'current_sort': sort_by,
         'confirmed_dates': confirmed_dates,
     }
     return render(request, 'pets/match_interested.html', context)
@@ -1194,9 +1301,9 @@ def match_reject_request_view(request, request_id):
 
 @login_required
 @require_POST
-def send_initial_message_view(request, request_id):
+def send_initial_note_view(request, request_id):
     """
-    Registra o actualiza el mensaje o nota inicial de contacto tras un match aceptado
+    Registra o actualiza la nota inicial de contacto tras un match aceptado
     o durante la interacción con una solicitud de match.
     Persiste en MatchRequest.notes mediante services.send_initial_match_note.
     """
@@ -1209,17 +1316,18 @@ def send_initial_message_view(request, request_id):
     if not data:
         data = request.POST
 
-    message_text = (
-        data.get('message')
+    note_text = (
+        data.get('note')
         or data.get('notes')
         or data.get('note_text')
+        or data.get('message')
         or data.get('initial_message', '')
     )
-    message_text = str(message_text).strip()
+    note_text = str(note_text).strip()
 
-    if not message_text:
+    if not note_text:
         return JsonResponse(
-            {'status': 'error', 'message': _('El mensaje o nota no puede estar vacío.')},
+            {'status': 'error', 'message': _('La nota no puede estar vacía.')},
             status=400,
         )
 
@@ -1227,7 +1335,7 @@ def send_initial_message_view(request, request_id):
         result = send_initial_match_note(
             request_id=request_id,
             sender_user=request.user,
-            note_text=message_text,
+            note_text=note_text,
         )
         return JsonResponse(result)
     except MatchRequest.DoesNotExist:
@@ -1245,9 +1353,6 @@ def send_initial_message_view(request, request_id):
             {'status': 'error', 'message': str(e)},
             status=400,
         )
-
-
-send_initial_note_view = send_initial_message_view
 
 
 # ==============================================================================
