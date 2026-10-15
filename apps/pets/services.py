@@ -1262,6 +1262,7 @@ def get_match_feed_context(
     session['match_pedigree_preference'] = pedigree_param
 
     # Distancia máxima permitida en kilómetros
+    pet_default_dist = getattr(active_pet, 'max_search_distance_km', None) or 25
     raw_max_distance = get_params.get('max_distance')
     if raw_max_distance is not None:
         try:
@@ -1272,9 +1273,9 @@ def get_match_feed_context(
                 max_distance = 50
             session['match_max_distance'] = max_distance
         except (ValueError, TypeError):
-            max_distance = session.get('match_max_distance', 5)
+            max_distance = session.get('match_max_distance', pet_default_dist)
     else:
-        max_distance = session.get('match_max_distance', 5)
+        max_distance = session.get('match_max_distance', pet_default_dist)
 
     # Propósito de cruza o socialización
     purpose_param = get_params.get('purpose') or session.get('match_purpose_preference', 'all')

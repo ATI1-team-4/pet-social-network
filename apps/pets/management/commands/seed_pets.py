@@ -68,7 +68,6 @@ class Command(BaseCommand):
 
         dog_species = species_objs['perro']
         cat_species = species_objs['gato']
-        rabbit_species = species_objs['conejo']
 
         # ==============================================================================
         # 3. Perfiles de usuario con geolocalización y preferencias en Caracas / Miranda
@@ -407,19 +406,19 @@ class Command(BaseCommand):
             {
                 'owner': sofia_user,
                 'name': 'Pelusa',
-                'species': rabbit_species,
-                'breed': 'Cabeza de León',
+                'species': cat_species,
+                'breed': 'Angora Turco',
                 'gender': Pet.Gender.HEMBRA,
                 'birth_date': date(2023, 10, 1),
-                'weight_kg': Decimal('1.80'),
+                'weight_kg': Decimal('3.80'),
                 'certificate_type': 'Sin pedigrí',
                 'certificate_number': '',
                 'purpose': Pet.Purpose.PLAY,
                 'is_active_for_match': True,
-                'max_search_distance_km': 15,
+                'max_search_distance_km': 25,
                 'temperaments': 'Curiosa, Esponjosa, Mansa',
                 'profile_color': Pet.ProfileColor.PEACH,
-                'description': 'Conejita enana muy mansa y curiosa, acostumbrada a compartir en espacios tranquilos.',
+                'description': 'Gatita de pelaje sedoso y esponjoso, muy curiosa y acostumbrada a convivir en armonía.',
             },
 
             # --- 5. Mascotas de Maria ---
@@ -513,19 +512,19 @@ class Command(BaseCommand):
             {
                 'owner': bryan_user,
                 'name': 'Lucas',
-                'species': rabbit_species,
-                'breed': 'Belier Holandés',
+                'species': cat_species,
+                'breed': 'British Shorthair',
                 'gender': Pet.Gender.MACHO,
                 'birth_date': date(2023, 8, 15),
-                'weight_kg': Decimal('2.10'),
+                'weight_kg': Decimal('4.60'),
                 'certificate_type': 'Sin pedigrí',
                 'certificate_number': '',
                 'purpose': Pet.Purpose.PLAY,
                 'is_active_for_match': True,
-                'max_search_distance_km': 15,
+                'max_search_distance_km': 25,
                 'temperaments': 'Dócil, Silencioso, Tierno',
                 'profile_color': Pet.ProfileColor.PEACH,
-                'description': 'Conejito de orejas caídas, muy tranquilo y cariñoso.',
+                'description': 'Gato británico de pelaje gris denso, tranquilo, cariñoso y de andar elegante.',
             },
 
             # --- 7. Mascotas de Oriana ---
@@ -840,12 +839,12 @@ class Command(BaseCommand):
             'Compañeros ideales para caminatas y senderismo en El Hatillo.',
         )
 
-        # Conejos (Lucas y Pelusa)
+        # Gatos (Lucas y Pelusa)
         req_lucas_pelusa = create_match_req(
             lucas,
             pelusa,
             MatchRequest.RequestStatus.ACCEPTED,
-            '¡Match especial de conejos! Socialización supervisada en área de césped protegida.',
+            '¡Match especial de gatos! Socialización supervisada en área de juego protegida.',
         )
 
         # Bruno (Sofia) y Maya (Bryan)
@@ -1009,16 +1008,16 @@ class Command(BaseCommand):
             'Encuentro cancelado por fuertes precipitaciones.',
         )
 
-        # 12. Cita propuesta para Lucas y Pelusa (Conejos)
+        # Cita propuesta para Lucas y Pelusa (Gatos)
         create_meetup(
             lucas,
             pelusa,
             req_lucas_pelusa,
             date(2026, 11, 5),
             time(15, 30),
-            'Jardín Botánico - Zona Picnic Supervisada',
+            'Café Felino & Lounge - Sala Privada',
             PetMeetup.MeetupStatus.PROPOSED,
-            'Encuentro especial en corral portátil para conejos.',
+            'Encuentro especial en lounge protegido para gatos.',
         )
 
         # ==============================================================================

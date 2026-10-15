@@ -1152,6 +1152,9 @@ msgstr "Switch to"
 msgid "Con pedigrí FCI"
 msgstr "With FCI pedigree"
 
+msgid "Con y sin pedigrí"
+msgstr "With & without pedigree"
+
 #: apps/pets/templates/pets/match_feed.html:51
 msgid "Configurar filtros avanzados"
 msgstr "Configure advanced filters"
@@ -1676,6 +1679,12 @@ msgstr "Dog"
 #: apps/pets/templates/pets/pet_management.html:902 apps/pets/views.py:178
 msgid "Gato"
 msgstr "Cat"
+
+msgid "Conejo"
+msgstr "Rabbit"
+
+msgid "Hurón"
+msgstr "Ferret"
 
 #: apps/pets/templates/pets/pet_management.html:282
 msgid "Género biológico"
@@ -2421,6 +2430,12 @@ msgstr "%(count)s meetings"
 
 msgid "%(years)s años"
 msgstr "%(years)s years"
+
+msgid "%(years)s años cumplidos"
+msgstr "%(years)s years old"
+
+msgid "1 año cumplido"
+msgstr "1 year old"
 
 msgid "%(months)s meses"
 msgstr "%(months)s months"

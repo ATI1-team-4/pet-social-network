@@ -2106,6 +2106,12 @@ msgstr ""
 msgid "Registrarse"
 msgstr ""
 
+msgid "Conejo"
+msgstr "Conejo"
+
+msgid "Hurón"
+msgstr "Hurón"
+
 #~ msgid "Tutor de"
 #~ msgstr "Tutor de"
 
