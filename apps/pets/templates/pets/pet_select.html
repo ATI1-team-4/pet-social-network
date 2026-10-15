@@ -23,7 +23,7 @@
     <!-- Formulario interactivo de selección de mascota activa -->
     <form method="post" action="{% url 'pets:pet_set_active' %}" id="pet-select-form">
         {% csrf_token %}
-        <input type="hidden" name="selected_pet_id" id="selected-pet-id-input" value="{{ active_pet.id|default:'1234' }}">
+        <input type="hidden" name="selected_pet_id" id="selected-pet-id-input" value="{{ active_pet.id|default:'' }}">
         <input type="hidden" name="pedigree_filter" id="pedigree-filter-input" value="{{ pedigree_preference|default:'both' }}">
 
         <!-- ============================================== -->
@@ -105,6 +105,24 @@
                             {% endwith %}
                         </div>
                     </div>
+                {% empty %}
+                    <div class="card-petly p-8 bg-white border border-neutral-300/80 rounded-3xl text-center space-y-4 shadow-xs">
+                        <div class="w-16 h-16 mx-auto rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center">
+                            {% include 'components/icon.html' with name="paw" class="w-8 h-8" %}
+                        </div>
+                        <div class="space-y-1">
+                            <h2 class="title-h3 text-neutral-900 font-bold">{% translate "No tienes mascotas registradas" %}</h2>
+                            <p class="text-body-sm text-neutral-500 max-w-md mx-auto">
+                                {% translate "Para comenzar la búsqueda de pareja y explorar pretendientes, primero debes registrar a tu mascota." %}
+                            </p>
+                        </div>
+                        <div>
+                            <a href="{% url 'pets:pet_management' %}?new=true" class="btn-petly-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold no-underline">
+                                {% include 'components/icon.html' with name="plus" class="w-4 h-4" %}
+                                <span>{% translate "Registrar primera mascota" %}</span>
+                            </a>
+                        </div>
+                    </div>
                 {% endfor %}
 
                 <!-- Tarjeta interactiva: Registrar nueva mascota (escritorio) -->
@@ -143,7 +161,14 @@
                     </h2>
 
                     <div class="space-y-3 pt-2">
-                        {% include 'components/button.html' with text=_("Continuar a buscar pareja") type="submit" variant="primary" class="w-full py-3.5 text-sm font-bold shadow-md justify-center" icon="heart" %}
+                        {% if active_pet.id %}
+                            {% include 'components/button.html' with text=_("Continuar a buscar pareja") type="submit" variant="primary" class="w-full py-3.5 text-sm font-bold shadow-md justify-center" icon="heart" %}
+                        {% else %}
+                            <a href="{% url 'pets:pet_management' %}?new=true" class="btn-petly-primary w-full py-3.5 text-sm font-bold shadow-md justify-center flex items-center gap-2 no-underline">
+                                {% include 'components/icon.html' with name="plus" class="w-4 h-4" %}
+                                <span>{% translate "Registrar primera mascota" %}</span>
+                            </a>
+                        {% endif %}
 
                         {% url 'pets:match_interested' as match_interested_url %}
                         {% if active_pet.id %}
@@ -228,6 +253,24 @@
                             </span>
                         </div>
                     </div>
+                {% empty %}
+                    <div class="card-petly p-6 bg-white border border-neutral-300/80 rounded-2xl text-center space-y-3 shadow-xs">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center">
+                            {% include 'components/icon.html' with name="paw" class="w-6 h-6" %}
+                        </div>
+                        <div class="space-y-1">
+                            <h2 class="title-h4 text-neutral-900 font-bold">{% translate "No tienes mascotas registradas" %}</h2>
+                            <p class="text-caption text-neutral-500">
+                                {% translate "Para comenzar la búsqueda de pareja, registra a tu primera mascota." %}
+                            </p>
+                        </div>
+                        <div>
+                            <a href="{% url 'pets:pet_management' %}?new=true" class="btn-petly-primary inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold no-underline">
+                                {% include 'components/icon.html' with name="plus" class="w-3.5 h-3.5" %}
+                                <span>{% translate "Registrar primera mascota" %}</span>
+                            </a>
+                        </div>
+                    </div>
                 {% endfor %}
 
                 <!-- Pastilla móvil: Registrar nueva mascota -->
@@ -237,7 +280,14 @@
 
             <!-- Botones de acción inferiores para móvil -->
             <div class="space-y-2.5 pt-2 pb-6 mb-6 sm:mb-0">
-                {% include 'components/button.html' with text=_("Continuar a buscar pareja") type="submit" variant="primary" class="w-full py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold shadow-md justify-center" icon="heart" %}
+                {% if active_pet.id %}
+                    {% include 'components/button.html' with text=_("Continuar a buscar pareja") type="submit" variant="primary" class="w-full py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold shadow-md justify-center" icon="heart" %}
+                {% else %}
+                    <a href="{% url 'pets:pet_management' %}?new=true" class="btn-petly-primary w-full py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold shadow-md justify-center flex items-center gap-1.5 no-underline">
+                        {% include 'components/icon.html' with name="plus" class="w-4 h-4" %}
+                        <span>{% translate "Registrar primera mascota" %}</span>
+                    </a>
+                {% endif %}
 
                 {% url 'pets:match_interested' as match_interested_url %}
                 {% if active_pet.id %}

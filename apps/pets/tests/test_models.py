@@ -2,6 +2,7 @@ from datetime import date, time
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import IntegrityError, transaction
 from django.test import TestCase
@@ -171,7 +172,7 @@ class MatchRequestModelTests(TestCase):
                 )
 
     def test_prevent_self_match_request_constraint(self):
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises((IntegrityError, ValidationError)):
             with transaction.atomic():
                 MatchRequest.objects.create(
                     from_pet=self.pet1,

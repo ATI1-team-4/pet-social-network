@@ -31,10 +31,10 @@
             {% translate "Ficha de registro" %}
         </span>
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-petly-blue text-neutral-800">
-            {% if is_new %}
+            {% if is_new or not active_pet.id %}
                 {% translate "Nuevo ingreso" %}
             {% else %}
-                ID #{{ active_pet.id|default:"1234" }}
+                ID #{{ active_pet.id }}
             {% endif %}
         </span>
     </div>
@@ -49,14 +49,14 @@
                 <h1 class="title-h3 text-neutral-900 font-bold">
                     {% translate "Gestión de perfil de mascota" %}
                 </h1>
-                {% if not is_new and active_pet %}
+                {% if not is_new and active_pet and active_pet.id %}
                     <span class="text-petly-coral font-bold text-lg">
                         {{ active_pet.name }}
                     </span>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-petly-ice text-neutral-700 border border-petly-blue/80">
                         ID #{{ active_pet.id }}
                     </span>
-                {% elif is_new %}
+                {% else %}
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
                         {% translate "Nueva mascota" %}
                     </span>
@@ -64,6 +64,23 @@
             </div>
         </div>
     </div>
+
+    {% if not pets %}
+        <!-- Banner de bienvenida para nuevos tutores sin mascotas registradas -->
+        <div class="bg-gradient-to-r from-petly-blue/40 via-petly-ice to-amber-50 border border-petly-coral/40 rounded-2xl p-4 sm:p-5 flex items-start sm:items-center gap-4 shadow-xs">
+            <div class="w-10 h-10 rounded-full bg-petly-coral text-white flex items-center justify-center shrink-0 shadow-xs">
+                {% include 'components/icon.html' with name="sparkles" class="w-5 h-5" %}
+            </div>
+            <div class="flex-1">
+                <h2 class="title-h4 text-neutral-900 font-bold">
+                    {% translate "¡Te damos la bienvenida a Petly!" %}
+                </h2>
+                <p class="text-caption sm:text-body-sm text-neutral-600 mt-0.5">
+                    {% translate "Aún no tienes ninguna mascota registrada. Para acceder a las funciones de emparejamiento, citas y comunidad, es obligatorio registrar a tu primer compañero de cuatro patas completando este formulario." %}
+                </p>
+            </div>
+        </div>
+    {% endif %}
 
     <!-- Barra de pestañas para alternar entre mascotas del tutor o registrar nueva (escritorio y móvil) -->
     <div class="bg-petly-ice/60 border border-neutral-300/70 rounded-2xl p-1.5 flex flex-wrap items-center justify-between gap-2 shadow-xs">
