@@ -181,6 +181,26 @@ class Command(BaseCommand):
                     defaults=p_data,
                 )
 
+        # Limpiar referencias huérfanas a archivos de avatar inexistentes en disco
+        for prof in UserProfile.objects.exclude(avatar='').exclude(avatar=None):
+            if prof.avatar and hasattr(prof.avatar, 'storage'):
+                try:
+                    if not prof.avatar.storage.exists(prof.avatar.name):
+                        prof.avatar = None
+                        prof.save(update_fields=['avatar'])
+                except Exception:
+                    pass
+
+        # Limpiar referencias huérfanas a fotos de mascotas inexistentes en disco
+        for pt in Pet.objects.exclude(photo='').exclude(photo=None):
+            if pt.photo and hasattr(pt.photo, 'storage'):
+                try:
+                    if not pt.photo.storage.exists(pt.photo.name):
+                        pt.photo = None
+                        pt.save(update_fields=['photo'])
+                except Exception:
+                    pass
+
         admin_user = User.objects.filter(username='admin').first() or User.objects.first()
         edwyn_user = User.objects.filter(username='edwyn').first() or admin_user
         stefany_user = User.objects.filter(username='stefany').first() or admin_user

@@ -166,14 +166,25 @@ class UserProfile(TimeStampedModel):
         """Retorna la URL del avatar del usuario o el fallback neutro estilo WhatsApp."""
         if self.avatar and hasattr(self.avatar, 'name') and self.avatar.name:
             try:
+                if hasattr(self.avatar, 'storage') and hasattr(self.avatar.storage, 'exists'):
+                    if not self.avatar.storage.exists(self.avatar.name):
+                        return f'{settings.STATIC_URL}images/avatars/default_user.svg'
                 return self.avatar.url
-            except ValueError:
+            except Exception:
                 pass
         return f'{settings.STATIC_URL}images/avatars/default_user.svg'
 
     @property
     def has_avatar(self):
-        return bool(self.avatar and hasattr(self.avatar, 'name') and self.avatar.name)
+        """Retorna True si el usuario tiene un avatar configurado y disponible en almacenamiento."""
+        if not (self.avatar and hasattr(self.avatar, 'name') and self.avatar.name):
+            return False
+        try:
+            if hasattr(self.avatar, 'storage') and hasattr(self.avatar.storage, 'exists'):
+                return bool(self.avatar.storage.exists(self.avatar.name))
+        except Exception:
+            pass
+        return True
 
     @property
     def city(self):

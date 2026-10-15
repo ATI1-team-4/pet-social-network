@@ -74,15 +74,25 @@ class UserProfileModelTests(TestCase):
 
     def test_user_profile_avatar_url_and_fallback(self):
         """Verifica que el avatar por defecto devuelva el SVG neutro estilo WhatsApp."""
+        from unittest.mock import patch
+
         self.assertFalse(self.profile.has_avatar)
         self.assertEqual(self.profile.avatar_url, '/static/images/avatars/default_user.svg')
 
         self.profile.avatar = 'avatars/user_1_avatar_9f8e7d6c.jpg'
-        self.assertTrue(self.profile.has_avatar)
-        self.assertEqual(
-            self.profile.avatar_url,
-            '/media/avatars/user_1_avatar_9f8e7d6c.jpg',
-        )
+        with patch.object(self.profile.avatar.storage, 'exists', return_value=True):
+            self.assertTrue(self.profile.has_avatar)
+            self.assertEqual(
+                self.profile.avatar_url,
+                '/media/avatars/user_1_avatar_9f8e7d6c.jpg',
+            )
+
+        with patch.object(self.profile.avatar.storage, 'exists', return_value=False):
+            self.assertFalse(self.profile.has_avatar)
+            self.assertEqual(
+                self.profile.avatar_url,
+                '/static/images/avatars/default_user.svg',
+            )
 
     def test_user_avatar_upload_path_convention(self):
         """Verifica que la ruta generada para el avatar siga la convención definida."""
