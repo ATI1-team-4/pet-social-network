@@ -60,7 +60,9 @@ class PetMeetupTests(TestCase):
         UserProfile.objects.get_or_create(user=self.other_user)
         UserProfile.objects.get_or_create(user=self.third_user)
 
-        self.species, _ = PetSpecies.objects.get_or_create(slug='perro', defaults={'name': 'Perro', 'icon_name': 'dog'})
+        self.species, _ = PetSpecies.objects.get_or_create(
+            slug='perro', defaults={'name': 'Perro', 'icon_name': 'dog'}
+        )
 
         self.pet = Pet.objects.create(
             owner=self.user,
@@ -271,18 +273,26 @@ class PetMeetupTests(TestCase):
 
         # El organizador (host) no puede confirmar por sí mismo -> 403
         self.client.login(username='tutor_citas', password='password123')
-        host_resp = self.client.post(reverse('pets:confirm_meetup', kwargs={'meetup_id': meetup.id}))
+        host_resp = self.client.post(
+            reverse('pets:confirm_meetup', kwargs={'meetup_id': meetup.id})
+        )
         self.assertEqual(host_resp.status_code, 403)
 
         # Tercero no participante -> 403
         self.client.login(username='tercer_tutor', password='password123')
-        third_resp = self.client.post(reverse('pets:confirm_meetup', kwargs={'meetup_id': meetup.id}))
+        third_resp = self.client.post(
+            reverse('pets:confirm_meetup', kwargs={'meetup_id': meetup.id})
+        )
         self.assertEqual(third_resp.status_code, 403)
 
         # El invitado (guest) confirma -> 200 OK
         self.client.login(username='otro_tutor', password='password123')
-        guest_resp = self.client.post(reverse('pets:confirm_meetup', kwargs={'meetup_id': meetup.id}))
-        self.assertEqual(guest_resp.status_code, 200, f"guest_resp error: {guest_resp.content.decode()}")
+        guest_resp = self.client.post(
+            reverse('pets:confirm_meetup', kwargs={'meetup_id': meetup.id})
+        )
+        self.assertEqual(
+            guest_resp.status_code, 200, f'guest_resp error: {guest_resp.content.decode()}'
+        )
         self.assertEqual(guest_resp.json().get('status'), 'confirmed')
 
         meetup.refresh_from_db()
@@ -300,14 +310,18 @@ class PetMeetupTests(TestCase):
         )
         self.client.login(username='tutor_citas', password='password123')
         # Intentar completar una cita que aún está en PROPOSED -> 400
-        comp_fail = self.client.post(reverse('pets:complete_meetup', kwargs={'meetup_id': meetup.id}))
+        comp_fail = self.client.post(
+            reverse('pets:complete_meetup', kwargs={'meetup_id': meetup.id})
+        )
         self.assertEqual(comp_fail.status_code, 400)
 
         # Invitado confirma la cita
         confirm_pet_meetup(meetup_id=meetup.id, user=self.other_user)
 
         # Ahora el tutor puede marcarla como completada -> 200
-        comp_success = self.client.post(reverse('pets:complete_meetup', kwargs={'meetup_id': meetup.id}))
+        comp_success = self.client.post(
+            reverse('pets:complete_meetup', kwargs={'meetup_id': meetup.id})
+        )
         self.assertEqual(comp_success.status_code, 200)
         self.assertEqual(comp_success.json().get('status'), 'completed')
 
@@ -315,7 +329,9 @@ class PetMeetupTests(TestCase):
         self.assertEqual(meetup.status, PetMeetup.MeetupStatus.COMPLETED)
 
         # Una cita completada no puede ser cancelada -> 400
-        cancel_attempt = self.client.post(reverse('pets:cancel_meetup', kwargs={'meetup_id': meetup.id}))
+        cancel_attempt = self.client.post(
+            reverse('pets:cancel_meetup', kwargs={'meetup_id': meetup.id})
+        )
         self.assertEqual(cancel_attempt.status_code, 400)
         with self.assertRaises(ValueError):
             cancel_pet_meetup(meetup_id=meetup.id, user=self.user)

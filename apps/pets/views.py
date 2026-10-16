@@ -835,11 +835,15 @@ def confirm_meetup_view(request, meetup_id):
     try:
         active_pet, _user_pets = get_user_active_pet(request)
         meetup = confirm_pet_meetup(meetup_id=meetup_id, user=request.user)
-        meetup_data = serialize_pet_meetup(active_pet, meetup) if active_pet else {
-            'meetup_id': meetup.id,
-            'status': meetup.status,
-            'badge': meetup.get_status_display(),
-        }
+        meetup_data = (
+            serialize_pet_meetup(active_pet, meetup)
+            if active_pet
+            else {
+                'meetup_id': meetup.id,
+                'status': meetup.status,
+                'badge': meetup.get_status_display(),
+            }
+        )
         return JsonResponse(
             {
                 'status': 'confirmed',
@@ -868,15 +872,21 @@ def complete_meetup_view(request, meetup_id):
     try:
         active_pet, _user_pets = get_user_active_pet(request)
         meetup = complete_pet_meetup(meetup_id=meetup_id, user=request.user)
-        meetup_data = serialize_pet_meetup(active_pet, meetup) if active_pet else {
-            'meetup_id': meetup.id,
-            'status': meetup.status,
-            'badge': meetup.get_status_display(),
-        }
+        meetup_data = (
+            serialize_pet_meetup(active_pet, meetup)
+            if active_pet
+            else {
+                'meetup_id': meetup.id,
+                'status': meetup.status,
+                'badge': meetup.get_status_display(),
+            }
+        )
         return JsonResponse(
             {
                 'status': 'completed',
-                'message': _('¡Cita completada exitosamente! Se ha actualizado el perfil de ambos tutores.'),
+                'message': _(
+                    '¡Cita completada exitosamente! Se ha actualizado el perfil de ambos tutores.'
+                ),
                 'meetup_id': meetup.id,
                 'meetup': meetup_data,
             }

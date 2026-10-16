@@ -418,8 +418,8 @@ class PetsViewsTests(TestCase):
         self.assertContains(response, 'Kira')
         self.assertContains(response, 'Pomerania Mini')
 
-        # Verifica citas confirmadas y enlace de retorno al feed
-        self.assertContains(response, 'Citas confirmadas')
+        # Verifica citas y encuentros y enlace de retorno al feed
+        self.assertContains(response, 'Citas y encuentros')
         self.assertContains(response, reverse('pets:match_feed'))
 
     def test_user_without_pets_onboarding_and_defaults(self):

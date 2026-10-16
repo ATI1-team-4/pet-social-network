@@ -588,7 +588,9 @@ def send_initial_match_note(
             or getattr(match_request.to_pet, 'owner', None) == sender_user
         ):
             raise PermissionError(
-                _('Solo el tutor que envía el match puede redactar la nota inicial para que el receptor la visualice.')
+                _(
+                    'Solo el tutor que envía el match puede redactar la nota inicial para que el receptor la visualice.'
+                )
             )
         raise PermissionError(_('No tienes permiso para agregar notas a esta solicitud.'))
 
@@ -649,7 +651,11 @@ def serialize_match_request(active_pet: Pet, req: MatchRequest) -> dict[str, Any
         'pet': candidate.name,
     }
     # Solo se expone el correo del tutor solicitante para que el receptor pueda contactarlo
-    sender_email = (tutor.email or '').strip() if (is_received and tutor and getattr(tutor, 'email', None)) else ''
+    sender_email = (
+        (tutor.email or '').strip()
+        if (is_received and tutor and getattr(tutor, 'email', None))
+        else ''
+    )
 
     if is_received:
         # Petición recibida hacia active_pet: la nota fue redactada por el tutor solicitante
@@ -790,9 +796,7 @@ def serialize_pet_meetup(active_pet: Pet, meetup: PetMeetup) -> dict[str, Any]:
     time_str = meetup.time.strftime('%I:%M %p') if meetup.time else ''
     scheduled_by_user = meetup.scheduled_by
     scheduled_by_name = (
-        scheduled_by_user.get_full_name() or scheduled_by_user.username
-        if scheduled_by_user
-        else ''
+        scheduled_by_user.get_full_name() or scheduled_by_user.username if scheduled_by_user else ''
     )
     is_organizer = (
         scheduled_by_user.id == active_pet.owner_id
@@ -910,7 +914,11 @@ def confirm_pet_meetup(meetup_id: int, user: Any) -> PetMeetup:
 
     if not (is_guest_owner or is_staff):
         if is_host_owner:
-            raise PermissionError(_('El organizador de la cita no necesita confirmarla; debe esperar la confirmación del invitado.'))
+            raise PermissionError(
+                _(
+                    'El organizador de la cita no necesita confirmarla; debe esperar la confirmación del invitado.'
+                )
+            )
         raise PermissionError(_('No tienes permiso para confirmar esta cita.'))
 
     if meetup.status != PetMeetup.MeetupStatus.PROPOSED:
