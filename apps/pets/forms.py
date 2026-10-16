@@ -53,35 +53,10 @@ class ScheduleMeetupForm(forms.ModelForm):
         }
 
     def clean_location_name(self):
-        """Valida que el lugar corresponda a un parque canino autorizado o espacio verificado."""
+        """Valida que el lugar de encuentro sea ingresado por el usuario."""
         location_name = self.cleaned_data.get('location_name', '').strip()
         if not location_name:
-            raise forms.ValidationError(_('Debe ingresar un lugar de encuentro canino verificado.'))
-
-        authorized_normalized = [p.lower() for p in AUTHORIZED_CANINE_PARKS]
-        loc_lower = location_name.lower()
-
-        is_authorized = loc_lower in authorized_normalized or any(
-            p in loc_lower
-            for p in [
-                'parque españa',
-                'parque del este',
-                'parque vizcaya',
-                'la rosaleda',
-                'los caobos',
-                'zona canina verificada',
-                'área de recreación canina',
-                'espacio cercado',
-            ]
-        )
-
-        if not is_authorized:
-            raise forms.ValidationError(
-                _(
-                    'El lugar seleccionado no corresponde a un parque canino autorizado o espacio público verificado.'
-                )
-            )
-
+            raise forms.ValidationError(_('Debe ingresar un lugar de encuentro.'))
         return location_name
 
     def clean_date(self):

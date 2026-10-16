@@ -36,5 +36,7 @@ urlpatterns = [
     ),
     # Siluetas de rutas para citas y encuentros seguros (Issue #65)
     path('match/meetups/schedule/', views.schedule_meetup_view, name='schedule_meetup'),
+    path('match/meetups/<int:meetup_id>/confirm/', views.confirm_meetup_view, name='confirm_meetup'),
+    path('match/meetups/<int:meetup_id>/complete/', views.complete_meetup_view, name='complete_meetup'),
     path('match/meetups/<int:meetup_id>/cancel/', views.cancel_meetup_view, name='cancel_meetup'),
 ]

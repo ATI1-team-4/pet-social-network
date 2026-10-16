@@ -22,7 +22,9 @@ from apps.accounts.models import UserProfile
 from apps.pets.forms import ScheduleMeetupForm
 from apps.pets.models import MatchRequest, Pet, PetMeetup, PetSpecies
 from apps.pets.services import (
+    cancel_pet_meetup,
     complete_pet_meetup,
+    confirm_pet_meetup,
     schedule_pet_meetup,
 )
 
@@ -58,7 +60,7 @@ class PetMeetupTests(TestCase):
         UserProfile.objects.get_or_create(user=self.other_user)
         UserProfile.objects.get_or_create(user=self.third_user)
 
-        self.species = PetSpecies.objects.create(name='Perro', slug='perro', icon_name='dog')
+        self.species, _ = PetSpecies.objects.get_or_create(slug='perro', defaults={'name': 'Perro', 'icon_name': 'dog'})
 
         self.pet = Pet.objects.create(
             owner=self.user,
@@ -153,25 +155,25 @@ class PetMeetupTests(TestCase):
         self.assertTrue(form_future.is_valid())
 
     def test_schedule_meetup_location_validation(self):
-        """Verifica que el lugar deba ser un espacio canino verificado o parque autorizado."""
-        form_unverified = ScheduleMeetupForm(
+        """Verifica que el campo de lugar de encuentro sea obligatorio."""
+        form_empty = ScheduleMeetupForm(
             data={
                 'date': self.future_date,
                 'time': self.future_time,
-                'location_name': 'Callejón privado no autorizado',
+                'location_name': '',
             }
         )
-        self.assertFalse(form_unverified.is_valid())
-        self.assertIn('location_name', form_unverified.errors)
+        self.assertFalse(form_empty.is_valid())
+        self.assertIn('location_name', form_empty.errors)
 
-        form_verified = ScheduleMeetupForm(
+        form_valid = ScheduleMeetupForm(
             data={
                 'date': self.future_date,
                 'time': self.future_time,
                 'location_name': 'Parque del Este (Área de recreación canina)',
             }
         )
-        self.assertTrue(form_verified.is_valid())
+        self.assertTrue(form_valid.is_valid())
 
     def test_schedule_meetup_endpoint_success(self):
         """Verifica el agendamiento exitoso de una cita mediante AJAX POST."""
@@ -198,7 +200,7 @@ class PetMeetupTests(TestCase):
         meetup = PetMeetup.objects.get(id=data['meetup_id'])
         self.assertEqual(meetup.host_pet, self.pet)
         self.assertEqual(meetup.guest_pet, self.other_pet)
-        self.assertEqual(meetup.status, PetMeetup.MeetupStatus.CONFIRMED)
+        self.assertEqual(meetup.status, PetMeetup.MeetupStatus.PROPOSED)
         self.assertEqual(meetup.location_name, self.location)
 
     def test_schedule_meetup_endpoint_validation_error(self):
@@ -221,7 +223,7 @@ class PetMeetupTests(TestCase):
         self.assertEqual(data.get('status'), 'error')
 
     def test_cancel_meetup_permission_and_state(self):
-        """Verifica que solo los tutores involucrados puedan cancelar y el estado pase a CANCELLED."""
+        """Verifica que solo los tutores involucrados puedan cancelar, el estado pase a CANCELLED y se registre el tutor."""
         meetup = schedule_pet_meetup(
             requester_user=self.user,
             requester_pet=self.pet,
@@ -230,7 +232,7 @@ class PetMeetupTests(TestCase):
             meeting_time=self.future_time,
             location_name=self.location,
         )
-        self.assertEqual(meetup.status, PetMeetup.MeetupStatus.CONFIRMED)
+        self.assertEqual(meetup.status, PetMeetup.MeetupStatus.PROPOSED)
 
         # Tercer usuario no participante intenta cancelar -> 403 Forbidden
         self.client.login(username='tercer_tutor', password='password123')
@@ -240,7 +242,7 @@ class PetMeetupTests(TestCase):
         )
         self.assertEqual(forbidden_response.status_code, 403)
 
-        # Tutor participante cancela -> 200 OK y estado CANCELLED
+        # Tutor participante cancela -> 200 OK y estado CANCELLED con nombre del tutor en la nota
         self.client.login(username='tutor_citas', password='password123')
         cancel_response = self.client.post(
             reverse('pets:cancel_meetup', kwargs={'meetup_id': meetup.id}),
@@ -253,6 +255,70 @@ class PetMeetupTests(TestCase):
         meetup.refresh_from_db()
         self.assertEqual(meetup.status, PetMeetup.MeetupStatus.CANCELLED)
         self.assertIn('Compromiso veterinario imprevisto', meetup.notes)
+        self.assertIn('Alejandro Pérez', meetup.notes)
+
+    def test_confirm_meetup_endpoint_lifecycle(self):
+        """Verifica que solo el tutor invitado pueda confirmar la cita y cambie a CONFIRMED."""
+        meetup = schedule_pet_meetup(
+            requester_user=self.user,
+            requester_pet=self.pet,
+            target_pet=self.other_pet,
+            meeting_date=self.future_date,
+            meeting_time=self.future_time,
+            location_name=self.location,
+        )
+        self.assertEqual(meetup.status, PetMeetup.MeetupStatus.PROPOSED)
+
+        # El organizador (host) no puede confirmar por sí mismo -> 403
+        self.client.login(username='tutor_citas', password='password123')
+        host_resp = self.client.post(reverse('pets:confirm_meetup', kwargs={'meetup_id': meetup.id}))
+        self.assertEqual(host_resp.status_code, 403)
+
+        # Tercero no participante -> 403
+        self.client.login(username='tercer_tutor', password='password123')
+        third_resp = self.client.post(reverse('pets:confirm_meetup', kwargs={'meetup_id': meetup.id}))
+        self.assertEqual(third_resp.status_code, 403)
+
+        # El invitado (guest) confirma -> 200 OK
+        self.client.login(username='otro_tutor', password='password123')
+        guest_resp = self.client.post(reverse('pets:confirm_meetup', kwargs={'meetup_id': meetup.id}))
+        self.assertEqual(guest_resp.status_code, 200, f"guest_resp error: {guest_resp.content.decode()}")
+        self.assertEqual(guest_resp.json().get('status'), 'confirmed')
+
+        meetup.refresh_from_db()
+        self.assertEqual(meetup.status, PetMeetup.MeetupStatus.CONFIRMED)
+
+    def test_complete_meetup_endpoint_lifecycle(self):
+        """Verifica que solo citas confirmadas puedan completarse."""
+        meetup = schedule_pet_meetup(
+            requester_user=self.user,
+            requester_pet=self.pet,
+            target_pet=self.other_pet,
+            meeting_date=self.future_date,
+            meeting_time=self.future_time,
+            location_name=self.location,
+        )
+        self.client.login(username='tutor_citas', password='password123')
+        # Intentar completar una cita que aún está en PROPOSED -> 400
+        comp_fail = self.client.post(reverse('pets:complete_meetup', kwargs={'meetup_id': meetup.id}))
+        self.assertEqual(comp_fail.status_code, 400)
+
+        # Invitado confirma la cita
+        confirm_pet_meetup(meetup_id=meetup.id, user=self.other_user)
+
+        # Ahora el tutor puede marcarla como completada -> 200
+        comp_success = self.client.post(reverse('pets:complete_meetup', kwargs={'meetup_id': meetup.id}))
+        self.assertEqual(comp_success.status_code, 200)
+        self.assertEqual(comp_success.json().get('status'), 'completed')
+
+        meetup.refresh_from_db()
+        self.assertEqual(meetup.status, PetMeetup.MeetupStatus.COMPLETED)
+
+        # Una cita completada no puede ser cancelada -> 400
+        cancel_attempt = self.client.post(reverse('pets:cancel_meetup', kwargs={'meetup_id': meetup.id}))
+        self.assertEqual(cancel_attempt.status_code, 400)
+        with self.assertRaises(ValueError):
+            cancel_pet_meetup(meetup_id=meetup.id, user=self.user)
 
     def test_meetup_completed_updates_tutor_reputation_counter(self):
         """
@@ -270,6 +336,8 @@ class PetMeetupTests(TestCase):
             meeting_time=self.future_time,
             location_name=self.location,
         )
+        # Confirmar primero por el tutor invitado
+        confirm_pet_meetup(meetup_id=meetup.id, user=self.other_user)
 
         # Completar la cita
         complete_pet_meetup(meetup_id=meetup.id, user=self.user)

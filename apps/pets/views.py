@@ -14,6 +14,8 @@ from apps.pets.models import MatchRequest, Pet, PetMeetup
 from apps.pets.services import (
     accept_match_request,
     cancel_pet_meetup,
+    complete_pet_meetup,
+    confirm_pet_meetup,
     delete_user_pet,
     get_default_new_pet_data,
     get_match_feed_context,
@@ -783,7 +785,7 @@ def schedule_meetup_view(request):
         return JsonResponse(
             {
                 'status': 'scheduled',
-                'message': _('¡Cita agendada con éxito! Se ha notificado al tutor de la mascota.'),
+                'message': _('¡Cita propuesta con éxito! Se ha notificado al tutor de la mascota.'),
                 'meetup_id': meetup.id,
                 'meetup': serialize_pet_meetup(requester_pet, meetup),
             }
@@ -811,6 +813,72 @@ def cancel_meetup_view(request, meetup_id):
                 'status': 'cancelled',
                 'message': _('La cita ha sido cancelada exitosamente.'),
                 'meetup_id': meetup.id,
+            }
+        )
+    except PetMeetup.DoesNotExist:
+        return JsonResponse(
+            {'status': 'error', 'message': _('La cita especificada no existe.')},
+            status=404,
+        )
+    except PermissionError as pe:
+        return JsonResponse({'status': 'error', 'message': str(pe)}, status=403)
+    except ValueError as ve:
+        return JsonResponse({'status': 'error', 'message': str(ve)}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+@require_POST
+def confirm_meetup_view(request, meetup_id):
+    """Confirma una cita de encuentro propuesta entre mascotas."""
+    try:
+        active_pet, _user_pets = get_user_active_pet(request)
+        meetup = confirm_pet_meetup(meetup_id=meetup_id, user=request.user)
+        meetup_data = serialize_pet_meetup(active_pet, meetup) if active_pet else {
+            'meetup_id': meetup.id,
+            'status': meetup.status,
+            'badge': meetup.get_status_display(),
+        }
+        return JsonResponse(
+            {
+                'status': 'confirmed',
+                'message': _('¡Cita confirmada exitosamente!'),
+                'meetup_id': meetup.id,
+                'meetup': meetup_data,
+            }
+        )
+    except PetMeetup.DoesNotExist:
+        return JsonResponse(
+            {'status': 'error', 'message': _('La cita especificada no existe.')},
+            status=404,
+        )
+    except PermissionError as pe:
+        return JsonResponse({'status': 'error', 'message': str(pe)}, status=403)
+    except ValueError as ve:
+        return JsonResponse({'status': 'error', 'message': str(ve)}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+@require_POST
+def complete_meetup_view(request, meetup_id):
+    """Marca como completada una cita de encuentro previamente confirmada."""
+    try:
+        active_pet, _user_pets = get_user_active_pet(request)
+        meetup = complete_pet_meetup(meetup_id=meetup_id, user=request.user)
+        meetup_data = serialize_pet_meetup(active_pet, meetup) if active_pet else {
+            'meetup_id': meetup.id,
+            'status': meetup.status,
+            'badge': meetup.get_status_display(),
+        }
+        return JsonResponse(
+            {
+                'status': 'completed',
+                'message': _('¡Cita completada exitosamente! Se ha actualizado el perfil de ambos tutores.'),
+                'meetup_id': meetup.id,
+                'meetup': meetup_data,
             }
         )
     except PetMeetup.DoesNotExist:

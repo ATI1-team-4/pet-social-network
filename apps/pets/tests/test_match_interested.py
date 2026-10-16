@@ -306,9 +306,7 @@ class MatchInterestedTests(TestCase):
         self.assertEqual(req.status, MatchRequest.RequestStatus.REJECTED)
 
     def test_send_initial_note_view(self):
-        """Verifica que se registre exitosamente la nota inicial de contacto."""
-        self.client.login(username='tutor_interesados', password='password123')
-
+        """Verifica que solo el tutor que envía la solicitud pueda redactar la nota inicial."""
         req = MatchRequest.objects.create(
             from_pet=self.suitor_pet1,
             to_pet=self.pet,
@@ -318,6 +316,18 @@ class MatchInterestedTests(TestCase):
         note_content = (
             '¡Hola Mariana! Encantado con Kira. ¿Coordinamos un paseo en el Parque España?'
         )
+
+        # El receptor (tutor_interesados) no puede editar la nota inicial -> 403
+        self.client.login(username='tutor_interesados', password='password123')
+        resp_recipient = self.client.post(
+            reverse('pets:send_initial_note', kwargs={'request_id': req.id}),
+            data=json.dumps({'note': 'Nota del receptor'}),
+            content_type='application/json',
+        )
+        self.assertEqual(resp_recipient.status_code, 403)
+
+        # El remitente que envió el match (otro_tutor) sí puede redactar la nota inicial -> 200
+        self.client.login(username='otro_tutor', password='password123')
         response = self.client.post(
             reverse('pets:send_initial_note', kwargs={'request_id': req.id}),
             data=json.dumps({'note': note_content}),
@@ -333,7 +343,7 @@ class MatchInterestedTests(TestCase):
 
     def test_send_initial_note_empty_fails(self):
         """Verifica que enviar una nota vacía devuelva error 400."""
-        self.client.login(username='tutor_interesados', password='password123')
+        self.client.login(username='otro_tutor', password='password123')
 
         req = MatchRequest.objects.create(
             from_pet=self.suitor_pet1,

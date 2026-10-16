@@ -2578,5 +2578,125 @@ msgstr "The request was successfully dismissed."
 msgid "Acción completada"
 msgstr "Action completed"
 
+msgid "Cita completada"
+msgstr "Meetup completed"
+
+msgid "¡Cita propuesta con éxito!"
+msgstr "Meetup proposed successfully!"
+
+msgid "Cita propuesta"
+msgstr "Proposed meetup"
+
+msgid "¡Cita confirmada exitosamente!"
+msgstr "Meetup confirmed successfully!"
+
+msgid "¡Cita confirmada!"
+msgstr "Meetup confirmed!"
+
+msgid "No se pudo confirmar la cita."
+msgstr "Could not confirm meetup."
+
+msgid "Error al confirmar"
+msgstr "Error confirming"
+
+msgid "¡Cita completada exitosamente!"
+msgstr "Meetup completed successfully!"
+
+msgid "¡Cita completada!"
+msgstr "Meetup completed!"
+
+msgid "No se pudo completar la cita."
+msgstr "Could not complete meetup."
+
+msgid "Error al completar"
+msgstr "Error completing"
+
+msgid "¡Cita propuesta con éxito! Se ha notificado al tutor de la mascota."
+msgstr "Meetup proposed successfully! The pet guardian has been notified."
+
+msgid "¡Cita completada exitosamente! Se ha actualizado el perfil de ambos tutores."
+msgstr "Meetup completed successfully! Both guardian profiles have been updated."
+
+msgid " [Cancelado por el tutor %(tutor)s: %(reason)s]"
+msgstr " [Cancelled by guardian %(tutor)s: %(reason)s]"
+
+msgid " [Cancelado por el tutor %(tutor)s]"
+msgstr " [Cancelled by guardian %(tutor)s]"
+
+msgid "El organizador de la cita no necesita confirmarla; debe esperar la confirmación del invitado."
+msgstr "The meetup organizer does not need to confirm it; they must wait for the guest confirmation."
+
+msgid "Solo se pueden confirmar citas que se encuentren en estado propuesto."
+msgstr "Only proposed meetups can be confirmed."
+
+msgid "No tienes permiso para confirmar esta cita."
+msgstr "You do not have permission to confirm this meetup."
+
+msgid "Proponer encuentro"
+msgstr "Propose meetup"
+
+msgid "Completa la fecha, hora y lugar del encuentro."
+msgstr "Please fill in the date, time, and location of the meetup."
+
+msgid "Datos incompletos"
+msgstr "Incomplete data"
+
+msgid "Ej. Parque España, Parque del Este (Zona canina)..."
+msgstr "E.g. Spain Park, East Park (Canine zone)..."
+
+msgid "No se puede cancelar una cita que ya ha sido completada."
+msgstr "A meetup that has already been completed cannot be cancelled."
+
+msgid "Esta cita ya se encuentra cancelada."
+msgstr "This meetup is already cancelled."
+
+msgid "Acción no permitida"
+msgstr "Action not allowed"
+
+msgid "Solo el tutor que envía el match puede redactar la nota inicial para que el receptor la visualice."
+msgstr "Only the guardian sending the match can write the initial note for the recipient to view."
+
+msgid "Nota inicial recibida"
+msgstr "Received initial note"
+
+msgid "Mensaje del tutor:"
+msgstr "Guardian message:"
+
+msgid "El tutor no dejó una nota personalizada."
+msgstr "The guardian did not leave a custom note."
+
+msgid "Ver nota inicial"
+msgstr "View initial note"
+
+msgid "Editar nota inicial"
+msgstr "Edit initial note"
+
+msgid "Editar nota"
+msgstr "Edit note"
+
+msgid "¡Match aceptado!"
+msgstr "Match accepted!"
+
+msgid "Contactar por correo al tutor solicitante"
+msgstr "Contact requesting guardian by email"
+
+msgid "Correo de contacto:"
+msgstr "Contact email:"
+
+msgid "Nota del tutor solicitante:"
+msgstr "Requesting guardian's note:"
+
+msgid "Entendido"
+msgstr "Got it"
+
+msgid "¿Estás seguro?"
+msgstr "Are you sure?"
+
+msgid "Citas y encuentros"
+msgstr "Meetups and playdates"
+
+msgid "No tienes encuentros agendados próximos"
+msgstr "You have no upcoming scheduled meetups"
+
 
 
