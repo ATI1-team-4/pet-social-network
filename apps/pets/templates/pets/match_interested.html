@@ -895,7 +895,7 @@
 
         const statusEl = document.getElementById('meetup-details-status');
         if (statusEl) {
-            statusEl.textContent = effectiveBadge || (effectiveStatus === 'confirmed' ? '{% translate "Confirmado" %}' : (effectiveStatus === 'completed' ? '{% translate "Completado" %}' : '{% translate "Propuesto" %}'));
+            statusEl.textContent = effectiveBadge || (effectiveStatus === 'confirmed' ? '{% filter escapejs %}{% translate "Confirmado" %}{% endfilter %}' : (effectiveStatus === 'completed' ? '{% filter escapejs %}{% translate "Completado" %}{% endfilter %}' : '{% filter escapejs %}{% translate "Propuesto" %}{% endfilter %}'));
         }
 
         const notesContainer = document.getElementById('meetup-details-notes-container');
@@ -957,7 +957,7 @@
         openModal('modal-petly-feedback');
     }
 
-    function showPetlyConfirm(message, onConfirm, title = '{% translate "¿Estás seguro?" %}') {
+    function showPetlyConfirm(message, onConfirm, title = '{% filter escapejs %}{% translate "¿Estás seguro?" %}{% endfilter %}') {
         document.getElementById('petly-feedback-title').textContent = title;
         document.getElementById('petly-feedback-message').textContent = message;
 
@@ -1079,12 +1079,12 @@
                         card.setAttribute('data-status', 'accepted');
                         const badgeCollapsed = document.getElementById(`card-badge-${requestId}`);
                         if (badgeCollapsed) {
-                            badgeCollapsed.textContent = '{% translate "Match aceptado" %}';
+                            badgeCollapsed.textContent = '{% filter escapejs %}{% translate "Match aceptado" %}{% endfilter %}';
                             badgeCollapsed.className = 'suitor-badge-label text-[11px] font-semibold text-emerald-600 block mt-0.5';
                         }
                         const badgeExp = document.getElementById(`expanded-badge-${requestId}`);
                         if (badgeExp) {
-                            badgeExp.textContent = '{% translate "Match aceptado" %}';
+                            badgeExp.textContent = '{% filter escapejs %}{% translate "Match aceptado" %}{% endfilter %}';
                             badgeExp.className = 'suitor-badge-label-expanded badge-tag text-[11px] font-semibold py-1 px-2.5 bg-emerald-50 text-emerald-700 border-emerald-200';
                         }
                         // Transformar botones de aceptar a agendar cita
@@ -1094,10 +1094,10 @@
                             <button type="button"
                                     onclick="openMeetingModal('${petName}', '', '${requestId}')"
                                     class="text-xs px-3.5 py-1.5 font-bold rounded-full bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                                    title="{% translate 'Agendar encuentro seguro' %}">
+                                    title="{% filter escapejs %}{% translate 'Agendar encuentro seguro' %}{% endfilter %}">
 
                                     {% include 'components/icon.html' with name="calendar" class="w-3.5 h-3.5" %}
-                                <span>{% translate "Cita" %}</span>
+                                <span>{% filter escapejs %}{% translate "Cita" %}{% endfilter %}</span>
                             </button>
                         `;
                         }
@@ -1110,20 +1110,20 @@
                                 
                                 {% include 'components/icon.html' with name="calendar" class="w-4 h-4" %}
 
-                                <span>{% translate "Concertar encuentro" %}</span>
+                                <span>{% filter escapejs %}{% translate "Concertar encuentro" %}{% endfilter %}</span>
                             </button>
                         `;
                         }
                         // Actualizar botones de cancelar/descartar a "Cancelar match"
                         const rejectBtnCollapsed = card.querySelector('.btn-reject-request.rounded-full');
                         if (rejectBtnCollapsed) {
-                            rejectBtnCollapsed.setAttribute('title', '{% translate "Cancelar match" %}');
-                            rejectBtnCollapsed.setAttribute('aria-label', '{% translate "Cancelar match" %}');
+                            rejectBtnCollapsed.setAttribute('title', '{% filter escapejs %}{% translate "Cancelar match" %}{% endfilter %}');
+                            rejectBtnCollapsed.setAttribute('aria-label', '{% filter escapejs %}{% translate "Cancelar match" %}{% endfilter %}');
                             rejectBtnCollapsed.setAttribute('onclick', `handleRejectRequest(${requestId}, '${petName}', 'match')`);
                         }
                         const rejectBtnExpSpan = card.querySelector('.btn-reject-request-wrapper .btn-reject-request span');
                         if (rejectBtnExpSpan) {
-                            rejectBtnExpSpan.textContent = '{% translate "Cancelar match" %}';
+                            rejectBtnExpSpan.textContent = '{% filter escapejs %}{% translate "Cancelar match" %}{% endfilter %}';
                             const rejectBtnExp = card.querySelector('.btn-reject-request-wrapper .btn-reject-request');
                             if (rejectBtnExp) {
                                 rejectBtnExp.setAttribute('onclick', `handleRejectRequest(${requestId}, '${petName}', 'match')`);
@@ -1136,29 +1136,29 @@
                     }
 
                     showPetlyDialog(
-                        data.message || '{% translate "Solicitud de match aceptada exitosamente." %}',
-                        '{% translate "¡Match aceptado!" %}'
+                        data.message || '{% filter escapejs %}{% translate "Solicitud de match aceptada exitosamente." %}{% endfilter %}',
+                        '{% filter escapejs %}{% translate "¡Match aceptado!" %}{% endfilter %}'
                     );
                 } else {
-                    alert(data.message || '{% translate "Ocurrió un error al aceptar la solicitud." %}');
+                    alert(data.message || '{% filter escapejs %}{% translate "Ocurrió un error al aceptar la solicitud." %}{% endfilter %}');
                 }
             })
             .catch(err => {
                 console.error('Error al aceptar solicitud:', err);
-                alert('{% translate "Error de conexión al procesar la solicitud." %}');
+                alert('{% filter escapejs %}{% translate "Error de conexión al procesar la solicitud." %}{% endfilter %}');
             });
     }
 
     // Acción AJAX: Cancelar match, solicitud enviada o descartar solicitud recibida
     function handleRejectRequest(requestId, petName, actionType) {
         let confirmMsg = `¿Estás seguro de cancelar la solicitud a ${petName}?`;
-        let successMsg = '{% translate "La solicitud se ha cancelado correctamente." %}';
+        let successMsg = '{% filter escapejs %}{% translate "La solicitud se ha cancelado correctamente." %}{% endfilter %}';
         if (actionType === 'match') {
             confirmMsg = `¿Estás seguro de que deseas cancelar el match con ${petName}?`;
-            successMsg = '{% translate "El match se ha cancelado correctamente." %}';
+            successMsg = '{% filter escapejs %}{% translate "El match se ha cancelado correctamente." %}{% endfilter %}';
         } else if (actionType === 'received') {
             confirmMsg = `¿Estás seguro de descartar la solicitud de ${petName}?`;
-            successMsg = '{% translate "La solicitud se ha descartado correctamente." %}';
+            successMsg = '{% filter escapejs %}{% translate "La solicitud se ha descartado correctamente." %}{% endfilter %}';
         }
 
         showPetlyConfirm(
@@ -1202,12 +1202,12 @@
 
                             showPetlyDialog(
                                 successMsg,
-                                '{% translate "Acción completada" %}'
+                                '{% filter escapejs %}{% translate "Acción completada" %}{% endfilter %}'
                             );
                         } else {
                             showPetlyDialog(
-                                data.message || '{% translate "No se pudo procesar la solicitud." %}',
-                                '{% translate "No se pudo completar" %}'
+                                data.message || '{% filter escapejs %}{% translate "No se pudo procesar la solicitud." %}{% endfilter %}',
+                                '{% filter escapejs %}{% translate "No se pudo completar" %}{% endfilter %}'
                             );
                         }
                     })
@@ -1215,12 +1215,12 @@
                         console.error('Error al procesar la solicitud:', err);
 
                         showPetlyDialog(
-                            '{% translate "Ocurrió un error de conexión al procesar la solicitud." %}',
-                            '{% translate "Error de conexión" %}'
+                            '{% filter escapejs %}{% translate "Ocurrió un error de conexión al procesar la solicitud." %}{% endfilter %}',
+                            '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
                         );
                     });
             },
-            '{% translate "Confirmar acción" %}'
+            '{% filter escapejs %}{% translate "Confirmar acción" %}{% endfilter %}'
         );
     }
    
@@ -1259,9 +1259,9 @@
 
         if (isUserSender) {
             // El usuario es quien envió la solicitud: puede redactar/editar su nota
-            if (modalTitle) modalTitle.textContent = '{% translate "Nota enviada al tutor" %}';
-            if (prepEl) prepEl.textContent = '{% translate "Para" %}';
-            if (textareaLabel) textareaLabel.textContent = '{% translate "Escribe una nota para iniciar la conversación:" %}';
+            if (modalTitle) modalTitle.textContent = '{% filter escapejs %}{% translate "Nota enviada al tutor" %}{% endfilter %}';
+            if (prepEl) prepEl.textContent = '{% filter escapejs %}{% translate "Para" %}{% endfilter %}';
+            if (textareaLabel) textareaLabel.textContent = '{% filter escapejs %}{% translate "Escribe una nota para iniciar la conversación:" %}{% endfilter %}';
             if (emailContainer) emailContainer.classList.add('hidden');
             if (submitBtnContainer) submitBtnContainer.classList.remove('hidden');
             if (cancelBtnContainer) cancelBtnContainer.classList.remove('hidden');
@@ -1281,16 +1281,16 @@
             }
         } else {
             // El usuario es el receptor: solo puede VER la nota dejada por quien hizo el match
-            if (modalTitle) modalTitle.textContent = '{% translate "Nota inicial recibida" %}';
-            if (prepEl) prepEl.textContent = '{% translate "De" %}';
-            if (textareaLabel) textareaLabel.textContent = '{% translate "Nota del tutor solicitante:" %}';
+            if (modalTitle) modalTitle.textContent = '{% filter escapejs %}{% translate "Nota inicial recibida" %}{% endfilter %}';
+            if (prepEl) prepEl.textContent = '{% filter escapejs %}{% translate "De" %}{% endfilter %}';
+            if (textareaLabel) textareaLabel.textContent = '{% filter escapejs %}{% translate "Nota del tutor solicitante:" %}{% endfilter %}';
             if (submitBtnContainer) submitBtnContainer.classList.add('hidden');
             if (cancelBtnContainer) cancelBtnContainer.classList.add('hidden');
             if (closeBtnContainer) closeBtnContainer.classList.remove('hidden');
             if (textarea) {
                 textarea.readOnly = true;
                 textarea.required = false;
-                textarea.value = (currentQuote && currentQuote.trim()) ? currentQuote.trim() : '{% translate "El tutor no dejó una nota personalizada." %}';
+                textarea.value = (currentQuote && currentQuote.trim()) ? currentQuote.trim() : '{% filter escapejs %}{% translate "El tutor no dejó una nota personalizada." %}{% endfilter %}';
             }
             if (emailContainer && emailLink) {
                 if (senderEmail && senderEmail.trim()) {
@@ -1313,7 +1313,7 @@
         const messageText = document.getElementById('note-textarea').value.trim();
 
         if (!requestId || !messageText) {
-            alert('{% translate "Por favor ingresa una nota válida." %}');
+            alert('{% filter escapejs %}{% translate "Por favor ingresa una nota válida." %}{% endfilter %}');
             return;
         }
 
@@ -1338,14 +1338,14 @@
                         quoteEl.textContent = `"${messageText}"`;
                     }
                     closeModal('modal-send-note');
-                    alert('{% translate "¡Nota guardada exitosamente!" %}');
+                    alert('{% filter escapejs %}{% translate "¡Nota guardada exitosamente!" %}{% endfilter %}');
                 } else {
-                    alert(data.message || '{% translate "Error al guardar la nota." %}');
+                    alert(data.message || '{% filter escapejs %}{% translate "Error al guardar la nota." %}{% endfilter %}');
                 }
             })
             .catch(err => {
                 console.error('Error al enviar nota:', err);
-                alert('{% translate "Error de conexión al guardar la nota." %}');
+                alert('{% filter escapejs %}{% translate "Error de conexión al guardar la nota." %}{% endfilter %}');
             })
             .finally(() => {
                 if (submitBtn) submitBtn.disabled = false;
@@ -1391,8 +1391,8 @@
 
         if (!dateVal || !timeVal || !locationVal) {
             showPetlyDialog(
-                '{% translate "Completa la fecha, hora y lugar del encuentro." %}',
-                '{% translate "Datos incompletos" %}'
+                '{% filter escapejs %}{% translate "Completa la fecha, hora y lugar del encuentro." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Datos incompletos" %}{% endfilter %}'
             );
             return;
         }
@@ -1423,21 +1423,21 @@
                     addMeetupToSidebar(data.meetup);
 
                     showPetlyDialog(
-                        data.message || '{% translate "¡Cita propuesta con éxito!" %}',
-                        '{% translate "Cita propuesta" %}'
+                        data.message || '{% filter escapejs %}{% translate "¡Cita propuesta con éxito!" %}{% endfilter %}',
+                        '{% filter escapejs %}{% translate "Cita propuesta" %}{% endfilter %}'
                     );
                 } else {
                     showPetlyDialog(
-                        data.message || '{% translate "No se pudo agendar la cita." %}',
-                        '{% translate "No se pudo agendar" %}'
+                        data.message || '{% filter escapejs %}{% translate "No se pudo agendar la cita." %}{% endfilter %}',
+                        '{% filter escapejs %}{% translate "No se pudo agendar" %}{% endfilter %}'
                     );
                 }
             })
             .catch(err => {
                 console.error('Error al agendar cita:', err);
                 showPetlyDialog(
-                    '{% translate "Ocurrió un error de conexión al agendar la cita." %}',
-                    '{% translate "Error de conexión" %}'
+                    '{% filter escapejs %}{% translate "Ocurrió un error de conexión al agendar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
                 );
             })
             .finally(() => {
@@ -1450,15 +1450,15 @@
     function handleCancelMeeting(meetupId, petName) {
         if (meetupsStateCache[meetupId]?.status === 'completed') {
             showPetlyDialog(
-                '{% translate "No se puede cancelar una cita que ya ha sido completada." %}',
-                '{% translate "Acción no permitida" %}'
+                '{% filter escapejs %}{% translate "No se puede cancelar una cita que ya ha sido completada." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Acción no permitida" %}{% endfilter %}'
             );
             return;
         }
         showPetlyConfirm(
             `¿Deseas cancelar la cita con ${petName}?`,
             () => cancelMeetingRequest(meetupId),
-            '{% translate "Cancelar cita" %}'
+            '{% filter escapejs %}{% translate "Cancelar cita" %}{% endfilter %}'
         );
     }
 
@@ -1484,21 +1484,21 @@
                 removeMeetupFromSidebar(meetupId);
 
                 showPetlyDialog(
-                    data.message || '{% translate "La cita se canceló correctamente." %}',
-                    '{% translate "Cita cancelada" %}'
+                    data.message || '{% filter escapejs %}{% translate "La cita se canceló correctamente." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Cita cancelada" %}{% endfilter %}'
                 );
             } else {
                 showPetlyDialog(
-                    data.message || '{% translate "No se pudo cancelar la cita." %}',
-                    '{% translate "Error al cancelar" %}'
+                    data.message || '{% filter escapejs %}{% translate "No se pudo cancelar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error al cancelar" %}{% endfilter %}'
                 );
             }
         })
         .catch(err => {
             console.error('Error al cancelar cita:', err);
             showPetlyDialog(
-                '{% translate "Ocurrió un error de conexión al cancelar la cita." %}',
-                '{% translate "Error de conexión" %}'
+                '{% filter escapejs %}{% translate "Ocurrió un error de conexión al cancelar la cita." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
             );
         });
     }
@@ -1520,7 +1520,7 @@
         .then(({ status, data }) => {
             if (status === 200 && data.status === 'confirmed') {
                 closeModal('modal-meetup-details');
-                const newBadge = data.meetup && data.meetup.badge ? data.meetup.badge : '{% translate "Confirmado" %}';
+                const newBadge = data.meetup && data.meetup.badge ? data.meetup.badge : '{% filter escapejs %}{% translate "Confirmado" %}{% endfilter %}';
                 meetupsStateCache[meetupId] = {
                     ...(meetupsStateCache[meetupId] || {}),
                     status: 'confirmed',
@@ -1534,21 +1534,21 @@
                     }
                 }
                 showPetlyDialog(
-                    data.message || '{% translate "¡Cita confirmada exitosamente!" %}',
-                    '{% translate "¡Cita confirmada!" %}'
+                    data.message || '{% filter escapejs %}{% translate "¡Cita confirmada exitosamente!" %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "¡Cita confirmada!" %}{% endfilter %}'
                 );
             } else {
                 showPetlyDialog(
-                    data.message || '{% translate "No se pudo confirmar la cita." %}',
-                    '{% translate "Error al confirmar" %}'
+                    data.message || '{% filter escapejs %}{% translate "No se pudo confirmar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error al confirmar" %}{% endfilter %}'
                 );
             }
         })
         .catch(err => {
             console.error('Error al confirmar cita:', err);
             showPetlyDialog(
-                '{% translate "Ocurrió un error de conexión al confirmar la cita." %}',
-                '{% translate "Error de conexión" %}'
+                '{% filter escapejs %}{% translate "Ocurrió un error de conexión al confirmar la cita." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
             );
         })
         .finally(() => {
@@ -1573,7 +1573,7 @@
         .then(({ status, data }) => {
             if (status === 200 && data.status === 'completed') {
                 closeModal('modal-meetup-details');
-                const newBadge = data.meetup && data.meetup.badge ? data.meetup.badge : '{% translate "Completado" %}';
+                const newBadge = data.meetup && data.meetup.badge ? data.meetup.badge : '{% filter escapejs %}{% translate "Completado" %}{% endfilter %}';
                 meetupsStateCache[meetupId] = {
                     ...(meetupsStateCache[meetupId] || {}),
                     status: 'completed',
@@ -1591,21 +1591,21 @@
                     }
                 }
                 showPetlyDialog(
-                    data.message || '{% translate "¡Cita completada exitosamente!" %}',
-                    '{% translate "¡Cita completada!" %}'
+                    data.message || '{% filter escapejs %}{% translate "¡Cita completada exitosamente!" %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "¡Cita completada!" %}{% endfilter %}'
                 );
             } else {
                 showPetlyDialog(
-                    data.message || '{% translate "No se pudo completar la cita." %}',
-                    '{% translate "Error al completar" %}'
+                    data.message || '{% filter escapejs %}{% translate "No se pudo completar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error al completar" %}{% endfilter %}'
                 );
             }
         })
         .catch(err => {
             console.error('Error al completar cita:', err);
             showPetlyDialog(
-                '{% translate "Ocurrió un error de conexión al completar la cita." %}',
-                '{% translate "Error de conexión" %}'
+                '{% filter escapejs %}{% translate "Ocurrió un error de conexión al completar la cita." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
             );
         })
         .finally(() => {
@@ -1636,7 +1636,7 @@
         card.innerHTML = `
             <div class="flex items-center justify-between">
                 <span class="badge-compat text-[10px] font-bold py-0.5 px-2">
-                    ${meetup.badge || '{% translate "Propuesto" %}'}
+                    ${meetup.badge || '{% filter escapejs %}{% translate "Propuesto" %}{% endfilter %}'}
                 </span>
                 <span class="text-caption font-semibold text-neutral-500">
                     ${meetup.day}
@@ -1669,7 +1669,7 @@
                     <button type="button"
                             onclick="handleCancelMeeting(${cardId}, '${meetup.pet_name || ''}')"
                             class="btn-cancel-meetup font-bold text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
-                            title="{% translate 'Cancelar cita' %}">
+                            title="{% filter escapejs %}{% translate 'Cancelar cita' %}{% endfilter %}">
                         {% translate "Cancelar" %}
                     </button>
                 </div>
@@ -1688,7 +1688,7 @@
                 dateTime,
                 cardId,
                 meetup.status || 'proposed',
-                meetup.badge || '{% translate "Propuesto" %}',
+                meetup.badge || '{% filter escapejs %}{% translate "Propuesto" %}{% endfilter %}',
                 meetup.is_organizer !== undefined ? meetup.is_organizer : true,
                 meetup.notes || ''
             );

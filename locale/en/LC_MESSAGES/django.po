@@ -2684,7 +2684,7 @@ msgid "Correo de contacto:"
 msgstr "Contact email:"
 
 msgid "Nota del tutor solicitante:"
-msgstr "Requesting guardian's note:"
+msgstr "Requesting guardian note:"
 
 msgid "Entendido"
 msgstr "Got it"
