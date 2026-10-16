@@ -571,13 +571,27 @@ def send_initial_match_note(
     if not clean_note:
         raise ValueError(_('El texto del mensaje o nota no puede estar vacío.'))
 
-    match_request = MatchRequest.objects.select_related('from_pet', 'to_pet').get(
+    match_request = MatchRequest.objects.select_related(
+        'from_pet', 'to_pet', 'from_pet__owner', 'to_pet__owner'
+    ).get(
         id=request_id,
     )
-    if (
-        match_request.from_pet.owner_id != sender_user.id
-        and match_request.to_pet.owner_id != sender_user.id
-    ):
+    is_sender = (
+        match_request.from_pet.owner_id == sender_user.id
+        or getattr(match_request.from_pet, 'owner', None) == sender_user
+    )
+    is_staff = getattr(sender_user, 'is_staff', False)
+
+    if not (is_sender or is_staff):
+        if (
+            match_request.to_pet.owner_id == sender_user.id
+            or getattr(match_request.to_pet, 'owner', None) == sender_user
+        ):
+            raise PermissionError(
+                _(
+                    'Solo el tutor que envía el match puede redactar la nota inicial para que el receptor la visualice.'
+                )
+            )
         raise PermissionError(_('No tienes permiso para agregar notas a esta solicitud.'))
 
     match_request.notes = clean_note
@@ -636,6 +650,12 @@ def serialize_match_request(active_pet: Pet, req: MatchRequest) -> dict[str, Any
         'name': tutor_full_name,
         'pet': candidate.name,
     }
+    # Solo se expone el correo del tutor solicitante para que el receptor pueda contactarlo
+    sender_email = (
+        (tutor.email or '').strip()
+        if (is_received and tutor and getattr(tutor, 'email', None))
+        else ''
+    )
 
     if is_received:
         # Petición recibida hacia active_pet: la nota fue redactada por el tutor solicitante
@@ -729,6 +749,7 @@ def serialize_match_request(active_pet: Pet, req: MatchRequest) -> dict[str, Any
         'sent_note': sent_note,
         'tutor_name': tutor_full_name,
         'tutor_signature': tutor_signature,
+        'sender_email': sender_email,
         'status': req.status,
         'status_label': req.get_status_display(),
         'is_received': is_received,
@@ -756,23 +777,32 @@ def get_upcoming_pet_meetups(active_pet: Optional[Pet]) -> QuerySet[PetMeetup]:
     if not active_pet or not getattr(active_pet, 'id', None):
         return PetMeetup.objects.none()
     return (
-        PetMeetup.objects.filter(Q(pet1=active_pet) | Q(pet2=active_pet))
-        .exclude(pet1__owner=F('pet2__owner'))
+        PetMeetup.objects.filter(Q(host_pet=active_pet) | Q(guest_pet=active_pet))
+        .exclude(host_pet__owner=F('guest_pet__owner'))
         .filter(
             date__gte=date.today(),
             status__in=[PetMeetup.MeetupStatus.CONFIRMED, PetMeetup.MeetupStatus.PROPOSED],
         )
-        .select_related('pet1', 'pet2', 'pet1__owner', 'pet2__owner')
+        .select_related('host_pet', 'guest_pet', 'host_pet__owner', 'guest_pet__owner')
         .order_by('date', 'time')
     )
 
 
 def serialize_pet_meetup(active_pet: Pet, meetup: PetMeetup) -> dict[str, Any]:
     """
-    Serializa un encuentro de PetMeetup para su renderizado en la barra lateral de citas confirmadas.
+    Serializa un encuentro de PetMeetup para su renderizado en la barra lateral de citas confirmadas o propuestas.
     """
-    other_pet = meetup.pet2 if meetup.pet1_id == active_pet.id else meetup.pet1
+    other_pet = meetup.guest_pet if meetup.host_pet_id == active_pet.id else meetup.host_pet
     time_str = meetup.time.strftime('%I:%M %p') if meetup.time else ''
+    scheduled_by_user = meetup.scheduled_by
+    scheduled_by_name = (
+        scheduled_by_user.get_full_name() or scheduled_by_user.username if scheduled_by_user else ''
+    )
+    is_organizer = (
+        scheduled_by_user.id == active_pet.owner_id
+        if scheduled_by_user and hasattr(active_pet, 'owner_id')
+        else False
+    )
     return {
         'id': f'meetup-{meetup.id}',
         'meetup_id': meetup.id,
@@ -784,6 +814,8 @@ def serialize_pet_meetup(active_pet: Pet, meetup: PetMeetup) -> dict[str, Any]:
         'time': time_str,
         'status': meetup.status,
         'notes': meetup.notes,
+        'scheduled_by': scheduled_by_name,
+        'is_organizer': is_organizer,
     }
 
 
@@ -796,7 +828,7 @@ def schedule_pet_meetup(
     location_name: str,
     location_address: str = '',
     notes: str = '',
-    status: str = PetMeetup.MeetupStatus.CONFIRMED,
+    status: str = PetMeetup.MeetupStatus.PROPOSED,
 ) -> PetMeetup:
     """
     Persiste la concertación de una nueva cita de socialización o cruza responsable en PetMeetup.
@@ -807,7 +839,7 @@ def schedule_pet_meetup(
     - Validar que la fecha y hora sean futuras.
     - Validar disponibilidad temporal (sin solapamiento exacto de cita activa).
     - Asociar la solicitud de match existente (si la hay).
-    - Crear instancia en `PetMeetup` con estado `confirmed` (o el indicado).
+    - Crear instancia en `PetMeetup` con estado `proposed` (o el indicado).
     """
     if requester_pet.owner_id != requester_user.id and requester_pet.owner != requester_user:
         raise PermissionError(_('El usuario no es el tutor de la mascota solicitante.'))
@@ -833,7 +865,7 @@ def schedule_pet_meetup(
     ]
 
     has_conflict = PetMeetup.objects.filter(
-        Q(pet1__in=[requester_pet, target_pet]) | Q(pet2__in=[requester_pet, target_pet]),
+        Q(host_pet__in=[requester_pet, target_pet]) | Q(guest_pet__in=[requester_pet, target_pet]),
         date=meeting_date,
         time=meeting_time,
         status__in=active_statuses,
@@ -854,8 +886,8 @@ def schedule_pet_meetup(
 
     meetup = PetMeetup.objects.create(
         match_request=match_req,
-        pet1=requester_pet,
-        pet2=target_pet,
+        host_pet=requester_pet,
+        guest_pet=target_pet,
         date=meeting_date,
         time=meeting_time,
         location_name=location_name,
@@ -865,30 +897,83 @@ def schedule_pet_meetup(
     return meetup
 
 
-def cancel_pet_meetup(meetup_id: int, user: Any, reason: str = '') -> PetMeetup:
+def confirm_pet_meetup(meetup_id: int, user: Any) -> PetMeetup:
     """
-    Cancela una cita de encuentro previamente acordada.
-
-    Requerimientos:
-    - Validar que el usuario sea tutor de `pet1` o de `pet2` (o staff).
-    - Actualizar estado de `PetMeetup` a `CANCELLED`.
-    - Retornar la instancia cancelada.
+    Confirma una cita de encuentro propuesta entre mascotas.
+    Valida que el usuario sea el tutor invitado (dueño de guest_pet) o staff.
+    El organizador (dueño de host_pet) no necesita confirmar; espera la confirmación de la contraparte.
+    Actualiza el estado a `CONFIRMED`.
     """
-    meetup = PetMeetup.objects.select_related('pet1', 'pet2', 'pet1__owner', 'pet2__owner').get(
-        id=meetup_id
-    )
+    meetup = PetMeetup.objects.select_related(
+        'host_pet', 'guest_pet', 'host_pet__owner', 'guest_pet__owner'
+    ).get(id=meetup_id)
 
-    is_pet1_owner = meetup.pet1.owner_id == user.id or meetup.pet1.owner == user
-    is_pet2_owner = meetup.pet2.owner_id == user.id or meetup.pet2.owner == user
+    is_host_owner = meetup.host_pet.owner_id == user.id or meetup.host_pet.owner == user
+    is_guest_owner = meetup.guest_pet.owner_id == user.id or meetup.guest_pet.owner == user
     is_staff = getattr(user, 'is_staff', False)
 
-    if not (is_pet1_owner or is_pet2_owner or is_staff):
+    if not (is_guest_owner or is_staff):
+        if is_host_owner:
+            raise PermissionError(
+                _(
+                    'El organizador de la cita no necesita confirmarla; debe esperar la confirmación del invitado.'
+                )
+            )
+        raise PermissionError(_('No tienes permiso para confirmar esta cita.'))
+
+    if meetup.status != PetMeetup.MeetupStatus.PROPOSED:
+        raise ValueError(_('Solo se pueden confirmar citas que se encuentren en estado propuesto.'))
+
+    meetup.status = PetMeetup.MeetupStatus.CONFIRMED
+    meetup.save(update_fields=['status', 'updated_at'])
+    return meetup
+
+
+def cancel_pet_meetup(meetup_id: int, user: Any, reason: str = '') -> PetMeetup:
+    """
+    Cancela una cita de encuentro previamente acordada o propuesta.
+
+    Requerimientos:
+    - Validar que el usuario sea tutor de `host_pet` o de `guest_pet` (o staff).
+    - Actualizar estado de `PetMeetup` a `CANCELLED`.
+    - Registrar en la nota de la cita qué tutor realizó la cancelación.
+    - Retornar la instancia cancelada.
+    """
+    meetup = PetMeetup.objects.select_related(
+        'host_pet', 'guest_pet', 'host_pet__owner', 'guest_pet__owner'
+    ).get(id=meetup_id)
+
+    is_host_owner = meetup.host_pet.owner_id == user.id or meetup.host_pet.owner == user
+    is_guest_owner = meetup.guest_pet.owner_id == user.id or meetup.guest_pet.owner == user
+    is_staff = getattr(user, 'is_staff', False)
+
+    if not (is_host_owner or is_guest_owner or is_staff):
         raise PermissionError(_('No tienes permiso para cancelar esta cita.'))
+
+    if meetup.status == PetMeetup.MeetupStatus.COMPLETED:
+        raise ValueError(_('No se puede cancelar una cita que ya ha sido completada.'))
+
+    if meetup.status == PetMeetup.MeetupStatus.CANCELLED:
+        raise ValueError(_('Esta cita ya se encuentra cancelada.'))
+
+    tutor_name = ''
+    if hasattr(user, 'get_full_name') and user.get_full_name().strip():
+        tutor_name = user.get_full_name().strip()
+    elif hasattr(user, 'username'):
+        tutor_name = user.username
+    else:
+        tutor_name = str(user)
 
     meetup.status = PetMeetup.MeetupStatus.CANCELLED
     if reason:
-        cancel_note = f' [Cancelado por tutor: {reason}]'
-        meetup.notes = f'{meetup.notes}{cancel_note}'.strip()
+        cancel_note = _(' [Cancelado por el tutor %(tutor)s: %(reason)s]') % {
+            'tutor': tutor_name,
+            'reason': reason,
+        }
+    else:
+        cancel_note = _(' [Cancelado por el tutor %(tutor)s]') % {'tutor': tutor_name}
+
+    meetup.notes = f'{meetup.notes}{cancel_note}'.strip()
     meetup.save(update_fields=['status', 'notes', 'updated_at'])
     return meetup
 
@@ -900,16 +985,19 @@ def complete_pet_meetup(meetup_id: int, user: Optional[Any] = None) -> PetMeetup
     el contador de encuentros completados en el perfil de ambos tutores
     (Profile.completed_meetings_count).
     """
-    meetup = PetMeetup.objects.select_related('pet1', 'pet2', 'pet1__owner', 'pet2__owner').get(
-        id=meetup_id
-    )
+    meetup = PetMeetup.objects.select_related(
+        'host_pet', 'guest_pet', 'host_pet__owner', 'guest_pet__owner'
+    ).get(id=meetup_id)
 
     if user:
-        is_pet1_owner = meetup.pet1.owner_id == user.id or meetup.pet1.owner == user
-        is_pet2_owner = meetup.pet2.owner_id == user.id or meetup.pet2.owner == user
+        is_host_owner = meetup.host_pet.owner_id == user.id or meetup.host_pet.owner == user
+        is_guest_owner = meetup.guest_pet.owner_id == user.id or meetup.guest_pet.owner == user
         is_staff = getattr(user, 'is_staff', False)
-        if not (is_pet1_owner or is_pet2_owner or is_staff):
+        if not (is_host_owner or is_guest_owner or is_staff):
             raise PermissionError(_('No tienes permiso para marcar como completada esta cita.'))
+
+    if meetup.status != PetMeetup.MeetupStatus.CONFIRMED:
+        raise ValueError(_('Solo se pueden completar citas confirmadas.'))
 
     meetup.status = PetMeetup.MeetupStatus.COMPLETED
     meetup.save(update_fields=['status', 'updated_at'])

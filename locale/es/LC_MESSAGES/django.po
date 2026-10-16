@@ -1498,7 +1498,7 @@ msgid "Indicaciones, cartilla de vacunación o temperamento a considerar"
 msgstr ""
 
 msgid "Confirmar cita"
-msgstr ""
+msgstr "Confirmar cita"
 
 msgid "Nota inicial de contacto"
 msgstr "Nota inicial de contacto"
@@ -2111,9 +2111,125 @@ msgstr "Conejo"
 
 msgid "Hurón"
 msgstr "Hurón"
+msgid "Cita completada"
+msgstr "Cita completada"
 
-#~ msgid "Tutor de"
-#~ msgstr "Tutor de"
+msgid "¡Cita propuesta con éxito!"
+msgstr "¡Cita propuesta con éxito!"
 
-#~ msgid "De"
-#~ msgstr "De"
+msgid "Cita propuesta"
+msgstr "Cita propuesta"
+
+msgid "¡Cita confirmada exitosamente!"
+msgstr "¡Cita confirmada exitosamente!"
+
+msgid "¡Cita confirmada!"
+msgstr "¡Cita confirmada!"
+
+msgid "No se pudo confirmar la cita."
+msgstr "No se pudo confirmar la cita."
+
+msgid "Error al confirmar"
+msgstr "Error al confirmar"
+
+msgid "¡Cita completada exitosamente!"
+msgstr "¡Cita completada exitosamente!"
+
+msgid "¡Cita completada!"
+msgstr "¡Cita completada!"
+
+msgid "No se pudo completar la cita."
+msgstr "No se pudo completar la cita."
+
+msgid "Error al completar"
+msgstr "Error al completar"
+
+msgid "¡Cita propuesta con éxito! Se ha notificado al tutor de la mascota."
+msgstr "¡Cita propuesta con éxito! Se ha notificado al tutor de la mascota."
+
+msgid "¡Cita completada exitosamente! Se ha actualizado el perfil de ambos tutores."
+msgstr "¡Cita completada exitosamente! Se ha actualizado el perfil de ambos tutores."
+
+msgid " [Cancelado por el tutor %(tutor)s: %(reason)s]"
+msgstr " [Cancelado por el tutor %(tutor)s: %(reason)s]"
+
+msgid " [Cancelado por el tutor %(tutor)s]"
+msgstr " [Cancelado por el tutor %(tutor)s]"
+
+msgid "El organizador de la cita no necesita confirmarla; debe esperar la confirmación del invitado."
+msgstr "El organizador de la cita no necesita confirmarla; debe esperar la confirmación del invitado."
+
+msgid "Solo se pueden confirmar citas que se encuentren en estado propuesto."
+msgstr "Solo se pueden confirmar citas que se encuentren en estado propuesto."
+
+msgid "No tienes permiso para confirmar esta cita."
+msgstr "No tienes permiso para confirmar esta cita."
+
+msgid "Proponer encuentro"
+msgstr "Proponer encuentro"
+
+msgid "Completa la fecha, hora y lugar del encuentro."
+msgstr "Completa la fecha, hora y lugar del encuentro."
+
+msgid "Datos incompletos"
+msgstr "Datos incompletos"
+
+msgid "Ej. Parque España, Parque del Este (Zona canina)..."
+msgstr "Ej. Parque España, Parque del Este (Zona canina)..."
+
+msgid "No se puede cancelar una cita que ya ha sido completada."
+msgstr "No se puede cancelar una cita que ya ha sido completada."
+
+msgid "Esta cita ya se encuentra cancelada."
+msgstr "Esta cita ya se encuentra cancelada."
+
+msgid "Acción no permitida"
+msgstr "Acción no permitida"
+
+msgid "Solo el tutor que envía el match puede redactar la nota inicial para que el receptor la visualice."
+msgstr "Solo el tutor que envía el match puede redactar la nota inicial para que el receptor la visualice."
+
+msgid "Nota inicial recibida"
+msgstr "Nota inicial recibida"
+
+msgid "Mensaje del tutor:"
+msgstr "Mensaje del tutor:"
+
+msgid "El tutor no dejó una nota personalizada."
+msgstr "El tutor no dejó una nota personalizada."
+
+msgid "Ver nota inicial"
+msgstr "Ver nota inicial"
+
+msgid "Editar nota inicial"
+msgstr "Editar nota inicial"
+
+msgid "Editar nota"
+msgstr "Editar nota"
+
+msgid "¡Match aceptado!"
+msgstr "¡Match aceptado!"
+
+msgid "Contactar por correo al tutor solicitante"
+msgstr "Contactar por correo al tutor solicitante"
+
+msgid "Correo de contacto:"
+msgstr "Correo de contacto:"
+
+msgid "Nota del tutor solicitante:"
+msgstr "Nota del tutor solicitante:"
+
+msgid "Entendido"
+msgstr "Entendido"
+
+msgid "¿Estás seguro?"
+msgstr "¿Estás seguro?"
+
+msgid "Citas y encuentros"
+msgstr "Citas y encuentros"
+
+msgid "No tienes encuentros agendados próximos"
+msgstr "No tienes encuentros agendados próximos"
+
+
+

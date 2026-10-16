@@ -241,10 +241,16 @@
                         {% endif %}
 
                         <button type="button"
-                            onclick="openNoteModal('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}', '{{ suitor.tutor_signature|escapejs }}', '{{ suitor.sent_note|default:suitor.quote|escapejs }}', '{{ suitor.is_sent_num }}')"
+                            data-request-id="{{ suitor.request_id }}"
+                            data-name="{{ suitor.name }}"
+                            data-tutor-signature="{{ suitor.tutor_signature }}"
+                            data-quote="{{ suitor.sent_note|default:suitor.quote }}"
+                            data-is-sent="{{ suitor.is_sent_num }}"
+                            data-sender-email="{{ suitor.sender_email }}"
+                            onclick="openNoteModalFromButton(this)"
                             class="w-8 h-8 rounded-full p-0 flex items-center justify-center border border-neutral-300 text-neutral-600 hover:text-petly-coral hover:border-petly-coral/50 shadow-xs cursor-pointer transition-colors"
-                            title="{% translate 'Nota inicial' %}"
-                            aria-label="{% translate 'Nota inicial' %}">
+                            title="{% if suitor.is_sent %}{% translate 'Editar nota inicial' %}{% else %}{% translate 'Ver nota inicial' %}{% endif %}"
+                            aria-label="{% if suitor.is_sent %}{% translate 'Editar nota inicial' %}{% else %}{% translate 'Ver nota inicial' %}{% endif %}">
                             {% include 'components/icon.html' with name="message-square" class="w-3.5 h-3.5" %}
                         </button>
 
@@ -350,7 +356,7 @@
                                         "{{ suitor.quote }}"
                                     </p>
                                     <span class="text-[11px] font-bold text-neutral-500 block">
-                                        — {{ suitor.tutor_signature }}
+                                        — {{ suitor.tutor_signature }}{% if suitor.sender_email %} • <a href="mailto:{{ suitor.sender_email }}" class="text-petly-coral hover:underline">{{ suitor.sender_email }}</a>{% endif %}
                                     </span>
                                 </div>
                             </div>
@@ -375,10 +381,16 @@
                                     {% endif %}
 
                                     <button type="button"
-                                        onclick="openNoteModal('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}', '{{ suitor.tutor_signature|escapejs }}', '{{ suitor.sent_note|default:suitor.quote|escapejs }}', '{{ suitor.is_sent_num }}')"
+                                        data-request-id="{{ suitor.request_id }}"
+                                        data-name="{{ suitor.name }}"
+                                        data-tutor-signature="{{ suitor.tutor_signature }}"
+                                        data-quote="{{ suitor.sent_note|default:suitor.quote }}"
+                                        data-is-sent="{{ suitor.is_sent_num }}"
+                                        data-sender-email="{{ suitor.sender_email }}"
+                                        onclick="openNoteModalFromButton(this)"
                                         class="flex-1 sm:flex-initial text-xs px-4 py-2.5 font-semibold rounded-xl bg-petly-lilac text-petly-purple hover:bg-petly-lilac/80 shadow-xs inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
                                         {% include 'components/icon.html' with name="message-square" class="w-4 h-4 text-purple-800" %}
-                                        <span>{% translate "Nota inicial" %}</span>
+                                        <span>{% if suitor.is_sent %}{% translate "Editar nota" %}{% else %}{% translate "Ver nota inicial" %}{% endif %}</span>
                                     </button>
                                 </div>
 
@@ -420,11 +432,11 @@
         </div>
 
         <!-- ============================================== -->
-        <!-- COLUMNA DERECHA: CITAS CONFIRMADAS             -->
+        <!-- COLUMNA DERECHA: CITAS Y ENCUENTROS               -->
         <!-- ============================================== -->
         <div class="lg:col-span-4 sticky top-24 space-y-4">
 
-            <!-- Tarjeta de Citas Confirmadas -->
+            <!-- Tarjeta de Citas y Encuentros -->
             <div class="card-petly p-5 sm:p-6 bg-white border border-neutral-300/80 shadow-md space-y-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
@@ -433,7 +445,7 @@
                             {% include 'components/icon.html' with name="calendar-days" class="w-4 h-4 text-emerald-700" %}
                         </div>
                         <h2 class="title-h4 text-neutral-900 font-bold text-sm">
-                            {% translate "Citas confirmadas" %}
+                            {% translate "Citas y encuentros" %}
                         </h2>
                     </div>
                     <span id="meetups-pulse-indicator"
@@ -472,23 +484,29 @@
                                 {{ date.time }}
                             </span>
                             <div class="flex items-center gap-2">
-                                <button type="button"
-                                    onclick="showMeetupDetails(
-                                        '{{ date.title|escapejs }}',
-                                        '{{ date.location|escapejs }}',
-                                        '{{ date.day|escapejs }} {{ date.time|escapejs }}'
-                                    )"
-                                    class="font-bold text-petly-coral hover:underline cursor-pointer">
-                                    {% translate "Ver detalles" %}
-                                </button>
                                 {% with meetup_raw_id=date.meetup_id|default:date.id %}
                                 {% with clean_meetup_id=meetup_raw_id|cut:'meetup-' %}
                                 <button type="button"
+                                    data-title="{{ date.title }}"
+                                    data-location="{{ date.location }}"
+                                    data-time="{{ date.day }} {{ date.time }}"
+                                    data-meetup-id="{{ clean_meetup_id }}"
+                                    data-status="{{ date.status }}"
+                                    data-badge="{{ date.badge }}"
+                                    data-is-organizer="{% if date.is_organizer %}true{% else %}false{% endif %}"
+                                    data-notes="{{ date.notes|default:'' }}"
+                                    onclick="showMeetupDetailsFromButton(this)"
+                                    class="font-bold text-petly-coral hover:underline cursor-pointer">
+                                    {% translate "Ver detalles" %}
+                                </button>
+                                {% if date.status != 'completed' and date.status != 'cancelled' %}
+                                <button type="button"
                                     onclick="handleCancelMeeting('{{ clean_meetup_id }}', '{{ date.pet_name|default:date.title|escapejs }}');"
-                                    class="font-bold text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
+                                    class="btn-cancel-meetup font-bold text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
                                     title="{% translate 'Cancelar cita' %}">
                                     {% translate "Cancelar" %}
                                 </button>
+                                {% endif %}
                                 {% endwith %}
                                 {% endwith %}
                             </div>
@@ -499,7 +517,7 @@
                     <div id="meetups-empty-state"
                         class="p-4 rounded-2xl bg-petly-ice/40 border border-dashed border-neutral-300 text-center space-y-1.5">
                         <p class="text-xs font-semibold text-neutral-600">
-                            {% translate "No tienes citas confirmadas próximas" %}
+                            {% translate "No tienes encuentros agendados próximos" %}
                         </p>
                         <p class="text-[11px] text-neutral-400 leading-relaxed">
                             {% translate "Acepta un match y concierta un encuentro seguro en un parque verificado." %}
@@ -541,9 +559,7 @@
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity"
         onclick="closeModal('modal-schedule-meeting')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        {% translate 'Cerrar' as aria_close_meeting %}
-        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4 text-neutral-400 hover:text-neutral-700" onclick="closeModal('modal-schedule-meeting')" aria_label=aria_close_meeting class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-neutral-100 transition-colors select-none cursor-pointer" %}
-        <div class="flex items-center gap-3 mb-4 pr-8">
+        <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center">
                 {% include 'components/icon.html' with name="calendar" class="w-5 h-5" %}
             </div>
@@ -558,7 +574,7 @@
             </div>
         </div>
 
-        <form id="form-schedule-meeting" onsubmit="handleConfirmMeeting(event)" class="space-y-3.5 text-xs">
+        <form id="form-schedule-meeting" onsubmit="handleScheduleMeetingSubmit(event)" class="space-y-3.5 text-xs">
             <input type="hidden" id="meeting-target-pet-id" name="target_pet_id" value="">
             <input type="hidden" id="meeting-target-pet-name" name="target_pet_name" value="">
             <input type="hidden" id="meeting-request-id" name="match_request_id" value="">
@@ -574,25 +590,9 @@
             </div>
 
             <div>
-                <label for="meeting-location" class="font-semibold text-neutral-700 block mb-1">{% translate "Lugar de encuentro canino verificado" %}</label>
-                <div class="relative flex items-center">
-                    <span
-                        class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none flex items-center justify-center z-10">
-                        {% include 'components/icon.html' with name="location" class="w-4 h-4" %}
-                    </span>
-                    <select id="meeting-location" name="location_name"
-                        class="input-petly has-icon pl-11 pr-10 text-xs cursor-pointer" required>
-                        <option value="Parque España (Zona canina verificada)">{% translate "Parque España (Zona canina verificada)" %}</option>
-                        <option value="Parque del Este (Área de recreación canina)">{% translate "Parque del Este (Área de recreación canina)" %}</option>
-                        <option value="Parque Vizcaya (Espacio cercado)">{% translate "Parque Vizcaya (Espacio cercado)" %}</option>
-                        <option value="Parque La Rosaleda (Los Teques)">{% translate "Parque La Rosaleda (Los Teques)" %}</option>
-                        <option value="Parque Los Caobos (Zona canina)">{% translate "Parque Los Caobos (Zona canina)" %}</option>
-                    </select>
-                    <span
-                        class="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none flex items-center justify-center z-10">
-                        {% include 'components/icon.html' with name="chevron-down" class="w-4 h-4" %}
-                    </span>
-                </div>
+                {% translate "Lugar del encuentro" as meeting_location_label %}
+                {% translate "Ej. Parque España, Parque del Este (Zona canina)..." as meeting_location_placeholder %}
+                {% include 'components/input.html' with name="location_name" id="meeting-location" type="text" label=meeting_location_label placeholder=meeting_location_placeholder icon="location" input_class="text-xs" required=True %}
             </div>
 
             <div>
@@ -604,10 +604,8 @@
             <div class="pt-3 flex justify-end gap-2">
                 {% translate "Cancelar" as cancel_label %}
                 {% include 'components/button.html' with text=cancel_label type="button" variant="outline" onclick="closeModal('modal-schedule-meeting')" class="text-xs px-4 py-2 bg-white" %}
-                <button type="submit" id="btn-submit-meeting"
-                    class="text-xs px-5 py-2 font-bold rounded-xl bg-petly-coral text-white hover:bg-petly-coral/90 shadow-md transition-colors cursor-pointer">
-                    {% translate "Confirmar cita" %}
-                </button>
+                {% translate "Proponer encuentro" as submit_meeting_label %}
+                {% include 'components/button.html' with id="btn-submit-meeting" text=submit_meeting_label type="submit" variant="primary" class="text-xs px-5 py-2 font-bold shadow-md cursor-pointer" %}
             </div>
         </form>
     </div>
@@ -620,9 +618,7 @@
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity"
         onclick="closeModal('modal-send-note')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        {% translate 'Cerrar' as aria_close_msg %}
-        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4 text-neutral-400 hover:text-neutral-700" onclick="closeModal('modal-send-note')" aria_label=aria_close_msg class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-neutral-100 transition-colors select-none cursor-pointer" %}
-        <div class="flex items-center gap-3 mb-3 pr-8">
+        <div class="flex items-center gap-3 mb-3">
             <div class="w-10 h-10 rounded-full bg-petly-lilac text-petly-purple flex items-center justify-center">
                 {% include 'components/icon.html' with name="message-square" class="w-5 h-5" %}
             </div>
@@ -631,7 +627,7 @@
                     {% translate "Nota inicial de contacto" %}
                 </h3>
                 <p class="text-caption text-neutral-500">
-                    {% translate "Para" %} <span id="note-tutor-name" class="font-bold text-neutral-800">Tutor</span>
+                    <span id="note-tutor-preposition">{% translate "Para" %}</span> <span id="note-tutor-name" class="font-bold text-neutral-800">Tutor</span>
                 </p>
             </div>
         </div>
@@ -639,20 +635,29 @@
         <form onsubmit="handleSendNote(event)" class="space-y-3 text-xs">
             <input type="hidden" id="note-request-id" value="">
             <div>
-                <label for="note-textarea" class="font-medium text-neutral-700 block mb-1">
+                <label for="note-textarea" id="note-textarea-label" class="font-medium text-neutral-700 block mb-1">
                     {% translate "Escribe una nota para iniciar la conversación:" %}
                 </label>
                 <textarea id="note-textarea" rows="4" class="textarea-petly text-xs w-full"
-                    placeholder="{% translate '¡Hola! Nos encanta tu mascota y queremos acordar un primer encuentro de socialización o evaluar compatibilidad...' %}"
-                    required></textarea>
+                    placeholder="{% translate '¡Hola! Nos encanta tu mascota y queremos acordar un primer encuentro de socialización o evaluar compatibilidad...' %}"></textarea>
+                <p id="note-sender-email" class="hidden text-neutral-500 text-xs mt-1.5 font-medium">
+                    {% translate "Correo de contacto:" %} <a id="note-sender-email-link" href="#" class="font-bold text-petly-coral hover:underline"></a>
+                </p>
             </div>
+
             <div class="flex justify-end gap-2 pt-2">
-                {% translate "Cancelar" as cancel_msg_label %}
-                {% include 'components/button.html' with text=cancel_msg_label type="button" variant="outline" onclick="closeModal('modal-send-note')" class="text-xs px-4 py-2 bg-white" %}
-                <button type="submit" id="btn-submit-note"
-                    class="text-xs px-5 py-2 font-bold rounded-xl bg-petly-coral text-white hover:bg-petly-coral/90 shadow-md transition-colors cursor-pointer">
-                    {% translate "Guardar nota" %}
-                </button>
+                <span id="btn-cancel-note-container">
+                    {% translate "Cancelar" as cancel_msg_label %}
+                    {% include 'components/button.html' with text=cancel_msg_label type="button" variant="outline" onclick="closeModal('modal-send-note')" class="text-xs px-4 py-2 bg-white" %}
+                </span>
+                <span id="btn-close-note-container" class="hidden">
+                    {% translate "Cerrar" as close_msg_label %}
+                    {% include 'components/button.html' with text=close_msg_label type="button" variant="outline" onclick="closeModal('modal-send-note')" class="text-xs px-5 py-2 bg-white" %}
+                </span>
+                <span id="btn-submit-note-container">
+                    {% translate "Guardar nota" as send_msg_btn_label %}
+                    {% include 'components/button.html' with id="btn-submit-note" text=send_msg_btn_label type="submit" variant="primary" class="text-xs px-5 py-2 font-bold shadow-md cursor-pointer" %}
+                </span>
             </div>
         </form>
     </div>
@@ -673,32 +678,37 @@
     <div class="relative z-10 w-full max-w-md rounded-3xl
                 border border-neutral-200 bg-white p-6 shadow-2xl">
 
-        
-            <button type="button"
-                    onclick="closeModal('modal-meetup-details')"
-                    class="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 cursor-pointer"
-                    aria-label="Cerrar">
-                {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
-            </button>
-
-            <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-petly-ice text-petly-coral">
+        <div class="flex items-center gap-3.5 mb-5">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-petly-ice text-petly-coral">
                 {% include 'components/icon.html' with name="calendar-days" class="w-6 h-6" %}
             </div>
-
-        <h3 id="meetup-details-title"
-            class="text-xl font-bold text-neutral-900">
-            Detalles de la cita
-        </h3>
-
-        <p class="mt-1 text-sm text-neutral-500">
-            Aquí puedes consultar la información del encuentro.
-        </p>
+            <div>
+                <h3 id="meetup-details-title"
+                    class="text-lg font-bold text-neutral-900 leading-tight">
+                    {% translate "Detalles de la cita" %}
+                </h3>
+                <p class="mt-0.5 text-xs text-neutral-500">
+                    {% translate "Aquí puedes consultar la información del encuentro." %}
+                </p>
+            </div>
+        </div>
 
         <div class="mt-5 space-y-4 rounded-2xl bg-neutral-50 p-4">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide
                           text-neutral-500">
-                    Mascota
+                    {% translate "Estado" %}
+                </p>
+                <p id="meetup-details-status"
+                   class="mt-1 font-semibold text-neutral-900">
+                    —
+                </p>
+            </div>
+
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide
+                          text-neutral-500">
+                    {% translate "Mascota" %}
                 </p>
                 <p id="meetup-details-pet"
                    class="mt-1 font-semibold text-neutral-900">
@@ -709,7 +719,7 @@
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide
                           text-neutral-500">
-                    Lugar del encuentro
+                    {% translate "Lugar del encuentro" %}
                 </p>
                 <p id="meetup-details-location"
                    class="mt-1 text-sm text-neutral-800">
@@ -720,22 +730,53 @@
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide
                           text-neutral-500">
-                    Fecha y hora
+                    {% translate "Fecha y hora" %}
                 </p>
                 <p id="meetup-details-time"
                    class="mt-1 text-sm text-neutral-800">
                     —
                 </p>
             </div>
+
+            <div id="meetup-details-notes-container" class="hidden">
+                <p class="text-xs font-semibold uppercase tracking-wide
+                          text-neutral-500">
+                    {% translate "Notas del encuentro" %}
+                </p>
+                <p id="meetup-details-notes"
+                   class="mt-1 text-sm text-neutral-800 break-words whitespace-pre-wrap">
+                    —
+                </p>
+            </div>
         </div>
 
-        <button type="button"
-                onclick="closeModal('modal-meetup-details')"
-                class="mt-6 w-full rounded-xl bg-petly-coral
-                       px-5 py-3 text-sm font-bold text-white
-                       transition hover:opacity-90 cursor-pointer">
-            Entendido
-        </button>
+        <div class="mt-6 flex flex-col gap-2">
+            <button type="button"
+                    id="btn-meetup-confirm"
+                    onclick="handleConfirmMeeting(currentActiveMeetupId)"
+                    class="hidden w-full rounded-full bg-petly-coral
+                           px-5 py-2.5 text-xs font-bold text-white shadow-md
+                           transition hover:opacity-90 cursor-pointer">
+                {% translate "Confirmar cita" %}
+            </button>
+
+            <button type="button"
+                    id="btn-meetup-complete"
+                    onclick="handleCompleteMeeting(currentActiveMeetupId)"
+                    class="hidden w-full rounded-full bg-petly-coral
+                           px-5 py-2.5 text-xs font-bold text-white shadow-md
+                           transition hover:opacity-90 cursor-pointer">
+                {% translate "Cita completada" %}
+            </button>
+
+            <button type="button"
+                    onclick="closeModal('modal-meetup-details')"
+                    class="w-full rounded-full border border-neutral-300 bg-white
+                           px-5 py-2.5 text-xs font-bold text-neutral-700
+                           transition hover:bg-neutral-100 cursor-pointer">
+                {% translate "Cerrar" %}
+            </button>
+        </div>
     </div>
 </div>
 
@@ -771,9 +812,9 @@
              class="mt-6 flex justify-center gap-3">
             <button type="button"
                     onclick="closeModal('modal-petly-feedback')"
-                    class="rounded-xl border border-neutral-300 px-5 py-2
-                           text-sm font-semibold text-neutral-700 cursor-pointer">
-                Entendido
+                    class="rounded-full border border-neutral-300 bg-white px-6 py-2
+                           text-xs font-bold text-neutral-700 hover:bg-neutral-100 transition cursor-pointer">
+                {% translate "Entendido" %}
             </button>
         </div>
     </div>
@@ -818,7 +859,31 @@
         }
     }
 
-    function showMeetupDetails(title, location, time) {
+    let currentActiveMeetupId = null;
+    const meetupsStateCache = {};
+
+    function showMeetupDetailsFromButton(btn) {
+        if (!btn || !btn.dataset) return;
+        const d = btn.dataset;
+        showMeetupDetails(
+            d.title || '',
+            d.location || '',
+            d.time || '',
+            d.meetupId || null,
+            d.status || null,
+            d.badge || null,
+            d.isOrganizer === 'true',
+            d.notes || ''
+        );
+    }
+
+    function showMeetupDetails(title, location, time, id = null, status = null, badge = null, isOrganizer = false, notes = '') {
+        currentActiveMeetupId = id;
+
+        const effectiveStatus = (id && meetupsStateCache[id]?.status) || status;
+        const effectiveBadge = (id && meetupsStateCache[id]?.badge) || badge;
+        const effectiveNotes = (id && meetupsStateCache[id]?.notes !== undefined) ? meetupsStateCache[id].notes : notes;
+
         document.getElementById('meetup-details-pet').textContent =
             title || 'Sin información';
 
@@ -827,6 +892,44 @@
 
         document.getElementById('meetup-details-time').textContent =
             time || 'Fecha y hora no especificadas';
+
+        const statusEl = document.getElementById('meetup-details-status');
+        if (statusEl) {
+            statusEl.textContent = effectiveBadge || (effectiveStatus === 'confirmed' ? '{% filter escapejs %}{% translate "Confirmado" %}{% endfilter %}' : (effectiveStatus === 'completed' ? '{% filter escapejs %}{% translate "Completado" %}{% endfilter %}' : '{% filter escapejs %}{% translate "Propuesto" %}{% endfilter %}'));
+        }
+
+        const notesContainer = document.getElementById('meetup-details-notes-container');
+        const notesEl = document.getElementById('meetup-details-notes');
+        if (notesContainer && notesEl) {
+            if (effectiveNotes && String(effectiveNotes).trim()) {
+                notesEl.textContent = String(effectiveNotes).trim();
+                notesContainer.classList.remove('hidden');
+            } else {
+                notesEl.textContent = '—';
+                notesContainer.classList.add('hidden');
+            }
+        }
+
+        const confirmBtn = document.getElementById('btn-meetup-confirm');
+        const completeBtn = document.getElementById('btn-meetup-complete');
+
+        if (confirmBtn) {
+            // El botón de confirmar solo le sale al invitado (no al organizador) cuando la cita está propuesta/pendiente
+            if (effectiveStatus === 'proposed' && !isOrganizer) {
+                confirmBtn.classList.remove('hidden');
+            } else {
+                confirmBtn.classList.add('hidden');
+            }
+        }
+
+        if (completeBtn) {
+            // El botón de cita completada sale cuando la cita ya está confirmada
+            if (effectiveStatus === 'confirmed') {
+                completeBtn.classList.remove('hidden');
+            } else {
+                completeBtn.classList.add('hidden');
+            }
+        }
 
         openModal('modal-meetup-details');
     }
@@ -843,10 +946,10 @@
         actionsEl.innerHTML = `
             <button type="button"
                 onclick="closeModal('modal-petly-feedback')"
-                class="rounded-xl bg-petly-coral px-6 py-2.5
-                    text-sm font-bold text-white hover:opacity-90
-                    cursor-pointer">
-                Entendido
+                class="rounded-full bg-petly-coral px-6 py-2.5
+                    text-xs font-bold text-white hover:opacity-90 shadow-md
+                    transition cursor-pointer">
+                {% translate "Entendido" %}
             </button>
         `;
 
@@ -854,24 +957,24 @@
         openModal('modal-petly-feedback');
     }
 
-    function showPetlyConfirm(message, onConfirm, title = '¿Estás seguro?') {
+    function showPetlyConfirm(message, onConfirm, title = '{% filter escapejs %}{% translate "¿Estás seguro?" %}{% endfilter %}') {
         document.getElementById('petly-feedback-title').textContent = title;
         document.getElementById('petly-feedback-message').textContent = message;
 
         document.getElementById('petly-feedback-actions').innerHTML = `
             <button type="button"
                 onclick="closeModal('modal-petly-feedback')"
-                class="rounded-xl border border-neutral-300 px-4 py-2.5
-                    text-sm font-semibold text-neutral-700
-                    cursor-pointer">
-                Cancelar
+                class="rounded-full border border-neutral-300 bg-white px-5 py-2.5
+                    text-xs font-bold text-neutral-700 hover:bg-neutral-100
+                    transition cursor-pointer">
+                {% translate "Cancelar" %}
             </button>
             <button type="button"
                 onclick="confirmPetlyAction()"
-                class="rounded-xl bg-petly-coral px-4 py-2.5
-                    text-sm font-bold text-white
-                    cursor-pointer">
-                Confirmar
+                class="rounded-full bg-petly-coral px-5 py-2.5
+                    text-xs font-bold text-white hover:opacity-90 shadow-md
+                    transition cursor-pointer">
+                {% translate "Confirmar" %}
             </button>
         `;
 
@@ -959,7 +1062,7 @@
 
     // Acción AJAX: Aceptar solicitud de match
     function handleAcceptRequest(requestId, petName) {
-        const acceptUrl = `/pets/match/requests/${requestId}/accept/`;
+        const acceptUrl = "{% url 'pets:match_accept_request' request_id=0 %}".replace('/0/', `/${requestId}/`);
         fetch(acceptUrl, {
             method: 'POST',
             headers: {
@@ -976,12 +1079,12 @@
                         card.setAttribute('data-status', 'accepted');
                         const badgeCollapsed = document.getElementById(`card-badge-${requestId}`);
                         if (badgeCollapsed) {
-                            badgeCollapsed.textContent = '{% translate "Match aceptado" %}';
+                            badgeCollapsed.textContent = '{% filter escapejs %}{% translate "Match aceptado" %}{% endfilter %}';
                             badgeCollapsed.className = 'suitor-badge-label text-[11px] font-semibold text-emerald-600 block mt-0.5';
                         }
                         const badgeExp = document.getElementById(`expanded-badge-${requestId}`);
                         if (badgeExp) {
-                            badgeExp.textContent = '{% translate "Match aceptado" %}';
+                            badgeExp.textContent = '{% filter escapejs %}{% translate "Match aceptado" %}{% endfilter %}';
                             badgeExp.className = 'suitor-badge-label-expanded badge-tag text-[11px] font-semibold py-1 px-2.5 bg-emerald-50 text-emerald-700 border-emerald-200';
                         }
                         // Transformar botones de aceptar a agendar cita
@@ -991,10 +1094,10 @@
                             <button type="button"
                                     onclick="openMeetingModal('${petName}', '', '${requestId}')"
                                     class="text-xs px-3.5 py-1.5 font-bold rounded-full bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                                    title="{% translate 'Agendar encuentro seguro' %}">
+                                    title="{% filter escapejs %}{% translate 'Agendar encuentro seguro' %}{% endfilter %}">
 
                                     {% include 'components/icon.html' with name="calendar" class="w-3.5 h-3.5" %}
-                                <span>{% translate "Cita" %}</span>
+                                <span>{% filter escapejs %}{% translate "Cita" %}{% endfilter %}</span>
                             </button>
                         `;
                         }
@@ -1007,20 +1110,20 @@
                                 
                                 {% include 'components/icon.html' with name="calendar" class="w-4 h-4" %}
 
-                                <span>{% translate "Concertar encuentro" %}</span>
+                                <span>{% filter escapejs %}{% translate "Concertar encuentro" %}{% endfilter %}</span>
                             </button>
                         `;
                         }
                         // Actualizar botones de cancelar/descartar a "Cancelar match"
                         const rejectBtnCollapsed = card.querySelector('.btn-reject-request.rounded-full');
                         if (rejectBtnCollapsed) {
-                            rejectBtnCollapsed.setAttribute('title', '{% translate "Cancelar match" %}');
-                            rejectBtnCollapsed.setAttribute('aria-label', '{% translate "Cancelar match" %}');
+                            rejectBtnCollapsed.setAttribute('title', '{% filter escapejs %}{% translate "Cancelar match" %}{% endfilter %}');
+                            rejectBtnCollapsed.setAttribute('aria-label', '{% filter escapejs %}{% translate "Cancelar match" %}{% endfilter %}');
                             rejectBtnCollapsed.setAttribute('onclick', `handleRejectRequest(${requestId}, '${petName}', 'match')`);
                         }
                         const rejectBtnExpSpan = card.querySelector('.btn-reject-request-wrapper .btn-reject-request span');
                         if (rejectBtnExpSpan) {
-                            rejectBtnExpSpan.textContent = '{% translate "Cancelar match" %}';
+                            rejectBtnExpSpan.textContent = '{% filter escapejs %}{% translate "Cancelar match" %}{% endfilter %}';
                             const rejectBtnExp = card.querySelector('.btn-reject-request-wrapper .btn-reject-request');
                             if (rejectBtnExp) {
                                 rejectBtnExp.setAttribute('onclick', `handleRejectRequest(${requestId}, '${petName}', 'match')`);
@@ -1032,42 +1135,36 @@
                         updateCountersDOM(data.tab_counters);
                     }
 
-                    // Ofrecer enviar nota inicial de contacto
-                    setTimeout(() => {
-                        const sendNotePrompt = confirm(
-                            `¡Match con ${petName} aceptado exitosamente!\n¿Deseas escribirle una nota inicial al tutor?`
-                        );
-                        if (sendNotePrompt) {
-                            const tutorSig = card ? card.querySelector('.italic + span')?.textContent?.replace('—', '').trim() : '';
-                            openNoteModal(requestId, petName, tutorSig || petName, currentQuote);
-                        }
-                    }, 200);
+                    showPetlyDialog(
+                        data.message || '{% filter escapejs %}{% translate "Solicitud de match aceptada exitosamente." %}{% endfilter %}',
+                        '{% filter escapejs %}{% translate "¡Match aceptado!" %}{% endfilter %}'
+                    );
                 } else {
-                    alert(data.message || '{% translate "Ocurrió un error al aceptar la solicitud." %}');
+                    alert(data.message || '{% filter escapejs %}{% translate "Ocurrió un error al aceptar la solicitud." %}{% endfilter %}');
                 }
             })
             .catch(err => {
                 console.error('Error al aceptar solicitud:', err);
-                alert('{% translate "Error de conexión al procesar la solicitud." %}');
+                alert('{% filter escapejs %}{% translate "Error de conexión al procesar la solicitud." %}{% endfilter %}');
             });
     }
 
     // Acción AJAX: Cancelar match, solicitud enviada o descartar solicitud recibida
     function handleRejectRequest(requestId, petName, actionType) {
         let confirmMsg = `¿Estás seguro de cancelar la solicitud a ${petName}?`;
-        let successMsg = '{% translate "La solicitud se ha cancelado correctamente." %}';
+        let successMsg = '{% filter escapejs %}{% translate "La solicitud se ha cancelado correctamente." %}{% endfilter %}';
         if (actionType === 'match') {
             confirmMsg = `¿Estás seguro de que deseas cancelar el match con ${petName}?`;
-            successMsg = '{% translate "El match se ha cancelado correctamente." %}';
+            successMsg = '{% filter escapejs %}{% translate "El match se ha cancelado correctamente." %}{% endfilter %}';
         } else if (actionType === 'received') {
             confirmMsg = `¿Estás seguro de descartar la solicitud de ${petName}?`;
-            successMsg = '{% translate "La solicitud se ha descartado correctamente." %}';
+            successMsg = '{% filter escapejs %}{% translate "La solicitud se ha descartado correctamente." %}{% endfilter %}';
         }
 
         showPetlyConfirm(
             confirmMsg,
             () => {
-                const rejectUrl = `/pets/match/requests/${requestId}/reject/`;
+                const rejectUrl = "{% url 'pets:match_reject_request' request_id=0 %}".replace('/0/', `/${requestId}/`);
 
                 fetch(rejectUrl, {
                     method: 'POST',
@@ -1105,12 +1202,12 @@
 
                             showPetlyDialog(
                                 successMsg,
-                                '{% translate "Acción completada" %}'
+                                '{% filter escapejs %}{% translate "Acción completada" %}{% endfilter %}'
                             );
                         } else {
                             showPetlyDialog(
-                                data.message || '{% translate "No se pudo procesar la solicitud." %}',
-                                '{% translate "No se pudo completar" %}'
+                                data.message || '{% filter escapejs %}{% translate "No se pudo procesar la solicitud." %}{% endfilter %}',
+                                '{% filter escapejs %}{% translate "No se pudo completar" %}{% endfilter %}'
                             );
                         }
                     })
@@ -1118,39 +1215,94 @@
                         console.error('Error al procesar la solicitud:', err);
 
                         showPetlyDialog(
-                            '{% translate "Ocurrió un error de conexión al procesar la solicitud." %}',
-                            '{% translate "Error de conexión" %}'
+                            '{% filter escapejs %}{% translate "Ocurrió un error de conexión al procesar la solicitud." %}{% endfilter %}',
+                            '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
                         );
                     });
             },
-            '{% translate "Confirmar acción" %}'
+            '{% filter escapejs %}{% translate "Confirmar acción" %}{% endfilter %}'
         );
     }
    
 
     // Modal de nota / contacto inicial
-    function openNoteModal(requestId, petName, tutorSignature, currentQuote, isSent) {
+    function openNoteModalFromButton(btn) {
+        if (!btn || !btn.dataset) return;
+        const d = btn.dataset;
+        openNoteModal(
+            d.requestId,
+            d.name,
+            d.tutorSignature,
+            d.quote,
+            d.isSent,
+            d.senderEmail
+        );
+    }
+
+    function openNoteModal(requestId, petName, tutorSignature, currentQuote, isSent, senderEmail = '') {
         document.getElementById('note-request-id').value = requestId;
         const tutorNameEl = document.getElementById('note-tutor-name');
         if (tutorNameEl) {
             tutorNameEl.textContent = tutorSignature || petName;
         }
+        const prepEl = document.getElementById('note-tutor-preposition');
         const modalTitle = document.getElementById('modal-note-title');
-        if (modalTitle) {
-            modalTitle.textContent = isSent ? '{% translate "Nota enviada al tutor" %}' : '{% translate "Nota inicial de contacto" %}';
-        }
+        const textareaLabel = document.getElementById('note-textarea-label');
+        const emailContainer = document.getElementById('note-sender-email');
+        const emailLink = document.getElementById('note-sender-email-link');
+        const submitBtnContainer = document.getElementById('btn-submit-note-container');
+        const cancelBtnContainer = document.getElementById('btn-cancel-note-container');
+        const closeBtnContainer = document.getElementById('btn-close-note-container');
         const textarea = document.getElementById('note-textarea');
-        if (textarea) {
-            const ignoreDefaults = [
-                'Interés registrado desde el feed de descubrimiento.',
-                'Interest registered from discovery feed.',
-                'Interesado en conectar y evaluar compatibilidad.',
-                'Interested in connecting and evaluating compatibility.',
-                'Mascota disponible para conectar y evaluar compatibilidad.',
-                'Pet available to connect and evaluate compatibility.'
-            ];
-            textarea.value = (currentQuote && !ignoreDefaults.some(d => currentQuote.includes(d))) ? currentQuote : '';
+
+        const isUserSender = isSent === true || isSent === '1' || isSent === 1;
+
+        if (isUserSender) {
+            // El usuario es quien envió la solicitud: puede redactar/editar su nota
+            if (modalTitle) modalTitle.textContent = '{% filter escapejs %}{% translate "Nota enviada al tutor" %}{% endfilter %}';
+            if (prepEl) prepEl.textContent = '{% filter escapejs %}{% translate "Para" %}{% endfilter %}';
+            if (textareaLabel) textareaLabel.textContent = '{% filter escapejs %}{% translate "Escribe una nota para iniciar la conversación:" %}{% endfilter %}';
+            if (emailContainer) emailContainer.classList.add('hidden');
+            if (submitBtnContainer) submitBtnContainer.classList.remove('hidden');
+            if (cancelBtnContainer) cancelBtnContainer.classList.remove('hidden');
+            if (closeBtnContainer) closeBtnContainer.classList.add('hidden');
+            if (textarea) {
+                textarea.readOnly = false;
+                textarea.required = true;
+                const ignoreDefaults = [
+                    'Interés registrado desde el feed de descubrimiento.',
+                    'Interest registered from discovery feed.',
+                    'Interesado en conectar y evaluar compatibilidad.',
+                    'Interested in connecting and evaluating compatibility.',
+                    'Mascota disponible para conectar y evaluar compatibilidad.',
+                    'Pet available to connect and evaluate compatibility.'
+                ];
+                textarea.value = (currentQuote && !ignoreDefaults.some(d => currentQuote.includes(d))) ? currentQuote : '';
+            }
+        } else {
+            // El usuario es el receptor: solo puede VER la nota dejada por quien hizo el match
+            if (modalTitle) modalTitle.textContent = '{% filter escapejs %}{% translate "Nota inicial recibida" %}{% endfilter %}';
+            if (prepEl) prepEl.textContent = '{% filter escapejs %}{% translate "De" %}{% endfilter %}';
+            if (textareaLabel) textareaLabel.textContent = '{% filter escapejs %}{% translate "Nota del tutor solicitante:" %}{% endfilter %}';
+            if (submitBtnContainer) submitBtnContainer.classList.add('hidden');
+            if (cancelBtnContainer) cancelBtnContainer.classList.add('hidden');
+            if (closeBtnContainer) closeBtnContainer.classList.remove('hidden');
+            if (textarea) {
+                textarea.readOnly = true;
+                textarea.required = false;
+                textarea.value = (currentQuote && currentQuote.trim()) ? currentQuote.trim() : '{% filter escapejs %}{% translate "El tutor no dejó una nota personalizada." %}{% endfilter %}';
+            }
+            if (emailContainer && emailLink) {
+                if (senderEmail && senderEmail.trim()) {
+                    emailLink.href = `mailto:${senderEmail.trim()}`;
+                    emailLink.textContent = senderEmail.trim();
+                    emailContainer.classList.remove('hidden');
+                } else {
+                    emailContainer.classList.add('hidden');
+                }
+            }
         }
+
         openModal('modal-send-note');
     }
 
@@ -1161,14 +1313,15 @@
         const messageText = document.getElementById('note-textarea').value.trim();
 
         if (!requestId || !messageText) {
-            alert('{% translate "Por favor ingresa una nota válida." %}');
+            alert('{% filter escapejs %}{% translate "Por favor ingresa una nota válida." %}{% endfilter %}');
             return;
         }
 
         const submitBtn = document.getElementById('btn-submit-note');
         if (submitBtn) submitBtn.disabled = true;
 
-        fetch(`/pets/match/requests/${requestId}/note/`, {
+        const sendNoteUrl = "{% url 'pets:send_initial_note' request_id=0 %}".replace('/0/', `/${requestId}/`);
+        fetch(sendNoteUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1185,14 +1338,14 @@
                         quoteEl.textContent = `"${messageText}"`;
                     }
                     closeModal('modal-send-note');
-                    alert('{% translate "¡Nota guardada exitosamente!" %}');
+                    alert('{% filter escapejs %}{% translate "¡Nota guardada exitosamente!" %}{% endfilter %}');
                 } else {
-                    alert(data.message || '{% translate "Error al guardar la nota." %}');
+                    alert(data.message || '{% filter escapejs %}{% translate "Error al guardar la nota." %}{% endfilter %}');
                 }
             })
             .catch(err => {
                 console.error('Error al enviar nota:', err);
-                alert('{% translate "Error de conexión al guardar la nota." %}');
+                alert('{% filter escapejs %}{% translate "Error de conexión al guardar la nota." %}{% endfilter %}');
             })
             .finally(() => {
                 if (submitBtn) submitBtn.disabled = false;
@@ -1226,7 +1379,7 @@
         openModal('modal-schedule-meeting');
     }
 
-    function handleConfirmMeeting(event) {
+    function handleScheduleMeetingSubmit(event) {
         event.preventDefault();
         const targetPetId = document.getElementById('meeting-target-pet-id')?.value;
         const targetPetName = document.getElementById('meeting-target-pet-name')?.value;
@@ -1238,8 +1391,8 @@
 
         if (!dateVal || !timeVal || !locationVal) {
             showPetlyDialog(
-                'Completa la fecha, hora y lugar del encuentro.',
-                'Datos incompletos'
+                '{% filter escapejs %}{% translate "Completa la fecha, hora y lugar del encuentro." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Datos incompletos" %}{% endfilter %}'
             );
             return;
         }
@@ -1247,7 +1400,7 @@
         const submitBtn = document.getElementById('btn-submit-meeting');
         if (submitBtn) submitBtn.disabled = true;
 
-        fetch('/pets/match/meetups/schedule/', {
+        fetch("{% url 'pets:schedule_meetup' %}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1270,21 +1423,21 @@
                     addMeetupToSidebar(data.meetup);
 
                     showPetlyDialog(
-                        data.message || '¡Cita agendada con éxito!',
-                        '¡Cita confirmada!'
+                        data.message || '{% filter escapejs %}{% translate "¡Cita propuesta con éxito!" %}{% endfilter %}',
+                        '{% filter escapejs %}{% translate "Cita propuesta" %}{% endfilter %}'
                     );
                 } else {
                     showPetlyDialog(
-                        data.message || 'No se pudo agendar la cita.',
-                        'No se pudo agendar'
+                        data.message || '{% filter escapejs %}{% translate "No se pudo agendar la cita." %}{% endfilter %}',
+                        '{% filter escapejs %}{% translate "No se pudo agendar" %}{% endfilter %}'
                     );
                 }
             })
             .catch(err => {
                 console.error('Error al agendar cita:', err);
                 showPetlyDialog(
-                    'Ocurrió un error de conexión al agendar la cita.',
-                    'Error de conexión'
+                    '{% filter escapejs %}{% translate "Ocurrió un error de conexión al agendar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
                 );
             })
             .finally(() => {
@@ -1295,22 +1448,30 @@
 
     
     function handleCancelMeeting(meetupId, petName) {
+        if (meetupsStateCache[meetupId]?.status === 'completed') {
+            showPetlyDialog(
+                '{% filter escapejs %}{% translate "No se puede cancelar una cita que ya ha sido completada." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Acción no permitida" %}{% endfilter %}'
+            );
+            return;
+        }
         showPetlyConfirm(
             `¿Deseas cancelar la cita con ${petName}?`,
             () => cancelMeetingRequest(meetupId),
-            'Cancelar cita'
+            '{% filter escapejs %}{% translate "Cancelar cita" %}{% endfilter %}'
         );
     }
 
     function cancelMeetingRequest(meetupId) {
-        fetch(`/pets/match/meetups/${meetupId}/cancel/`, {
+        const cancelUrl = "{% url 'pets:cancel_meetup' meetup_id=0 %}".replace('/0/', `/${meetupId}/`);
+        fetch(cancelUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrftoken,
             },
             body: JSON.stringify({
-                reason: 'Cancelado por el tutor'
+                reason: ''
             }),
         })
         .then(res => res.json().then(data => ({
@@ -1319,25 +1480,136 @@
         })))
         .then(({ status, data }) => {
             if (status === 200 && data.status === 'cancelled') {
+                closeModal('modal-meetup-details');
                 removeMeetupFromSidebar(meetupId);
 
                 showPetlyDialog(
-                    data.message || 'La cita se canceló correctamente.',
-                    'Cita cancelada'
+                    data.message || '{% filter escapejs %}{% translate "La cita se canceló correctamente." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Cita cancelada" %}{% endfilter %}'
                 );
             } else {
                 showPetlyDialog(
-                    data.message || 'No se pudo cancelar la cita.',
-                    'Error al cancelar'
+                    data.message || '{% filter escapejs %}{% translate "No se pudo cancelar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error al cancelar" %}{% endfilter %}'
                 );
             }
         })
         .catch(err => {
             console.error('Error al cancelar cita:', err);
             showPetlyDialog(
-                'Ocurrió un error de conexión al cancelar la cita.',
-                'Error de conexión'
+                '{% filter escapejs %}{% translate "Ocurrió un error de conexión al cancelar la cita." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
             );
+        });
+    }
+
+    function handleConfirmMeeting(meetupId) {
+        if (!meetupId) return;
+        const confirmBtn = document.getElementById('btn-meetup-confirm');
+        if (confirmBtn) confirmBtn.disabled = true;
+
+        const confirmUrl = "{% url 'pets:confirm_meetup' meetup_id=0 %}".replace('/0/', `/${meetupId}/`);
+        fetch(confirmUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+        })
+        .then(res => res.json().then(data => ({ status: res.status, data })))
+        .then(({ status, data }) => {
+            if (status === 200 && data.status === 'confirmed') {
+                closeModal('modal-meetup-details');
+                const newBadge = data.meetup && data.meetup.badge ? data.meetup.badge : '{% filter escapejs %}{% translate "Confirmado" %}{% endfilter %}';
+                meetupsStateCache[meetupId] = {
+                    ...(meetupsStateCache[meetupId] || {}),
+                    status: 'confirmed',
+                    badge: newBadge,
+                };
+                const card = document.getElementById(`meetup-card-${meetupId}`);
+                if (card) {
+                    const badge = card.querySelector('.badge-compat');
+                    if (badge) {
+                        badge.textContent = newBadge;
+                    }
+                }
+                showPetlyDialog(
+                    data.message || '{% filter escapejs %}{% translate "¡Cita confirmada exitosamente!" %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "¡Cita confirmada!" %}{% endfilter %}'
+                );
+            } else {
+                showPetlyDialog(
+                    data.message || '{% filter escapejs %}{% translate "No se pudo confirmar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error al confirmar" %}{% endfilter %}'
+                );
+            }
+        })
+        .catch(err => {
+            console.error('Error al confirmar cita:', err);
+            showPetlyDialog(
+                '{% filter escapejs %}{% translate "Ocurrió un error de conexión al confirmar la cita." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
+            );
+        })
+        .finally(() => {
+            if (confirmBtn) confirmBtn.disabled = false;
+        });
+    }
+
+    function handleCompleteMeeting(meetupId) {
+        if (!meetupId) return;
+        const completeBtn = document.getElementById('btn-meetup-complete');
+        if (completeBtn) completeBtn.disabled = true;
+
+        const completeUrl = "{% url 'pets:complete_meetup' meetup_id=0 %}".replace('/0/', `/${meetupId}/`);
+        fetch(completeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+        })
+        .then(res => res.json().then(data => ({ status: res.status, data })))
+        .then(({ status, data }) => {
+            if (status === 200 && data.status === 'completed') {
+                closeModal('modal-meetup-details');
+                const newBadge = data.meetup && data.meetup.badge ? data.meetup.badge : '{% filter escapejs %}{% translate "Completado" %}{% endfilter %}';
+                meetupsStateCache[meetupId] = {
+                    ...(meetupsStateCache[meetupId] || {}),
+                    status: 'completed',
+                    badge: newBadge,
+                };
+                const card = document.getElementById(`meetup-card-${meetupId}`);
+                if (card) {
+                    const badge = card.querySelector('.badge-compat');
+                    if (badge) {
+                        badge.textContent = newBadge;
+                    }
+                    const cancelBtn = card.querySelector('.btn-cancel-meetup');
+                    if (cancelBtn) {
+                        cancelBtn.remove();
+                    }
+                }
+                showPetlyDialog(
+                    data.message || '{% filter escapejs %}{% translate "¡Cita completada exitosamente!" %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "¡Cita completada!" %}{% endfilter %}'
+                );
+            } else {
+                showPetlyDialog(
+                    data.message || '{% filter escapejs %}{% translate "No se pudo completar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error al completar" %}{% endfilter %}'
+                );
+            }
+        })
+        .catch(err => {
+            console.error('Error al completar cita:', err);
+            showPetlyDialog(
+                '{% filter escapejs %}{% translate "Ocurrió un error de conexión al completar la cita." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
+            );
+        })
+        .finally(() => {
+            if (completeBtn) completeBtn.disabled = false;
         });
     }
 
@@ -1364,7 +1636,7 @@
         card.innerHTML = `
             <div class="flex items-center justify-between">
                 <span class="badge-compat text-[10px] font-bold py-0.5 px-2">
-                    ${meetup.badge || '{% translate "Confirmado" %}'}
+                    ${meetup.badge || '{% filter escapejs %}{% translate "Propuesto" %}{% endfilter %}'}
                 </span>
                 <span class="text-caption font-semibold text-neutral-500">
                     ${meetup.day}
@@ -1396,8 +1668,8 @@
                     </button>
                     <button type="button"
                             onclick="handleCancelMeeting(${cardId}, '${meetup.pet_name || ''}')"
-                            class="font-bold text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
-                            title="{% translate 'Cancelar cita' %}">
+                            class="btn-cancel-meetup font-bold text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
+                            title="{% filter escapejs %}{% translate 'Cancelar cita' %}{% endfilter %}">
                         {% translate "Cancelar" %}
                     </button>
                 </div>
@@ -1413,7 +1685,12 @@
             showMeetupDetails(
                 meetup.title || '',
                 meetup.location || '',
-                dateTime
+                dateTime,
+                cardId,
+                meetup.status || 'proposed',
+                meetup.badge || '{% filter escapejs %}{% translate "Propuesto" %}{% endfilter %}',
+                meetup.is_organizer !== undefined ? meetup.is_organizer : true,
+                meetup.notes || ''
             );
         });
         container.prepend(card);
@@ -1432,7 +1709,7 @@
                     container.innerHTML = `
                         <div id="meetups-empty-state" class="p-4 rounded-2xl bg-petly-ice/40 border border-dashed border-neutral-300 text-center space-y-1.5">
                             <p class="text-xs font-semibold text-neutral-600">
-                                {% translate "No tienes citas confirmadas próximas" %}
+                                {% translate "No tienes encuentros agendados próximos" %}
                             </p>
                             <p class="text-[11px] text-neutral-400 leading-relaxed">
                                 {% translate "Acepta un match y concierta un encuentro seguro en un parque verificado." %}

@@ -874,8 +874,8 @@ class Command(BaseCommand):
         def create_meetup(p1, p2, m_req, d, t, loc, status, notes):
             if p1 and p2 and p1 != p2 and p1.owner_id != p2.owner_id:
                 meetup, _ = PetMeetup.objects.update_or_create(
-                    pet1=p1,
-                    pet2=p2,
+                    host_pet=p1,
+                    guest_pet=p2,
                     date=d,
                     defaults={
                         'match_request': m_req,
