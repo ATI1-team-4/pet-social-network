@@ -11,7 +11,7 @@ Muestra todos los componentes creados con sus variantes, estados hover, responsi
 {% translate "Lila" as txt_btn_lilac %}
 {% translate "Borde" as txt_btn_outline %}
 
-{% translate "98% compatibilidad" as txt_badge_compat %}
+{% blocktranslate with pct=98 asvar txt_badge_compat %}{{ pct }}% compatibilidad{% endblocktranslate %}
 {% translate "Juguetón" as txt_badge_playful %}
 {% translate "Macho" as txt_badge_male %}
 {% translate "Hembra" as txt_badge_female %}
@@ -33,8 +33,8 @@ Muestra todos los componentes creados con sus variantes, estados hover, responsi
 {% translate "Descartar cambios" as txt_modal_danger_confirm %}
 {% translate "Seguir editando" as txt_modal_danger_cancel %}
 {% translate "¡Nuevo match encontrado!" as txt_modal_match_title %}
-{% translate "Tu mascota y Luna tienen un 98% de compatibilidad. ¿Deseas iniciar una conversación ahora?" as txt_modal_match_desc %}
-{% translate "Iniciar conversación" as txt_modal_match_confirm %}
+{% blocktranslate with pet="Luna" pct=98 asvar txt_modal_match_desc %}Tu mascota y {{ pet }} tienen un {{ pct }}% de compatibilidad.{% endblocktranslate %}
+{% translate "Ver solicitudes y notas" as txt_modal_match_confirm %}
 {% translate "Más tarde" as txt_modal_match_cancel %}
 
 <section class="mt-12 pt-8 border-t border-neutral-300/70 w-full" aria-label="{% translate 'Catálogo de componentes del sistema' %}">

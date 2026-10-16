@@ -6,7 +6,7 @@
 {% block content %}
 <div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-5">
 
-    <!-- Mensajes flash del sistema si existen -->
+    <!-- Mensajes flash del sistema alineados con el contenedor de la página -->
     {% include 'components/messages.html' %}
 
     <!-- Miga de pan de navegación -->
@@ -19,16 +19,14 @@
             <!-- Selector activo de mascota con enlace de retorno a Selección de Mascota -->
             <div class="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white border border-neutral-300/80 shadow-xs">
                 <div class="relative w-8 h-8 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200">
-                    <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}" class="w-full h-full object-cover">
-                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white"></span>
+                    <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}" class="w-full h-full object-cover">       
                 </div>
                 <div class="text-xs">
                     <span class="font-bold text-neutral-900">{{ active_pet.name }}</span>
                     <span class="text-neutral-500">({{ active_pet.breed }} • {{ active_pet.gender_label }}, {{ active_pet.age_text }})</span>
                 </div>
-                <a href="{% url 'pets:pet_select' %}" class="text-xs font-semibold text-petly-coral hover:text-petly-coral-dark hover:underline inline-flex items-center gap-1 transition-colors pl-1">
-                    <span>{% translate "Cambiar a" %} {{ other_pet.name }}</span>
-                    <span>⇄</span>
+                <a href="{% url 'pets:pet_select' %}" class="text-xs font-semibold text-petly-coral hover:text-petly-coral-dark hover:underline inline-flex items-center gap-1 transition-colors pl-1" title="{% translate 'Cambiar de mascota activa' %}">
+                    <span>{% translate "Cambiar" %}</span>
                 </a>
             </div>
 
@@ -36,22 +34,47 @@
             <div class="flex items-center gap-1.5">
                 <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-neutral-300/80 text-neutral-700 shadow-xs">
                     {% include 'components/icon.html' with name="location" class="w-3.5 h-3.5 text-neutral-500" %}
-                    <span>&lt; 5 km</span>
+                    <span>&lt; {{ max_distance|default:5 }} km</span>
                 </span>
                 <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-neutral-300/80 text-neutral-700 shadow-xs">
-                    {% include 'components/icon.html' with name="dog" class="w-3.5 h-3.5 text-neutral-500" %}
-                    <span>{% translate "Perros" %}</span>
+                    {% include 'components/icon.html' with name=active_pet.species.icon_name|default:"dog" class="w-3.5 h-3.5 text-neutral-500" %}
+                    <span>{{ active_pet.species_label }}</span>
                 </span>
-                {% translate "Con pedigrí FCI" as fci_label %}
-                {% include 'components/badge.html' with text=fci_label variant="compat" icon="award" class="text-xs py-1.5 px-3 shadow-xs" %}
+                {% if purpose_preference == 'mating' %}
+                    {% translate "Cruza responsable" as mating_pill_label %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-neutral-300/80 text-neutral-700 shadow-xs">
+                        {% include 'components/icon.html' with name="heart" class="w-3.5 h-3.5 text-petly-coral" %}
+                        <span>{{ mating_pill_label }}</span>
+                    </span>
+                {% elif purpose_preference == 'play' %}
+                    {% translate "Socialización" as play_pill_label %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-neutral-300/80 text-neutral-700 shadow-xs">
+                        {% include 'components/icon.html' with name="sparkles" class="w-3.5 h-3.5 text-emerald-600" %}
+                        <span>{{ play_pill_label }}</span>
+                    </span>
+                {% endif %}
+                {% if pedigree_preference == 'with_pedigree' %}
+                    {% translate "Con pedigrí FCI" as fci_label %}
+                    {% include 'components/badge.html' with text=fci_label variant="compat" icon="award" class="text-xs py-1.5 px-3 shadow-xs" %}
+                {% elif pedigree_preference == 'without_pedigree' %}
+                    {% translate "Sin pedigrí" as no_pedigree_label %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 shadow-xs">
+                        {% include 'components/icon.html' with name="award" class="w-3.5 h-3.5 text-amber-600" %}
+                        <span>{{ no_pedigree_label }}</span>
+                    </span>
+                {% else %}
+                    {% translate "Con y sin pedigrí" as both_label %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-neutral-300/80 text-neutral-700 shadow-xs">
+                        {% include 'components/icon.html' with name="award" class="w-3.5 h-3.5 text-neutral-500" %}
+                        <span>{{ both_label }}</span>
+                    </span>
+                {% endif %}
             </div>
         </div>
 
         <!-- Botón de filtros avanzados -->
-        <button type="button" onclick="openModal('modal-filters')" class="text-xs font-semibold text-neutral-600 hover:text-petly-coral inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white/80 transition-all cursor-pointer">
-            {% include 'components/icon.html' with name="sliders" class="w-4 h-4 text-neutral-600" %}
-            <span>{% translate "Configurar filtros avanzados" %}</span>
-        </button>
+        {% translate "Configurar filtros avanzados" as filter_adv_label %}
+        {% include 'components/button.html' with id="btn-open-feed-filters" text=filter_adv_label variant="custom" icon="sliders" icon_class="w-4 h-4 text-neutral-600" onclick="openModal('modal-filters')" class="text-xs font-semibold text-neutral-600 hover:text-petly-coral inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white/80 transition-all cursor-pointer" %}
     </div>
 
     <!-- Barra de contexto para móvil -->
@@ -80,24 +103,40 @@
 
         <div class="flex items-center justify-between gap-2 py-1">
             <div class="flex items-center gap-1.5 overflow-x-auto">
-                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white border border-neutral-300 text-neutral-700 whitespace-nowrap">
-                    {% include 'components/icon.html' with name="location" class="w-3 h-3 text-neutral-500" %}
-                    <span>&lt; 5 km</span>
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white border border-neutral-200 text-neutral-700 shadow-xs whitespace-nowrap">
+                    {% include 'components/icon.html' with name="location" class="w-3.5 h-3.5 text-neutral-500" %}
+                    <span>&lt; {{ max_distance|default:5 }} km</span>
                 </span>
-                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white border border-neutral-300 text-neutral-700 whitespace-nowrap">
-                    {% include 'components/icon.html' with name="dog" class="w-3 h-3 text-neutral-500" %}
-                    <span>{% translate "Perros" %}</span>
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white border border-neutral-200 text-neutral-700 shadow-xs whitespace-nowrap">
+                    {% include 'components/icon.html' with name=active_pet.species.icon_name|default:"dog" class="w-3.5 h-3.5 text-neutral-500" %}
+                    <span>{{ active_pet.species_label }}</span>
                 </span>
-                {% translate "Con pedigrí FCI" as fci_label_mob %}
-                {% include 'components/badge.html' with text=fci_label_mob variant="compat" icon="award" class="text-xs py-1 px-3 whitespace-nowrap" %}
+                {% if purpose_preference == 'mating' %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-white border border-neutral-200 text-neutral-700 shadow-xs whitespace-nowrap">
+                        {% include 'components/icon.html' with name="heart" class="w-3.5 h-3.5 text-petly-coral" %}
+                        <span>{{ mating_pill_label }}</span>
+                    </span>
+                {% elif purpose_preference == 'play' %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-white border border-neutral-200 text-neutral-700 shadow-xs whitespace-nowrap">
+                        {% include 'components/icon.html' with name="sparkles" class="w-3.5 h-3.5 text-emerald-600" %}
+                        <span>{{ play_pill_label }}</span>
+                    </span>
+                {% endif %}
+                {% if pedigree_preference == 'with_pedigree' %}
+                    {% translate "Con pedigrí FCI" as fci_label_mob %}
+                    {% include 'components/badge.html' with text=fci_label_mob variant="compat" icon="award" class="text-xs py-1 px-3 whitespace-nowrap" %}
+                {% elif pedigree_preference == 'without_pedigree' %}
+                    {% translate "Sin pedigrí" as no_pedigree_label_mob %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+                        {% include 'components/icon.html' with name="award" class="w-3.5 h-3.5 text-amber-600" %}
+                        <span>{{ no_pedigree_label_mob }}</span>
+                    </span>
+                {% else %}
+                    {% translate "Con y sin pedigrí" as both_label_mob %}
+                    {% include 'components/badge.html' with text=both_label_mob variant="neutral" icon="award" class="text-xs py-1 px-3 whitespace-nowrap" %}
+                {% endif %}
             </div>
-            <button type="button"
-                    onclick="openModal('modal-filters')"
-                    class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-700 hover:text-petly-coral flex items-center justify-center shadow-xs shrink-0 cursor-pointer"
-                    title="{% translate 'Configurar filtros avanzados' %}"
-                    aria-label="{% translate 'Configurar filtros avanzados' %}">
-                {% include 'components/icon.html' with name="sliders" class="w-4 h-4 text-neutral-700" %}
-            </button>
+            {% include 'components/button.html' with id="btn-open-feed-filters-mob" variant="outline" icon="sliders" icon_class="w-4 h-4 text-neutral-700" onclick="openModal('modal-filters')" class="w-8 h-8 rounded-full p-0 bg-white border-neutral-300 text-neutral-700 hover:text-petly-coral flex items-center justify-center shadow-xs shrink-0 cursor-pointer" title=filter_adv_label aria_label=filter_adv_label %}
         </div>
     </div>
 
@@ -115,14 +154,13 @@
                  Aplica dinámicamente el ancho amplio proporcional a la columna y el acento del tutor activo
             -->
             <div id="discovery-card"
-                 class="relative w-full max-w-2xl lg:max-w-none bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border border-neutral-200/80 mb-8 lg:mb-0"
-                 style="box-shadow: 0 16px 40px -8px {{ active_pet.profile_color_hex|default:'#FA7D82' }}26;">
+                 class="relative w-full max-w-2xl lg:max-w-none bg-white rounded-3xl overflow-hidden shadow-xl transition-all duration-300 border border-neutral-200/80 mb-8 lg:mb-0 shadow-pet-discovery {% if not current_candidate %}hidden{% endif %}">
 
-                <!-- SECCIÓN 1: FOTOGRAFÍA PRINCIPAL CON GRADIENTE E INFORMACIÓN -->
+                <!-- Fotografía principal del candidato con gradiente informativo y etiquetas -->
                 <div class="relative w-full h-80 sm:h-96 md:h-[480px] lg:h-[500px] bg-neutral-100 overflow-hidden">
                     <img id="card-photo"
-                         src="{{ current_candidate.photo_clean_url|default:current_candidate.photo_url }}"
-                         alt="{{ current_candidate.name }}"
+                         src="{{ current_candidate.photo_url|default:'' }}"
+                         alt="{{ current_candidate.name|default:'' }}"
                          class="w-full h-full object-cover object-center select-none transition-transform duration-500">
 
                     <!-- Rayas indicadoras de historias superiores -->
@@ -151,8 +189,12 @@
                                 <h2 id="card-name" class="title-h2 text-white font-bold tracking-tight drop-shadow-md">
                                     {{ current_candidate.name }}
                                 </h2>
-                                <span id="card-gender-symbol" class="text-lg font-bold drop-shadow-md" style="color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
-                                    {{ current_candidate.gender_symbol }}
+                                <span id="card-gender-symbol" class="inline-flex items-center drop-shadow-md {% if current_candidate.gender == 'H' or current_candidate.gender == 'hembra' or current_candidate.is_hembra %}text-rose-400{% else %}text-sky-400{% endif %}">
+                                    {% if current_candidate.gender == 'H' or current_candidate.gender == 'hembra' or current_candidate.is_hembra %}
+                                        {% include 'components/icon.html' with name="female" class="w-4 h-4 sm:w-5 sm:h-5 text-inherit" %}
+                                    {% else %}
+                                        {% include 'components/icon.html' with name="male" class="w-4 h-4 sm:w-5 sm:h-5 text-inherit" %}
+                                    {% endif %}
                                 </span>
                                 <span id="card-age" class="text-xs font-semibold bg-white/20 backdrop-blur-xs px-2.5 py-0.5 rounded-full drop-shadow-xs">
                                     {{ current_candidate.age }}
@@ -166,7 +208,7 @@
                         <!-- Insignia de propósito en móvil y ubicación sobre la foto -->
                         <div class="shrink-0 flex flex-col items-end gap-1.5">
                             <span id="card-purpose-badge" class="sm:hidden inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/95 text-neutral-800 shadow-md">
-                                <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};"></span>
+                                <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-pet-accent"></span>
                                 <span id="card-purpose-text">{{ current_candidate.purpose }}</span>
                             </span>
                             <span id="card-location" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-black/40 backdrop-blur-md text-white border border-white/20">
@@ -177,7 +219,7 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN 2: CUERPO DETALLADO DE LA MASCOTA -->
+                <!-- Información detallada del candidato, métricas y tutores -->
                 <div id="card-body-container" class="p-6 sm:p-7 space-y-5 bg-white">
 
                     <!-- Personalidad y Temperamento -->
@@ -194,7 +236,7 @@
                         </div>
                     </div>
 
-                    <!-- Fila de métricas clave (3 cajas redondeadas limpias como en UI Figma) -->
+                    <!-- Fila de métricas clave con compatibilidad, distancia y pedigrí -->
                     <div class="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl bg-[#F4F6F9] border border-slate-100 text-center">
                         <div class="flex flex-col">
                             <span class="text-[10px] sm:text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
@@ -214,7 +256,7 @@
                         </div>
                         <div class="flex flex-col">
                             <span class="text-[10px] sm:text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
-                                {% translate "Certificado FCI" %}
+                                {% translate "Pedigrí / Certificado" %}
                             </span>
                             <span id="card-certificate" class="text-xs sm:text-sm font-bold text-neutral-900 mt-1">
                                 {{ current_candidate.certificate }}
@@ -235,7 +277,7 @@
                     <!-- Bloque de tutores responsables (tarjeta redondeada limpia como en UI Figma) -->
                     <div class="p-3.5 rounded-2xl bg-[#F4F6F9] border border-slate-100 flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-xs shrink-0" style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}text-neutral-800{% else %}text-white{% endif %} shadow-xs shrink-0 bg-pet-accent">
                                 <span id="card-tutor-avatar">{{ current_candidate.tutors.avatar_letter|default:"SC" }}</span>
                             </div>
                             <div>
@@ -249,86 +291,87 @@
                         </div>
 
                         <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-neutral-100 shadow-xs text-xs font-semibold">
-                            <span class="text-petly-coral">★</span>
+                            {% include 'components/icon.html' with name="star" class="w-3.5 h-3.5 text-petly-coral" %}
                             <span id="card-tutor-rating" class="text-neutral-900 font-bold">{{ current_candidate.tutors.rating }}</span>
-                            <span class="text-neutral-400 font-normal text-[11px]">({{ current_candidate.tutors.review_count }})</span>
+                            <span id="card-tutor-reviews" class="text-neutral-400 font-normal text-[11px]">({{ current_candidate.tutors.review_count }})</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- SECCIÓN 3: BOTONES DE ACCIÓN RÁPIDA (✕, ♥ y ⚑) -->
+                <!-- Botones de acción rápida: descartar, mostrar interés y reportar -->
                 <!-- Versión Escritorio (md en adelante) -->
                 <div class="hidden md:flex p-4 sm:p-5 bg-neutral-50/80 border-t border-neutral-100 items-center justify-between gap-4">
                     <!-- Botón: Pasar / Descartar (✕) -->
-                    <button type="button"
-                            onclick="handlePassCandidate()"
-                            id="btn-pass"
-                            class="w-12 h-12 rounded-full bg-white border border-neutral-200/90 text-neutral-600 hover:text-neutral-900 hover:border-neutral-300 shadow-xs hover:shadow-md active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer"
-                            title="{% translate 'Pasar candidato' %}"
-                            aria-label="{% translate 'Pasar candidato' %}">
-                        {% include 'components/icon.html' with name="close" class="w-5 h-5 text-neutral-600" %}
-                    </button>
+                    {% translate 'Pasar candidato' as aria_pass_cand %}
+                    {% include 'components/button.html' with id="btn-pass" variant="custom" icon="close" icon_class="w-5 h-5 text-neutral-600" onclick="handlePassCandidate()" title=aria_pass_cand aria_label=aria_pass_cand class="w-12 h-12 rounded-full bg-white border border-neutral-200/90 text-neutral-600 hover:text-neutral-900 hover:border-neutral-300 shadow-xs hover:shadow-md active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer" %}
 
                     <!-- Botón primario central: Mostrar Interés (♥) -->
-                    <button type="button"
-                            onclick="handleLikeCandidate()"
-                            id="btn-like"
-                            class="select-none flex-1 py-3.5 px-6 rounded-full font-bold text-white shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
-                            style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; box-shadow: 0 10px 24px -4px {{ active_pet.profile_color_hex|default:'#FA7D82' }}66;">
-                        {% include 'components/icon.html' with name="heart-filled" class="w-5 h-5 text-white" %}
-                        <span id="btn-like-text">{% blocktranslate with name=current_candidate.name %}Mostrar interés en {{ name }}{% endblocktranslate %}</span>
-                    </button>
+                    {% blocktranslate with name=current_candidate.name asvar like_btn_text %}Mostrar interés en {{ name }}{% endblocktranslate %}
+                    {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}
+                        {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-neutral-800" onclick="handleLikeCandidate()" class="btn-pet-dynamic-like select-none flex-1 py-3.5 px-6 rounded-full font-bold text-neutral-800 shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
+                    {% else %}
+                        {% include 'components/button.html' with id="btn-like" text_id="btn-like-text" text=like_btn_text variant="custom" icon="heart-filled" icon_class="w-5 h-5 text-white" onclick="handleLikeCandidate()" class="btn-pet-dynamic-like select-none flex-1 py-3.5 px-6 rounded-full font-bold text-white shadow-md active:scale-98 transition-all inline-flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer" %}
+                    {% endif %}
 
-                    <!-- Botón secundario: Información o reporte con bandera -->
-                    <button type="button"
-                            onclick="openCandidateInfoModal()"
-                            class="w-12 h-12 rounded-full bg-white border border-neutral-200/90 text-neutral-600 hover:text-neutral-900 hover:border-neutral-300 shadow-xs hover:shadow-md active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer"
-                            title="{% translate 'Detalles del candidato' %}"
-                            aria-label="{% translate 'Detalles del candidato' %}">
-                        {% include 'components/icon.html' with name="flag" class="w-5 h-5 text-neutral-600" %}
-                    </button>
+                    <!-- Botón secundario: Reporte de candidato con bandera -->
+                    {% translate 'Reportar candidato' as aria_report_cand %}
+                    {% include 'components/button.html' with variant="custom" icon="flag" icon_class="w-5 h-5 text-neutral-600 hover:text-rose-600" onclick="openCandidateReportModal()" title=aria_report_cand aria_label=aria_report_cand class="w-12 h-12 rounded-full bg-white border border-neutral-200/90 text-neutral-600 hover:text-rose-600 hover:border-rose-300 shadow-xs hover:shadow-md active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer" %}
                 </div>
 
                 <!-- Versión Teléfono Móvil: Botones Circulares de Acción oficiales -->
                 <div class="md:hidden px-4 pt-4 pb-6 bg-white flex items-center justify-center gap-12">
                     <!-- Botón Circular Descartar (✕) -->
                     <div class="flex flex-col items-center gap-1.5">
-                        <button type="button"
-                                id="btn-pass-mobile"
-                                onclick="handlePassCandidate()"
-                                class="w-16 h-16 rounded-full bg-white border border-neutral-200/90 shadow-md hover:shadow-lg active:scale-95 transition-all text-neutral-600 flex items-center justify-center cursor-pointer"
-                                aria-label="{% translate 'Pasar' %}">
-                            {% include 'components/icon.html' with name="close" class="w-6 h-6 text-neutral-600" %}
-                        </button>
+                        {% translate 'Pasar' as aria_pass_mobile %}
+                        {% include 'components/button.html' with id="btn-pass-mobile" variant="custom" icon="close" icon_class="w-6 h-6 text-neutral-600" onclick="handlePassCandidate()" aria_label=aria_pass_mobile class="w-16 h-16 rounded-full bg-white border border-neutral-200/90 shadow-md hover:shadow-lg active:scale-95 transition-all text-neutral-600 flex items-center justify-center cursor-pointer" %}
                         <span class="text-xs font-semibold text-neutral-500">{% translate "Pasar" %}</span>
                     </div>
 
                     <!-- Botón Circular Me Interesa (♥) -->
                     <div class="flex flex-col items-center gap-1.5">
-                        <button type="button"
-                                id="btn-like-mobile"
-                                onclick="handleLikeCandidate()"
-                                class="w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-white flex items-center justify-center cursor-pointer"
-                                style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}; box-shadow: 0 10px 25px {{ active_pet.profile_color_hex|default:'#FA7D82' }}66;"
-                                aria-label="{% translate 'Interesado' %}">
-                            {% include 'components/icon.html' with name="heart-filled" class="w-7 h-7 text-white" %}
-                        </button>
+                        {% translate 'Interesado' as aria_like_mobile %}
+                        {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}
+                            {% include 'components/button.html' with id="btn-like-mobile" variant="custom" icon="heart-filled" icon_class="w-7 h-7 text-neutral-800" onclick="handleLikeCandidate()" aria_label=aria_like_mobile class="btn-pet-dynamic-like w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-neutral-800 flex items-center justify-center cursor-pointer" %}
+                        {% else %}
+                            {% include 'components/button.html' with id="btn-like-mobile" variant="custom" icon="heart-filled" icon_class="w-7 h-7 text-white" onclick="handleLikeCandidate()" aria_label=aria_like_mobile class="btn-pet-dynamic-like w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all text-white flex items-center justify-center cursor-pointer" %}
+                        {% endif %}
                         <span class="text-xs font-semibold text-neutral-700">{% translate "Interesado" %}</span>
                     </div>
                 </div>
 
             </div>
+            
+            <!-- Estado vacío cuando no hay más candidatos por evaluar -->
+            <div id="discovery-empty-state" class="{% if current_candidate %}hidden{% else %}flex{% endif %} flex-col items-center justify-center p-8 sm:p-12 text-center bg-white rounded-3xl border border-neutral-200/80 shadow-md w-full max-w-2xl min-h-[380px] space-y-4">
+                <div class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center text-petly-coral shadow-xs">
+                    {% include 'components/icon.html' with name="sparkles" class="w-8 h-8 text-petly-coral" %}
+                </div>
+                <h3 class="title-h3 font-bold text-neutral-900 text-lg sm:text-xl">
+                    {% translate "¡Has explorado todos los candidatos!" %}
+                </h3>
+                <p class="text-neutral-500 text-xs sm:text-sm max-w-md leading-relaxed">
+                    {% translate "No hay más perfiles compatibles disponibles para evaluar en este momento. Revisa tus solicitudes de interesados o regresa más tarde para descubrir nuevas mascotas." %}
+                </p>
+                <div class="pt-2 flex flex-wrap gap-3 justify-center">
+                    <a href="{% url 'pets:match_feed' %}?reload=true" class="btn-pet-dynamic-like px-5 py-2.5 rounded-full text-xs font-bold {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}text-neutral-800{% else %}text-white{% endif %} shadow-xs no-underline inline-flex items-center gap-2 cursor-pointer">
+                        <span>{% translate "Recargar feed" %}</span>
+                    </a>
+                    <a href="{% url 'pets:match_interested' %}" class="px-5 py-2.5 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 no-underline inline-flex items-center gap-1.5 transition-colors">
+                        <span>{% translate "Ver solicitudes pendientes" %}</span>
+                        {% if pending_interested_count > 0 %}
+                            <span class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-petly-coral text-white">{{ pending_interested_count }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
 
         </div>
 
-        <!-- ============================================== -->
-        <!-- COLUMNA DERECHA: BANDEJA LATERAL DE INTERESADOS-->
-        <!-- ============================================== -->
+        <!-- Columna lateral con bandeja de pretendientes interesados -->
         <div class="hidden lg:block lg:col-span-4 sticky top-24 space-y-4">
 
             <!-- Tarjeta: Pretendientes interesados en Toby -->
-            <div class="card-petly p-5 sm:p-6 bg-white shadow-md space-y-4 border border-neutral-200/80 rounded-3xl"
-                 style="box-shadow: 0 10px 30px -10px {{ active_pet.profile_color_hex|default:'#FA7D82' }}22;">
+            <div class="card-petly p-5 sm:p-6 bg-white space-y-4 border border-neutral-200/80 rounded-3xl shadow-pet-sidebar">
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
                         {% include 'components/icon.html' with name="heart" class="w-4 h-4 text-neutral-700" %}
@@ -336,10 +379,9 @@
                             {% blocktranslate with name=active_pet.name %}Interesadas en {{ name }}{% endblocktranslate %}
                         </h2>
                     </div>
-                    <!-- Badge '3 nuevas' en una sola línea sin desbordamiento -->
-                    <span class="inline-flex items-center justify-center whitespace-nowrap shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                          style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}22; color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};">
-                        {{ interested_count }} {% translate "nuevas" %}
+                    <!-- Indicador de solicitudes pendientes sin desbordamiento -->
+                    <span class="inline-flex items-center justify-center whitespace-nowrap shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold badge-pet-accent {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}text-neutral-800{% endif %}">
+                        {{ pending_interested_count }} {% translate "nuevas" %}
                     </span>
                 </div>
 
@@ -360,13 +402,16 @@
                                     </span>
                                 </div>
                             </div>
-                            <button type="button"
-                                    onclick="quickMatchWith('{{ suitor.name }}', '{{ suitor.photo_url }}')"
-                                    class="w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer"
-                                    style="background-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}22; color: {{ active_pet.profile_color_hex|default:'#FA7D82' }};"
-                                    title="{% translate 'Responder con match' %}">
-                                {% include 'components/icon.html' with name="heart-filled" class="w-4 h-4" %}
-                            </button>
+                            {% translate 'Responder con match' as aria_quick_match %}
+                            {% if active_pet.profile_color == 'peach' or active_pet.profile_color == 'mint' %}
+                                {% include 'components/button.html' with variant="custom" icon="heart-filled" icon_class="w-4 h-4 text-neutral-800" onclick="handleSidebarQuickMatch(this)" data_id=suitor.candidate_pet_id data_name=suitor.name data_photo=suitor.photo_url title=aria_quick_match class="btn-pet-quick-match text-neutral-800 w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer" %}
+                            {% else %}
+                                {% include 'components/button.html' with variant="custom" icon="heart-filled" icon_class="w-4 h-4" onclick="handleSidebarQuickMatch(this)" data_id=suitor.candidate_pet_id data_name=suitor.name data_photo=suitor.photo_url title=aria_quick_match class="btn-pet-quick-match w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-xs shrink-0 cursor-pointer" %}
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <div class="p-4 rounded-2xl bg-[#F4F6F9] border border-slate-100 text-center text-xs text-neutral-500">
+                            {% translate "Aún no tienes nuevas solicitudes de interesados." %}
                         </div>
                     {% endfor %}
                 </div>
@@ -375,15 +420,14 @@
                 <div class="pt-2">
                     <a href="{% url 'pets:match_interested' %}"
                        class="w-full py-2.5 text-xs font-semibold inline-flex items-center justify-center gap-1.5 no-underline shadow-xs rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 transition-all">
-                        <span>{% translate "Ver todas las solicitudes" %} ({{ interested_count }})</span>
+                        <span>{% translate "Ver todas las solicitudes" %} ({{ total_requests_count }})</span>
                         <span>&rarr;</span>
                     </a>
                 </div>
             </div>
 
             <!-- Tarjeta de consejos de bienestar animal -->
-            <div class="p-4 rounded-2xl bg-white border shadow-xs text-xs space-y-1.5"
-                 style="border-color: {{ active_pet.profile_color_hex|default:'#FA7D82' }}33;">
+            <div class="p-4 rounded-2xl bg-white border border-pet-accent-light shadow-xs text-xs space-y-1.5">
                 <div class="flex items-center gap-1.5 text-emerald-800 font-bold">
                     {% include 'components/icon.html' with name="award" class="w-4 h-4 text-emerald-600" %}
                     <span>{% translate "Normas de cruza responsable" %}</span>
@@ -409,9 +453,8 @@
     <!-- Tarjeta del diálogo de match con animación y celebración -->
     <div class="relative w-full max-w-md bg-white card-petly p-6 sm:p-8 shadow-2xl border-2 border-petly-coral z-10 overflow-hidden text-center animate-fade-in">
         <!-- Botón de cierre en la esquina -->
-        <button type="button" onclick="closeModal('modal-match-success')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer select-none" aria-label="{% translate 'Cerrar diálogo' %}">
-            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
-        </button>
+        {% translate 'Cerrar diálogo' as aria_close_match %}
+        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4" onclick="closeModal('modal-match-success')" aria_label=aria_close_match class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer select-none" %}
 
         <!-- Efecto de celebración con destellos -->
         <div class="w-14 h-14 rounded-full bg-petly-coral-light text-petly-coral mx-auto mb-3 flex items-center justify-center shadow-xs">
@@ -441,7 +484,7 @@
 
             <!-- Avatar de la mascota candidata (Bella / Kira) -->
             <div class="relative z-20 w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-petly-ice -ml-4">
-                <img id="match-candidate-avatar" src="{{ current_candidate.photo_clean_url|default:current_candidate.photo_url }}" alt="{{ current_candidate.name }}" class="w-full h-full object-cover">
+                <img id="match-candidate-avatar" src="{{ current_candidate.photo_url|default:'' }}" alt="{{ current_candidate.name|default:'' }}" class="w-full h-full object-cover">
             </div>
         </div>
 
@@ -451,7 +494,7 @@
 
         <!-- Botones de acción del match -->
         <div class="space-y-2.5">
-            {% translate "Enviar mensaje a los tutores" as send_msg_text %}
+            {% translate "Ver solicitudes y notas" as send_msg_text %}
             {% url 'pets:match_interested' as match_int_url %}
             {% include 'components/button.html' with href=match_int_url text=send_msg_text icon="message-square" icon_class="w-4 h-4 text-white" class="w-full py-3 text-sm font-bold shadow-md inline-flex items-center justify-center gap-2 no-underline" %}
 
@@ -467,9 +510,8 @@
 <div id="modal-filters" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-filters-title">
     <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-filters')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        <button type="button" onclick="closeModal('modal-filters')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none" aria-label="{% translate 'Cerrar' %}">
-            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
-        </button>
+        {% translate 'Cerrar' as aria_close_filter %}
+        {% include 'components/button.html' with variant="custom" icon="close" icon_class="w-4 h-4" onclick="closeModal('modal-filters')" aria_label=aria_close_filter class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none cursor-pointer" %}
 
         <h3 id="modal-filters-title" class="title-h4 text-neutral-900 font-bold mb-4">
             {% translate "Filtros de búsqueda de pareja" %}
@@ -477,36 +519,62 @@
 
         <div class="space-y-4 text-xs">
             <div>
-                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Distancia máxima (km)" %}</label>
-                <input type="range" min="1" max="50" value="5" class="w-full accent-petly-coral">
+                <label for="feed-filter-distance" class="font-semibold text-neutral-700 block mb-1">{% translate "Distancia máxima (km)" %}</label>
+                <input type="range"
+                       id="feed-filter-distance"
+                       name="max_distance"
+                       min="1"
+                       max="50"
+                       value="{{ max_distance|default:5 }}"
+                       oninput="document.getElementById('feed-slider-center-val').textContent = this.value + ' km'"
+                       class="w-full accent-petly-coral cursor-pointer">
                 <div class="flex justify-between text-[11px] text-neutral-500">
                     <span>1 km</span>
-                    <span class="font-bold text-petly-coral">5 km</span>
+                    <span id="feed-slider-center-val" class="font-bold text-petly-coral">{{ max_distance|default:5 }} km</span>
                     <span>50 km</span>
                 </div>
             </div>
 
             <div>
-                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Propósito principal" %}</label>
-                <select class="input-petly text-xs">
-                    <option>{% translate "Cruza responsable y socialización" %}</option>
-                    <option>{% translate "Únicamente cruza con pedigrí" %}</option>
-                    <option>{% translate "Únicamente socialización y citas de juego" %}</option>
+                <label for="feed-filter-purpose" class="font-semibold text-neutral-700 block mb-1">{% translate "Propósito principal" %}</label>
+                <select id="feed-filter-purpose" name="purpose" class="input-petly text-xs">
+                    <option value="all" {% if not purpose_preference or purpose_preference == 'all' %}selected{% endif %}>{% translate "Cruza responsable y socialización" %}</option>
+                    <option value="mating" {% if purpose_preference == 'mating' %}selected{% endif %}>{% translate "Únicamente cruza responsable" %}</option>
+                    <option value="play" {% if purpose_preference == 'play' %}selected{% endif %}>{% translate "Únicamente socialización y citas de juego" %}</option>
                 </select>
             </div>
 
             <div>
-                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Certificación requerida" %}</label>
-                <label class="inline-flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked class="rounded border-neutral-300 text-petly-coral focus:ring-petly-coral">
-                    <span>{% translate "Solo candidatos con certificado FCI o pedigrí" %}</span>
-                </label>
+                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Preferencia de pedigrí" %}</label>
+                <div class="grid grid-cols-3 gap-1 p-1 bg-petly-ice/90 border border-neutral-300 rounded-xl text-center">
+                    <button type="button"
+                            onclick="setFeedFilterPedigree('both')"
+                            id="feed-filter-ped-both"
+                            class="feed-filter-ped-btn py-1.5 px-1 text-xs rounded-lg transition-all cursor-pointer {% if pedigree_preference == 'both' or not pedigree_preference %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                        {% translate "Ambos" %}
+                    </button>
+                    <button type="button"
+                            onclick="setFeedFilterPedigree('with_pedigree')"
+                            id="feed-filter-ped-with"
+                            class="feed-filter-ped-btn py-1.5 px-1 text-xs rounded-lg transition-all cursor-pointer {% if pedigree_preference == 'with_pedigree' %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                        {% translate "Con pedigrí" %}
+                    </button>
+                    <button type="button"
+                            onclick="setFeedFilterPedigree('without_pedigree')"
+                            id="feed-filter-ped-without"
+                            class="feed-filter-ped-btn py-1.5 px-1 text-xs rounded-lg transition-all cursor-pointer {% if pedigree_preference == 'without_pedigree' %}bg-petly-coral text-white font-bold shadow-xs{% else %}bg-transparent text-neutral-600 hover:text-neutral-900 font-medium{% endif %}">
+                        {% translate "Sin pedigrí" %}
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div class="mt-6 flex justify-end gap-2">
+        <div class="mt-6 flex items-center justify-between gap-2">
+            <button type="button" onclick="resetFeedFilters()" class="text-xs text-neutral-500 hover:text-neutral-800 underline cursor-pointer">
+                {% translate "Restablecer filtros" %}
+            </button>
             {% translate "Aplicar filtros" as apply_flt_text %}
-            {% include 'components/button.html' with text=apply_flt_text variant="primary" type="button" onclick="closeModal('modal-filters')" class="text-xs px-5 py-2 font-bold" %}
+            {% include 'components/button.html' with text=apply_flt_text variant="primary" type="button" onclick="applyFeedFilters()" class="text-xs px-5 py-2 font-bold" %}
         </div>
     </div>
 </div>
@@ -515,6 +583,44 @@
 
 {% block extra_js %}
 <script>
+    let selectedFeedPedigree = "{{ pedigree_preference|default:'both' }}";
+
+    function setFeedFilterPedigree(val) {
+        selectedFeedPedigree = val;
+        document.querySelectorAll('.feed-filter-ped-btn').forEach(btn => {
+            const isMatch = btn.id === ('feed-filter-ped-' + (val === 'with_pedigree' ? 'with' : (val === 'without_pedigree' ? 'without' : 'both')));
+            if (isMatch) {
+                btn.className = 'feed-filter-ped-btn py-1.5 px-1 text-xs rounded-lg transition-all cursor-pointer bg-petly-coral text-white font-bold shadow-xs';
+            } else {
+                btn.className = 'feed-filter-ped-btn py-1.5 px-1 text-xs rounded-lg transition-all cursor-pointer bg-transparent text-neutral-600 hover:text-neutral-900 font-medium';
+            }
+        });
+    }
+
+    function applyFeedFilters() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('pedigree', selectedFeedPedigree);
+        const distanceInput = document.getElementById('feed-filter-distance');
+        if (distanceInput) {
+            url.searchParams.set('max_distance', distanceInput.value);
+        }
+        const purposeSelect = document.getElementById('feed-filter-purpose');
+        if (purposeSelect) {
+            url.searchParams.set('purpose', purposeSelect.value);
+        }
+        url.searchParams.delete('reload');
+        url.searchParams.delete('reset_filters');
+        window.location.href = url.toString();
+    }
+
+    function resetFeedFilters() {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('pedigree');
+        url.searchParams.delete('max_distance');
+        url.searchParams.delete('purpose');
+        url.searchParams.set('reset_filters', 'true');
+        window.location.href = url.toString();
+    }
     function openModal(id) {
         const modal = document.getElementById(id);
         if (modal) {
@@ -533,14 +639,91 @@
         }
     }
 
-    // Dataset reactivo de candidatos oficiales según el prototipo
-    const CANDIDATES = {{ candidates_json|safe }};
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Color de acento reactivo de la mascota activa
+    const activePetColor = '{{ active_pet.profile_color_hex|default:"#FA7D82" }}';
+    const activePetColorKey = '{{ active_pet.profile_color|default:"coral" }}';
+    document.documentElement.style.setProperty('--pet-color', activePetColor);
+
+    // Ajuste de contraste para el botón de mostrar interés: gris oscuro (#2b2b2b) para melocotón y menta, blanco para coral y lila
+    const isDarkLikeBtn = (activePetColorKey === 'peach' || activePetColorKey === 'mint');
+    const updateLikeBtnContrast = () => {
+        ['btn-like', 'btn-like-mobile'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            if (isDarkLikeBtn) {
+                btn.classList.remove('text-white');
+                btn.classList.add('text-neutral-800');
+                btn.style.color = '#2b2b2b';
+                const icons = btn.querySelectorAll('.bg-current, span[style*="mask-image"]');
+                icons.forEach(ic => {
+                    ic.classList.remove('text-white');
+                    ic.classList.add('text-neutral-800');
+                    ic.style.color = '#2b2b2b';
+                    ic.style.backgroundColor = '#2b2b2b';
+                });
+            } else {
+                btn.classList.remove('text-neutral-800');
+                btn.classList.add('text-white');
+                btn.style.color = '#ffffff';
+                const icons = btn.querySelectorAll('.bg-current, span[style*="mask-image"]');
+                icons.forEach(ic => {
+                    ic.classList.remove('text-neutral-800');
+                    ic.classList.add('text-white');
+                    ic.style.color = '#ffffff';
+                    ic.style.backgroundColor = '#ffffff';
+                });
+            }
+        });
+    };
+    updateLikeBtnContrast();
+
+    // Dataset reactivo de candidatos dinámicos desde el ORM
+    const candidatesRaw = '{{ candidates_json|escapejs }}';
+    let CANDIDATES = [];
+    try {
+        CANDIDATES = JSON.parse(candidatesRaw);
+    } catch (e) {
+        CANDIDATES = [];
+    }
     let currentCandidateIndex = 0;
 
     // Actualiza dinámicamente la tarjeta con el candidato en el índice dado
     function renderCandidate(index) {
-        if (!CANDIDATES || CANDIDATES.length === 0) return;
-        const c = CANDIDATES[index % CANDIDATES.length];
+        const card = document.getElementById('discovery-card');
+        const emptyState = document.getElementById('discovery-empty-state');
+
+        if (!CANDIDATES || CANDIDATES.length === 0 || index >= CANDIDATES.length) {
+            if (card) card.classList.add('hidden');
+            if (emptyState) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            }
+            return;
+        }
+
+        if (card) card.classList.remove('hidden');
+        if (emptyState) {
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
+        }
+
+        const c = CANDIDATES[index];
 
         // Foto y atributos visuales
         const photo = document.getElementById('card-photo');
@@ -551,7 +734,16 @@
         if (nameElem) nameElem.textContent = c.name;
 
         const genderSymbol = document.getElementById('card-gender-symbol');
-        if (genderSymbol) genderSymbol.textContent = c.gender_symbol;
+        if (genderSymbol) {
+            const isFemale = (c.gender === 'H' || c.gender === 'hembra' || c.gender_icon === 'female');
+            const iconName = isFemale ? 'female' : 'male';
+            genderSymbol.className = `inline-flex items-center drop-shadow-md ${isFemale ? 'text-rose-400' : 'text-sky-400'}`;
+            const iconSpan = genderSymbol.querySelector('span[style*="mask-image"]');
+            if (iconSpan) {
+                iconSpan.style.maskImage = `url('/static/images/icons/${iconName}.svg')`;
+                iconSpan.style.webkitMaskImage = `url('/static/images/icons/${iconName}.svg')`;
+            }
+        }
 
         const ageElem = document.getElementById('card-age');
         if (ageElem) ageElem.textContent = c.age;
@@ -591,6 +783,9 @@
 
             const tutorRating = document.getElementById('card-tutor-rating');
             if (tutorRating) tutorRating.textContent = c.tutors.rating;
+
+            const tutorReviews = document.getElementById('card-tutor-reviews');
+            if (tutorReviews) tutorReviews.textContent = `(${c.tutors.review_count})`;
         }
 
         // Temperamentos
@@ -619,39 +814,111 @@
         if (matchAvatar) matchAvatar.src = c.photo_clean_url || c.photo_url;
     }
 
-    // Acción: Pasar candidato con animación tipo Tinder
+    // Acción: Pasar candidato con animación tipo Tinder y persistencia AJAX
     function handlePassCandidate() {
+        if (!CANDIDATES || currentCandidateIndex >= CANDIDATES.length) return;
+        const c = CANDIDATES[currentCandidateIndex];
         const card = document.getElementById('discovery-card');
+
         if (card) {
             card.classList.add('-translate-x-12', 'opacity-50');
-            setTimeout(() => {
-                currentCandidateIndex = (currentCandidateIndex + 1) % CANDIDATES.length;
-                renderCandidate(currentCandidateIndex);
-                card.classList.remove('-translate-x-12', 'opacity-50');
-            }, 180);
         }
+
+        fetch('{% url "pets:match_pass_candidate" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ candidate_id: c.id })
+        })
+        .then(r => r.json())
+        .catch(err => console.error('Error descartando candidato:', err))
+        .finally(() => {
+            setTimeout(() => {
+                currentCandidateIndex++;
+                renderCandidate(currentCandidateIndex);
+                if (card) card.classList.remove('-translate-x-12', 'opacity-50');
+            }, 180);
+        });
     }
 
-    // Acción: Mostrar Interés y disparar modal de Match
+    // Acción: Mostrar Interés, enviar AJAX y evaluar coincidencia mutua para modal
     function handleLikeCandidate() {
-        const c = CANDIDATES[currentCandidateIndex % CANDIDATES.length];
-        const matchName = document.getElementById('match-candidate-name');
-        if (matchName) matchName.textContent = c.name;
+        if (!CANDIDATES || currentCandidateIndex >= CANDIDATES.length) return;
+        const c = CANDIDATES[currentCandidateIndex];
+        const card = document.getElementById('discovery-card');
 
-        const matchAvatar = document.getElementById('match-candidate-avatar');
-        if (matchAvatar) matchAvatar.src = c.photo_clean_url || c.photo_url;
+        fetch('{% url "pets:match_like_candidate" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ candidate_id: c.id })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (data.is_match) {
+                    const matchName = document.getElementById('match-candidate-name');
+                    if (matchName) matchName.textContent = c.name;
 
-        openModal('modal-match-success');
+                    const matchAvatar = document.getElementById('match-candidate-avatar');
+                    if (matchAvatar) matchAvatar.src = c.photo_clean_url || c.photo_url;
+
+                    openModal('modal-match-success');
+                } else {
+                    // Interés registrado sin reciprocidad todavía -> deslizar tarjeta y avanzar
+                    if (card) card.classList.add('translate-x-12', 'opacity-50');
+                    setTimeout(() => {
+                        currentCandidateIndex++;
+                        renderCandidate(currentCandidateIndex);
+                        if (card) card.classList.remove('translate-x-12', 'opacity-50');
+                    }, 180);
+                }
+            } else {
+                alert(data.message || "{% translate 'No fue posible registrar el interés.' %}");
+            }
+        })
+        .catch(err => {
+            console.error('Error registrando like:', err);
+        });
     }
 
     // Avanzar al siguiente candidato tras celebrar el match
     function nextCandidateAfterMatch() {
         closeModal('modal-match-success');
-        currentCandidateIndex = (currentCandidateIndex + 1) % CANDIDATES.length;
+        currentCandidateIndex++;
         renderCandidate(currentCandidateIndex);
     }
 
     // Match rápido desde la barra lateral de interesados
+    function handleSidebarQuickMatch(button) {
+        if (!button) return;
+        const candidateId = button.getAttribute('data-id');
+        const name = button.getAttribute('data-name');
+        const photoUrl = button.getAttribute('data-photo');
+
+        if (candidateId) {
+            fetch('{% url "pets:match_like_candidate" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ candidate_id: candidateId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                quickMatchWith(name, photoUrl);
+            })
+            .catch(() => quickMatchWith(name, photoUrl));
+        } else {
+            quickMatchWith(name, photoUrl);
+        }
+    }
+
     function quickMatchWith(name, photoUrl) {
         const matchName = document.getElementById('match-candidate-name');
         if (matchName) matchName.textContent = name;
@@ -662,9 +929,32 @@
         openModal('modal-match-success');
     }
 
-    function openCandidateInfoModal() {
-        const c = CANDIDATES[currentCandidateIndex % CANDIDATES.length];
-        alert(`${c.name} (${c.breed})\n${c.description}`);
+    // Reporte de candidato con confirmación y llamada asíncrona
+    function openCandidateReportModal() {
+        if (!CANDIDATES || currentCandidateIndex >= CANDIDATES.length) return;
+        const c = CANDIDATES[currentCandidateIndex];
+        const defaultReason = '{% filter escapejs %}{% translate "Información falsa o contenido inapropiado" %}{% endfilter %}';
+        const promptText = `{% filter escapejs %}{% translate "¿Deseas reportar el perfil de" %}{% endfilter %} ${c.name}? {% filter escapejs %}{% translate "Por favor indica el motivo del reporte:" %}{% endfilter %}`;
+        const reason = prompt(promptText, defaultReason);
+        if (reason && reason.trim()) {
+            fetch('{% url "pets:match_report_candidate" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ candidate_id: c.id, reason: reason.trim() })
+            })
+            .then(data => {
+                const successMsg = data.message || '{% filter escapejs %}{% translate "El reporte ha sido enviado al equipo de administración para su revisión." %}{% endfilter %}';
+                alert(successMsg);
+                currentCandidateIndex++;
+                renderCandidate(currentCandidateIndex);
+            })
+            .catch(err => {
+                console.error('Error reportando candidato:', err);
+            });
+        }
     }
 </script>
 {% endblock %}

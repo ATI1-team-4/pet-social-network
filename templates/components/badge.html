@@ -1,21 +1,66 @@
 {% comment %}
-Componente de insignia / etiqueta reutilizable según guía de estilos del prototipo (reto 11, páginas 3 y 4).
-Parámetros:
-- text: Texto de la etiqueta o insignia en sentence case
-- variant: 'compat' (verde menta para compatibilidad/pedigrí) | 'tag' (lila suave para temperamento o búsqueda activa) | 'male' (azul para género masculino) | 'female' (coral para género femenino) (predeterminado: 'compat')
-- icon: Nombre del ícono SVG opcional (ej. 'heart-filled', 'award', 'male', 'female', 'heart')
-- class: Clases CSS complementarias para espaciado, tipografía o sombras adicionales
+Componente de insignia / etiqueta (badge / chip) del sistema Petly.
+Renderiza un <span> informativo o un <button> interactivo si se pasa 'onclick' o 'as_button=True'.
+
+Parámetros principales:
+- text: Texto visible de la insignia o etiqueta.
+- variant: 'compat' (verde menta para pedigrí/match, predeterminado) | 'tag' (lila suave) | 'male' (azul) | 'female' (coral) | 'neutral' (gris suave) | 'danger' (rojo) | 'custom' (sin estilos predefinidos).
+- icon: Nombre del ícono SVG opcional (ej. 'heart-filled', 'award', 'male', 'female', 'location', 'dog').
+- icon_class: Clases CSS para el tamaño del ícono (predeterminado: 'w-3.5 h-3.5').
+- class: Clases CSS de Tailwind adicionales para diseño, borde, padding o fondo.
+
+Parámetros interactivos (Botón / Chip):
+- onclick: Función JS al hacer clic (convierte automáticamente la insignia en un <button>).
+- as_button: Forzar renderizado como <button> aunque no tenga onclick directo.
+- type: 'button' (predeterminado) | 'submit'.
+- id: Identificador único HTML (opcional).
+- title: Tooltip al pasar el cursor.
+- role / aria_selected: Atributos de accesibilidad ARIA (opcional).
+- attrs: Atributos HTML extra personalizados.
+
+Ejemplos de uso rápido:
+  1. Insignia estática de compatibilidad:
+     {% include 'components/badge.html' with text="98% compatible" variant="compat" icon="heart-filled" %}
+
+  2. Chip interactivo con click:
+     {% include 'components/badge.html' with text="Juguetón" variant="tag" onclick="toggleTrait('Juguetón')" %}
 {% endcomment %}
 
-<span class="inline-flex items-center justify-center gap-1.5 shrink-0 select-none whitespace-nowrap {% if variant == 'compat' %}badge-compat{% elif variant == 'male' %}badge-gender-male{% elif variant == 'female' %}badge-gender-female{% elif variant == 'tag' %}badge-tag{% else %}badge-compat{% endif %} {{ class|default:'' }}">
-    {% if icon %}
-        {% include 'components/icon.html' with name=icon class="w-3.5 h-3.5" %}
-    {% elif variant == 'compat' %}
-        {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5" %}
-    {% elif variant == 'male' %}
-        {% include 'components/icon.html' with name="male" class="w-3.5 h-3.5" %}
-    {% elif variant == 'female' %}
-        {% include 'components/icon.html' with name="female" class="w-3.5 h-3.5" %}
-    {% endif %}
-    <span>{{ text }}</span>
-</span>
+{% if onclick or as_button %}
+    <button type="{{ type|default:'button' }}"
+            {% if id %}id="{{ id }}"{% endif %}
+            {% if title %}title="{{ title }}"{% endif %}
+            {% if onclick %}onclick="{{ onclick }}"{% endif %}
+            {% if role %}role="{{ role }}"{% endif %}
+            {% if aria_selected %}aria-selected="{{ aria_selected }}"{% endif %}
+            class="inline-flex items-center justify-center gap-1.5 shrink-0 select-none whitespace-nowrap cursor-pointer transition-all {% if variant == 'custom' or variant == 'none' %}{% elif variant == 'compat' %}badge-compat{% elif variant == 'male' %}badge-gender-male{% elif variant == 'female' %}badge-gender-female{% elif variant == 'tag' %}badge-tag{% elif variant == 'neutral' %}bg-neutral-100 text-neutral-700 border border-neutral-300 rounded-full text-xs font-medium{% elif variant == 'danger' %}bg-rose-100 text-rose-700 border border-rose-200 rounded-full text-xs font-semibold{% else %}badge-compat{% endif %} {{ class|default:'' }}"
+            {{ attrs|default:'' }}>
+        {% if icon %}
+            {% include 'components/icon.html' with name=icon class=icon_class|default:'w-3.5 h-3.5' %}
+        {% elif variant == 'compat' %}
+            {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5" %}
+        {% elif variant == 'male' %}
+            {% include 'components/icon.html' with name="male" class="w-3.5 h-3.5" %}
+        {% elif variant == 'female' %}
+            {% include 'components/icon.html' with name="female" class="w-3.5 h-3.5" %}
+        {% endif %}
+        {% if text %}<span>{{ text }}</span>{% endif %}
+    </button>
+{% else %}
+    <span {% if id %}id="{{ id }}"{% endif %}
+          {% if title %}title="{{ title }}"{% endif %}
+          {% if role %}role="{{ role }}"{% endif %}
+          class="inline-flex items-center justify-center gap-1.5 shrink-0 select-none whitespace-nowrap {% if variant == 'custom' or variant == 'none' %}{% elif variant == 'compat' %}badge-compat{% elif variant == 'male' %}badge-gender-male{% elif variant == 'female' %}badge-gender-female{% elif variant == 'tag' %}badge-tag{% elif variant == 'neutral' %}bg-neutral-100 text-neutral-700 border border-neutral-300 rounded-full text-xs font-medium{% elif variant == 'danger' %}bg-rose-100 text-rose-700 border border-rose-200 rounded-full text-xs font-semibold{% else %}badge-compat{% endif %} {{ class|default:'' }}"
+          {{ attrs|default:'' }}>
+        {% if icon %}
+            {% include 'components/icon.html' with name=icon class=icon_class|default:'w-3.5 h-3.5' %}
+        {% elif variant == 'compat' %}
+            {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5" %}
+        {% elif variant == 'male' %}
+            {% include 'components/icon.html' with name="male" class="w-3.5 h-3.5" %}
+        {% elif variant == 'female' %}
+            {% include 'components/icon.html' with name="female" class="w-3.5 h-3.5" %}
+        {% endif %}
+        {% if text %}<span>{{ text }}</span>{% endif %}
+    </span>
+{% endif %}

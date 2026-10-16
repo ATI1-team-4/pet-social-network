@@ -1,6 +1,10 @@
+from datetime import date
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+
+from apps.pets.models import Pet, PetSpecies
 
 User = get_user_model()
 
@@ -11,6 +15,19 @@ class InternationalizationTests(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='edwyn')
         self.client.force_login(self.user)
+        self.species, _ = PetSpecies.objects.get_or_create(
+            slug='perro',
+            defaults={'name': 'Perro', 'icon_name': 'dog'},
+        )
+        self.pet = Pet.objects.create(
+            owner=self.user,
+            name='Simba',
+            species=self.species,
+            breed='Golden Retriever',
+            gender=Pet.Gender.MACHO,
+            birth_date=date(2022, 5, 10),
+            is_active_for_match=True,
+        )
 
     def test_default_language_is_spanish(self):
         """Verifica que el idioma predeterminado del sistema sea español."""
@@ -37,3 +54,19 @@ class InternationalizationTests(TestCase):
         self.assertContains(response_en, 'Find a match')
         self.assertContains(response_en, 'Interested')
         self.assertContains(response_en, 'Terms of service')
+
+    def test_pet_management_english_translations_and_sentence_case(self):
+        """Verifica que pet_management traduzca al inglés en sentence case (incluyendo botón y modal de eliminar)."""
+        self.client.post(
+            reverse('set_language'),
+            {'language': 'en', 'next': reverse('pets:pet_management')},
+            headers={'host': 'localhost'},
+        )
+        response_en = self.client.get(reverse('pets:pet_management'), headers={'host': 'localhost'})
+        self.assertEqual(response_en.status_code, 200)
+        self.assertContains(response_en, 'Delete pet')
+        self.assertContains(response_en, 'Discard changes')
+        self.assertContains(response_en, 'Preview')
+        self.assertContains(response_en, 'Save changes')
+        self.assertContains(response_en, 'Keep pet')
+        self.assertContains(response_en, 'Delete permanently')

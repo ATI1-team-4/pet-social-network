@@ -48,19 +48,30 @@ cd pet-social-network
 # 2. Construir las imágenes y levantar los servicios en segundo plano
 docker compose up -d --build
 
-# 3. Aplicar las migraciones (obligatorio la primera vez que se inicia el proyecto)
+# 3. Aplicar las migraciones (obligatorio la primera vez que se inicia el proyecto o cada vez que cambien/se agreguen migraciones)
 docker compose exec web python manage.py migrate
+
+# 4. Poblar datos iniciales de prueba (mascotas, solicitudes de match y citas)
+docker compose exec web python manage.py seed_pets
 ```
 
 La aplicación estará lista y accesible en [http://localhost:8000/](http://localhost:8000/).
 
 > [!NOTE]
-> **Migraciones iniciales y persistencia en el volumen de Docker:**
-> - La ejecución del comando de migraciones (`python manage.py migrate`) es **estrictamente obligatoria la primera vez** que levantas el proyecto para inicializar el archivo `db.sqlite3` con todas las tablas del sistema dentro del volumen.
+> **Migraciones de base de datos y persistencia en el volumen de Docker:**
+> - La ejecución del comando de migraciones (`python manage.py migrate`) es **estrictamente obligatoria la primera vez** que levantas el proyecto para inicializar el archivo `db.sqlite3` con todas las tablas del sistema dentro del volumen, así como **cada vez que se agreguen, modifiquen o reciban cambios en las migraciones** (ej. tras hacer `git pull` de una rama con actualizaciones en los modelos).
 > - **Carga automática de roles y usuarios:** Al aplicar las migraciones, el sistema crea automáticamente los roles de seguridad (`Tutor` y `Administrador`) y las cuentas de prueba de todos los desarrolladores con la contraseña `123456789`, por lo que **no es necesario crear usuarios ni superusuarios manualmente**.
 > - La base de datos SQLite vive y se resguarda dentro del **volumen administrado por Docker (`petly_db_data`)**, el cual opera de forma totalmente aislada de tu sistema de archivos local.
 > - Aunque elimines archivos en tu máquina anfitriona o no exista una carpeta local `data/`, **la base de datos dentro del volumen NO se borra ni se ve afectada**.
 > - La base de datos únicamente se reiniciará o borrará si ejecutas explícitamente `docker compose down -v` (con la bandera `-v` de volúmenes). Con el comando habitual `docker compose down`, todos tus datos se conservan íntegros para el siguiente inicio.
+
+> [!TIP]
+> **Datos de prueba para desarrollo (`seed_pets`):**
+> Para comenzar a programar y probar funcionalidades de inmediato con un entorno poblado (mascotas, solicitudes de match, citas presenciales y reportes asignados a los usuarios de desarrollo), ejecuta:
+> ```bash
+> docker compose exec web python manage.py seed_pets
+> ```
+> Este comando es **idempotente** (puedes ejecutarlo cuantas veces desees sin duplicar datos) y crea 17 mascotas con perfiles diversos (perros y gatos de distintas edades, razas y géneros), 13 solicitudes de emparejamiento (`MatchRequest`) en todos los estados del ciclo de vida (`pending`, `accepted`, `rejected`), 6 citas de encuentro (`PetMeetup`) y actualiza los perfiles de los usuarios con preferencias y calificaciones de prueba.
 
 > [!TIP]
 > **¿Cómo inspeccionar la base de datos desde tu editor o visor de SQLite (VS Code, DBeaver, SQLite Viewer)?**
@@ -111,6 +122,7 @@ docker compose exec web pip install <nombre-del-paquete>
 | Reconstruir e iniciar contenedores | `docker compose up -d --build` |
 | Ver logs en vivo de Django y Tailwind | `docker compose logs -f web` |
 | Ver logs en vivo de la base de datos | `docker compose logs -f db` |
+| Poblar base de datos con datos de prueba (`seed_pets`) | `docker compose exec web python manage.py seed_pets` |
 | Ejecutar las pruebas unitarias | `docker compose exec web python manage.py test` |
 | Crear un superusuario administrador | `docker compose exec web python manage.py createsuperuser` |
 | Copiar base de datos viva al host (para SQLite Viewer / DBeaver) | `docker compose cp web:/app/data/db.sqlite3 ./data/db.sqlite3` |
@@ -130,10 +142,13 @@ source .venv/bin/activate
 # 2. Instalar dependencias
 pip install -r requirements.txt
 
-# 3. Aplicar migraciones
+# 3. Aplicar migraciones (la primera vez o cada vez que cambien las migraciones)
 python manage.py migrate
 
-# 4. Iniciar el servidor
+# 4. Poblar datos iniciales de prueba (mascotas, matches y citas)
+python manage.py seed_pets
+
+# 5. Iniciar el servidor
 python manage.py runserver
 ```
 
@@ -169,6 +184,25 @@ Para facilitar las pruebas de autenticación, diseño y flujos de usuario a todo
 
 > [!TIP]
 > Puedes iniciar sesión ingresando indistintamente el **correo electrónico** o el **nombre de usuario** junto con la contraseña en la pantalla de [Inicio de sesión](http://localhost:8000/accounts/login/).
+
+### 🌱 Datos de prueba precargados (`seed_pets`)
+
+Al ejecutar el comando `python manage.py seed_pets`, se inicializan automáticamente mascotas e interacciones asignadas a las cuentas de desarrollo con la contraseña universal `123456789`:
+
+| Usuario | Mascotas asignadas | Actividad y casos de prueba disponibles |
+| :--- | :--- | :--- |
+| `edwyn` | **Max** (Pastor Alemán, M) y **Bella** (Pomerania, H) | Solicitudes de match pendientes y aceptadas, cita confirmada en Parque del Este para probar flujos de emparejamiento. |
+| `admin` | **Toby** (Bulldog Francés, M) y **Luna** (Golden Retriever, H) | Acceso de superusuario (`/admin/`), reportes de moderación y auditoría de citas. |
+| `stefany` | **Rocky** (Beagle, M) y **Mia** (Gata Siamés, H) | Casos multi-especie (perro y gato), citas propuestas y solicitudes rechazadas. |
+| `tutor` | **Bruno** (Labrador, M) y **Coco** (Husky Siberiano, M) | Cita completada con valoración histórica y perfiles con pedigrí certificado. |
+| `sofia` | **Daisy** (Caniche Toy, H), **Simbad** (Gato Persa, M) y **Thor** (Rottweiler, M) | Usuario con 3 mascotas de distintas especies para probar el selector de mascota activa. |
+| `maria` | **Nala** (Border Collie, H) y **Milo** (Gato Bengalí, M) | Solicitudes entrantes y salientes de socialización. |
+| `bryan` | **Simba** (Akita Inu, M) y **Kira** (Samoyedo, H) | Pruebas de compatibilidad geográfica y distancias de búsqueda. |
+| `oriana` | **Chloe** (Dálmata, H) y **Oliver** (Cavalier King Charles, M) | Cita cancelada de prueba y solicitudes pendientes para validar flujos de interfaz. |
+
+> [!NOTE]
+> **Imágenes predeterminadas:**
+> Todas las mascotas y perfiles de usuario creados por el comando de semilla utilizan los avatares predeterminados en formato SVG (`/static/images/pets/default_avatar.svg` y `/static/images/avatars/default_avatar.svg`), por lo que no requieren archivos multimedia externos ni consumen almacenamiento en disco.
 
 ## 📁 Estructura del proyecto
 
@@ -245,9 +279,10 @@ Para evitar subcarpetas innecesariamente anidadas y permitir identificar inmedia
 
 | Categoría | Convención del nombre de archivo | Ejemplo ilustrativo | Ventaja de identificación |
 | :--- | :--- | :--- | :--- |
-| **Avatar de usuario** | `avatars/user_{user_id}_avatar_{timestamp}.{ext}` | `media/avatars/user_42_avatar_20260915_143000.webp` | Identifica al usuario dueño directamente desde el archivo. |
-| **Foto de mascota** | `pets/user_{owner_id}_pet_{pet_id}_{tipo}_{id_unico}.{ext}` | `media/pets/user_42_pet_7_avatar_20260915_143000.jpg` | Asocia la mascota con su dueño actual y el ID de la mascota. |
-| **Multimedia de post** | `posts/user_{author_id}_post_{post_id}_{tipo}_{hash}.{ext}` | `media/posts/user_42_post_105_img_9f8e7d6c.png` | Atribuye el contenido al autor y post para auditoría y moderación. |
+| **Avatar de usuario** | `avatars/user_{user_id}_avatar_{id_unico}.{ext}` | `media/avatars/user_42_avatar_9f8e7d6c.webp` | Identifica al usuario dueño directamente desde el archivo. |
+| **Foto de mascota** | `pets/user_{owner_id}_pet_{pet_id}_{tipo}_{id_unico}.{ext}` | `media/pets/user_42_pet_7_avatar_9f8e7d6c.jpg` | Asocia la mascota con su dueño actual y el ID de la mascota. |
+| **Multimedia de post** | `posts/user_{author_id}_post_{post_id}_{tipo}_{id_unico}.{ext}` | `media/posts/user_42_post_105_img_9f8e7d6c.png` | Atribuye el contenido al autor y post para auditoría y moderación. |
+
 
 > [!IMPORTANT]
 > **Nota sobre la estructura de carpetas e identificadores únicos:**
@@ -307,6 +342,22 @@ Las ramas de trabajo se derivan habitualmente de `develop` (salvo los `hotfix` q
      git branch -d nombre-de-la-rama
      git fetch -p   # Limpia las referencias locales a ramas remotas ya eliminadas
      ```
+
+### 📋 Estándar de desarrollo para cualquier tarea o cambio en el código
+
+Para **cualquier tarea que se vaya a realizar en el código** —ya sea una nueva funcionalidad, corrección de errores, refactorización o tarea planificada en un issue del proyecto— es **estricto y mandatorio** cumplir con las siguientes directrices:
+
+1. **Principio de Responsabilidad Única (SRP) en Controladores de Vista (`views.py`):**
+   - **Una única intención por vista:** Cada vista debe resolver exactamente una responsabilidad. Queda terminantemente prohibido sobrecargar una misma vista con múltiples operaciones de negocio, múltiples pantallas o flujos dispares.
+   - **Separación de consulta (`GET`) y mutación (`POST`):** Las vistas principales de pantalla deben ser exclusivamente de renderizado/lectura (`GET`). Toda acción que cree, modifique, elimine o altere estado (en base de datos o en sesión) debe contar con su propio endpoint dedicado protegido con `@require_POST` (ejemplo: `pet_save_view`, `pet_set_active_view`, `pet_delete_view`).
+   - **Cero delegación oculta:** Las vistas de pantalla `GET` no deben capturar `if request.method == 'POST'` para delegar o ejecutar lógica de guardado; la acción de mutación debe vivir en su propio endpoint independiente y los formularios deben apuntar directamente a su URL.
+   - **Vistas delgadas (Thin Views):** La vista únicamente orquesta la petición HTTP: valida la entrada mediante `forms.py`, delega la lógica a `services.py` y responde con redirección o plantilla.
+
+2. **Checklist obligatorio antes de dar por terminada cualquier tarea de código:**
+   - [ ] **SRP en vistas:** Cada vista implementada o modificada tiene una única responsabilidad bien delimitada.
+   - [ ] **Métodos HTTP explícitos:** Las acciones de mutación usan `@require_POST` y las pantallas solo responden a `GET`.
+   - [ ] **Lógica en servicios:** Reglas de negocio y mutaciones complejas encapsuladas en `apps/<modulo>/services.py`.
+   - [ ] **Pruebas unitarias:** Tests que verifican casos de éxito, validaciones y rechazo de métodos no permitidos (`405 Method Not Allowed`).
 
 ### 🤖 Integración continua (CI) con GitHub Actions
 
@@ -408,6 +459,38 @@ from apps.accounts.models import UserProfile
 - **Metadatos obligatorios (`class Meta`):** Definir siempre `verbose_name`, `verbose_name_plural` y el ordenamiento predeterminado (`ordering`).
 - **Auditoría temporal estándar:** Utilizar campos de fecha automáticos (`created_at` con `auto_now_add=True` para creación y `updated_at` con `auto_now=True` para modificación).
 
+### 🗄️ Modelo Entidad-Relación (MER / DER) del MVP
+
+El sistema implementa un modelo de datos relacional normalizado y desacoplado para soportar los casos de uso del MVP (**UC-02**: Gestión de perfil principal / humano, **UC-03**: Gestión de perfiles de mascota y **UC-08**: Búsqueda de parejas y socialización):
+
+<p align="center">
+  <img src="docs/petly_er_mvp.png" alt="Modelo Entidad-Relación del MVP de Petly" width="100%" />
+</p>
+
+> [!NOTE]
+> El diagrama fuente se encuentra versionado en formato PlantUML en [docs/diagrama_er_mvp.puml](docs/diagrama_er_mvp.puml), permitiendo compilar o regenerar el esquema ante cualquier evolución del modelo de datos.
+
+#### 📋 Catálogo de entidades y cardinalidades del MVP
+
+| Módulo / Paquete | Entidad (Tabla) | Modelo Django | Descripción y cardinalidades clave |
+| :--- | :--- | :--- | :--- |
+| **`django.contrib.auth`** | `auth_user` | `User` | Tabla nativa de seguridad y autenticación. <br>• **`1 : 1`** con `UserProfile` (extensión de perfil humano).<br>• **`1 : N`** con `Pet` (un usuario es dueño de 0..N mascotas).<br>• **`1 : N`** con `UserReport` (`reported_by` y `reported_user`).<br>• **`0..1 : N`** con `AuditLog` (eventos de seguridad). |
+| **`apps.accounts`** | `accounts_userprofile` | `UserProfile` | Perfil extendido del tutor con cédula, teléfono, ubicación granular (`state`, `municipality`, `neighborhood`), coordenadas geográficas y preferencias de afinidad. |
+| **`apps.accounts`** | `accounts_userreport` | `UserReport` | Denuncias de moderación emitidas por tutores sobre usuarios o mascotas inapropiadas en el feed. |
+| **`apps.pets`** | `pets_petspecies` | `PetSpecies` | Catálogo configurable de especies (Perro, Gato, etc.) con íconos dinámicos.<br>• **`1 : N`** con `Pet` (clasifica especies sin alterar código). |
+| **`apps.pets`** | `pets_pet` | `Pet` | Perfil biológico y social de la mascota (raza, sexo, fecha de nacimiento, peso, fotos, certificados FCI/pedigrí, marcas de búsqueda y color temático). |
+| **`apps.pets`** | `pets_matchrequest` | `MatchRequest` | Solicitudes direccionales de conexión entre mascotas (`from_pet` ➔ `to_pet`) con estados `pending`, `accepted` y `rejected`.<br>• Modela la relación **`N : M`** de interés entre mascotas con restricción de unicidad y check para evitar auto-emparejamiento. |
+| **`apps.pets`** | `pets_petmeetup` | `PetMeetup` | Citas y encuentros presenciales en parques caninos verificados, con fecha, hora, ubicación y estados `proposed`, `confirmed`, `completed` y `cancelled`.<br>• **`0..1 : N`** con `MatchRequest` (originada tras un match mutuo).<br>• Modela la relación **`N : M`** de encuentros entre `host_pet` (anfitriona) y `guest_pet` (invitada). |
+| **`apps.core`** | `core_auditlog` | `AuditLog` | Registro y trazabilidad de eventos de seguridad y accesos al sistema. |
+
+### 🛡️ Regla arquitectónica general: Principio de Responsabilidad Única (SRP) en Vistas
+
+En todas las aplicaciones del proyecto (`apps/accounts/`, `apps/pets/`, `apps/core/`, y cualquier módulo futuro), **las vistas deben tener una única responsabilidad**:
+
+- **Vistas de pantalla / lectura (`GET`):** Su única función es preparar el contexto y renderizar la plantilla HTML correspondiente. No deben mutar estado ni contener lógica condicional para procesar envíos de formularios.
+- **Vistas de acción / mutación (`POST`):** Cada acción de modificación (guardar datos, alternar selecciones activas, eliminar registros, cambiar estados) debe contar con su propio endpoint dedicado decorado con `@require_POST`.
+- **Desacoplamiento:** No se permite que una vista de visualización capture llamadas POST para delegar manualmente hacia otra vista (`if request.method == 'POST': return other_view(request)`). Cada formulario en las plantillas HTML debe apuntar directamente (`action="{% url ... %}"`) al endpoint específico de la acción.
+
 ### 📐 Criterios de diseño arquitectónico: ¿Cuándo usar Clases y cuándo Funciones?
 
 Para mantener coherencia estilística e idiomática en todo el repositorio y evitar sobreingeniería, el equipo sigue estas pautas para cada capa:
@@ -416,7 +499,7 @@ Para mantener coherencia estilística e idiomática en todo el repositorio y evi
 | :--- | :--- | :--- | :--- |
 | **Formularios y Validación** | `forms.py` | **Obligatorio: Clases** (`forms.Form`, `forms.ModelForm`) | **Django se apoya en POO para formularios:** Permite declarar campos tipados con widgets HTML, autolimpiar datos en `cleaned_data`, implementar validaciones unitarias en métodos `clean_<campo>()` (ej: verificar unicidad de correo) y validaciones cruzadas en `clean()` (ej: comprobar coincidencia de contraseñas). **Nunca procesar entradas POST crudas con funciones artesanales.** |
 | **Lógica de Negocio y Dominio** | `services.py` | **Preferente: Funciones puras** (Stateless Functions) | En Python los archivos son *namespaces* naturales. **No crear clases artificiales con `@staticmethod`** (anti-patrón de lenguajes como Java/C#). Las funciones puras son sin estado (*stateless*), previenen condiciones de carrera entre hilos y son sumamente fáciles de aislar en pruebas unitarias. <br>*(Usar clases en servicios únicamente cuando se deba encapsular estado persistente de conexión, clientes de APIs externas o patrones Strategy con polimorfismo).* |
-| **Controladores de Vista** | `views.py` | **Vistas Delgadas (Thin Views):** Funciones (FBVs) o Clases (CBVs) | La vista **solo orquesta el ciclo HTTP**: recibe la petición, delega la validación de entrada a `forms.py`, delega la mutación/negocio a `services.py` y retorna una redirección o renderizado. No debe contener lógica de negocio ni consultas complejas inline. |
+| **Controladores de Vista** | `views.py` | **Vistas Delgadas y Responsabilidad Única (SRP):** Funciones (FBVs) o Clases (CBVs) | **Principio de Responsabilidad Única (SRP):** Cada vista atiende una única intención del usuario. Se prohíbe mezclar pantallas de consulta/renderizado (`GET`) con acciones de mutación (`POST`) o sobrecargar un endpoint con múltiples operaciones. Si una pantalla requiere acciones (guardar, activar, eliminar), cada una debe contar con su propio endpoint dedicado decorado con `@require_POST`, delegando el negocio a `services.py`. |
 | **Persistencia y Entidades** | `models.py` | **Obligatorio: Clases** (`models.Model`) | Representan las tablas del ORM. Se recomienda enriquecer el modelo con métodos de dominio propios que muten el estado de la propia instancia (ej. `pet.mark_as_adopted()`). |
 | **Pruebas y Verificación** | `tests/` (`test_*.py`) | **Obligatorio: Clases** (`TestCase`, `SimpleTestCase`) | **El test runner nativo de Django (`unittest`) se fundamenta en clases:** Heredar de `django.test.TestCase` provee aislamiento transaccional automático (rollback por prueba), acceso a `self.client` (sesiones, cookies y CSRF), hooks de ciclo de vida (`setUpTestData`, `setUp`, `tearDown`) y aserciones especializadas del framework (`assertRedirects`, `assertTemplateUsed`, `assertContains`). |
 

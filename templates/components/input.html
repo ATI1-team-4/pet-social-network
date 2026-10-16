@@ -1,25 +1,38 @@
 {% load i18n %}
 {% comment %}
-Componente de campo de entrada redondeado (pill input) según guía de estilos del prototipo.
-Responsabilidad única: Renderizado del campo de entrada y sus controles asociados (íconos, callbacks).
+Componente de campo de entrada redondeado (pill input) del sistema Petly.
 
-Parámetros:
-- name: Nombre del campo
-- id: Identificador único (opcional, usa name si no se provee)
-- type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'date' (predeterminado: 'text')
-- placeholder: Texto de ayuda o ejemplo
-- value: Valor actual
-- required: true | false
-- icon: Nombre del ícono inicial SVG opcional (ej. 'mail', 'lock', 'user')
-- icon_end: Nombre del ícono final SVG opcional (ej. 'eye')
-- icon_end_onclick: Callback JavaScript a ejecutar al hacer clic en icon_end (ej. "togglePassword('id')")
-- icon_end_aria_label: Etiqueta descriptiva para accesibilidad del botón del ícono final
-- error: Mensaje de error de validación
-- helper_text: Texto aclaratorio inferior
-- class: Clases complementarias para el contenedor
-- input_class: Clases complementarias para la etiqueta <input>
-- attrs: Atributos HTML adicionales para <input>
-- label: Etiqueta opcional para compatibilidad con paleta de componentes
+Parámetros principales:
+- name: Nombre del campo enviado al backend (requerido en formularios).
+- id: Identificador único HTML (opcional, usa 'name' por defecto).
+- type: 'text' (predeterminado) | 'email' | 'password' | 'number' | 'tel' | 'date'.
+- placeholder: Texto de sugerencia interior (predeterminado: 'Escribir').
+- value: Valor actual o inicial del campo.
+- label: Etiqueta visible sobre el input (opcional).
+- required: Booleano (True | False) si el campo es obligatorio.
+- icon: Nombre del ícono SVG inicial (ej. 'mail', 'lock', 'user', 'calendar', 'phone').
+- error: Mensaje de error de validación (muestra texto en rojo y borde resaltado).
+- helper_text: Texto aclaratorio inferior en color neutral.
+
+Eventos y personalización avanzada:
+- oninput: Código o función JS ejecutada al tipear (ej. "filtrar(this.value)").
+- onchange: Código o función JS ejecutada al cambiar valor.
+- onblur / onfocus: Callbacks de foco (opcional).
+- icon_end: Nombre del ícono SVG al final (ej. 'eye' para contraseñas).
+- icon_end_onclick: Función JS al pulsar el ícono final (ej. "togglePassword('id')").
+- disabled / readonly: Booleanos para deshabilitar o proteger el campo.
+- maxlength / min / max / step: Atributos numéricos o de longitud.
+- prefix_slot: HTML personalizado inyectado al inicio (ej. selector de prefijo de país).
+- class: Clases CSS para el contenedor exterior.
+- input_class: Clases CSS añadidas al elemento <input>.
+- attrs: Atributos HTML adicionales libres (ej. 'autocomplete="username"').
+
+Ejemplos de uso rápido:
+  1. Campo básico de texto:
+     {% include 'components/input.html' with name="city" label="Ciudad" placeholder="Ej. Caracas" icon="location" %}
+
+  2. Campo de contraseña con alternancia:
+     {% include 'components/input.html' with name="password" type="password" label="Contraseña" icon="lock" icon_end="eye" icon_end_onclick="togglePass('password')" required=True %}
 {% endcomment %}
 
 <div class="w-full flex flex-col gap-1.5 {{ class|default:'' }}">
@@ -29,11 +42,9 @@ Parámetros:
         </label>
     {% endif %}
 
-    <div class="relative flex items-center">
-        {% if icon %}
-            <span class="absolute left-4 text-neutral-400 pointer-events-none flex items-center justify-center">
-                {% include 'components/icon.html' with name=icon class="w-4 h-4" %}
-            </span>
+    <div class="relative flex items-center {% if prefix_slot %}rounded-full bg-petly-ice border {% if error %}border-petly-coral ring-1 ring-petly-coral/30{% else %}border-petly-blue/80{% endif %} focus-within:border-petly-coral focus-within:bg-white focus-within:ring-2 focus-within:ring-petly-coral/30 transition-all overflow-hidden{% endif %}">
+        {% if prefix_slot %}
+            {{ prefix_slot|safe }}
         {% endif %}
 
         <input
@@ -43,24 +54,50 @@ Parámetros:
             value="{{ value|default:'' }}"
             placeholder="{{ placeholder|default:'Escribir' }}"
             {% if required %}required{% endif %}
+            {% if disabled %}disabled{% endif %}
+            {% if readonly %}readonly{% endif %}
+            {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
+            {% if min %}min="{{ min }}"{% endif %}
+            {% if max %}max="{{ max }}"{% endif %}
+            {% if step %}step="{{ step }}"{% endif %}
+            {% if pattern %}pattern="{{ pattern }}"{% endif %}
+            {% if oninput %}oninput="{{ oninput }}"{% endif %}
+            {% if onchange %}onchange="{{ onchange }}"{% endif %}
+            {% if onblur %}onblur="{{ onblur }}"{% endif %}
+            {% if onfocus %}onfocus="{{ onfocus }}"{% endif %}
+            {% if onclick %}onclick="{{ onclick }}"{% elif type == 'date' or type == 'time' %}onclick="if ('showPicker' in this) { try { this.showPicker(); } catch(e) {} }"{% endif %}
             {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
-            class="input-petly {% if icon %}has-icon pl-11{% endif %} {% if icon_end %}has-icon-end pr-11{% endif %} {% if error %}border-petly-coral ring-1 ring-petly-coral/30{% endif %} {{ input_class|default:'' }}"
+            class="{% if prefix_slot %}flex-1 w-full bg-transparent border-0 px-4 py-2 text-xs sm:text-sm text-neutral-800 placeholder-neutral-500 focus:outline-none focus:ring-0{% else %}input-petly {% if icon or icon_start or type == 'date' or type == 'time' and not icon_end %}has-icon pl-11{% endif %} {% if icon_end %}has-icon-end pr-11{% endif %} {% if type == 'date' or type == 'time' %}cursor-pointer{% endif %} {% if error %}border-petly-coral ring-1 ring-petly-coral/30{% endif %}{% endif %} {{ input_class|default:'' }}"
             {{ attrs|default:'' }}
         >
 
+        {% if not prefix_slot %}
+            {% if icon or icon_start or type == 'date' or type == 'time' and not icon_end %}
+                {% if type == 'time' %}
+                    {% with final_left_icon=icon_start|default:icon|default:'clock' %}
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none flex items-center justify-center z-10">
+                        {% include 'components/icon.html' with name=final_left_icon class=icon_class|default:'w-4 h-4' %}
+                    </span>
+                    {% endwith %}
+                {% else %}
+                    {% with final_left_icon=icon_start|default:icon|default:'calendar' %}
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none flex items-center justify-center z-10">
+                        {% include 'components/icon.html' with name=final_left_icon class=icon_class|default:'w-4 h-4' %}
+                    </span>
+                    {% endwith %}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+
+        {% if type == 'date' and not icon_end or type == 'time' and not icon_end %}
+            <span class="date-overlay-mask" aria-hidden="true"></span>
+        {% endif %}
+
         {% if icon_end %}
             {% if icon_end_onclick %}
-                <button
-                    type="button"
-                    tabindex="-1"
-                    aria-label="{{ icon_end_aria_label|default:'Acción' }}"
-                    onclick="{{ icon_end_onclick }}"
-                    class="absolute right-4 pr-1 text-neutral-400 hover:text-neutral-600 cursor-pointer flex items-center justify-center focus:outline-none transition-colors"
-                >
-                    {% include 'components/icon.html' with name=icon_end class="w-4 h-4" %}
-                </button>
+                {% include 'components/button.html' with type="button" id="" name="" variant="custom" icon=icon_end icon_end="" icon_class="w-4 h-4" onclick=icon_end_onclick aria_label=icon_end_aria_label|default:'Acción' attrs='tabindex="-1"' class="absolute right-4 top-1/2 -translate-y-1/2 pr-1 text-neutral-400 hover:text-neutral-600 cursor-pointer flex items-center justify-center focus:outline-none transition-colors z-10" %}
             {% else %}
-                <span class="absolute right-4 pr-1 text-neutral-400 flex items-center justify-center pointer-events-none">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 pr-1 text-neutral-400 flex items-center justify-center pointer-events-none z-10">
                     {% include 'components/icon.html' with name=icon_end class="w-4 h-4" %}
                 </span>
             {% endif %}

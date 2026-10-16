@@ -20,12 +20,56 @@ class AccountsViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'accounts/login.html')
 
+    def test_login_redirects_to_next_url(self):
+        """El inicio de sesión redirige a next_url si es seguro; de lo contrario a pet_select."""
+        login_data = {
+            'email': 'edwyn@petly.com',
+            'password': '123456789',
+            'next': '/accounts/profile/',
+        }
+        response = self.client.post(reverse('accounts:login'), login_data)
+        self.assertRedirects(response, '/accounts/profile/')
+
+        # Usuario autenticado que navega a login con next
+        user = User.objects.get(username='edwyn')
+        self.client.force_login(user)
+        response_auth = self.client.get(f'{reverse("accounts:login")}?next=/accounts/profile/')
+        self.assertRedirects(response_auth, '/accounts/profile/')
+        self.client.logout()
+
+        # Evitar redirecciones abiertas a hosts no permitidos
+        unsafe_data = {
+            'email': 'edwyn@petly.com',
+            'password': '123456789',
+            'next': 'https://malicious-external-site.com/steal-token',
+        }
+        response_unsafe = self.client.post(reverse('accounts:login'), unsafe_data)
+        self.assertRedirects(response_unsafe, reverse('pets:pet_select'), target_status_code=302)
+
     def test_register_url_and_view(self):
         url = reverse('accounts:register')
         self.assertEqual(resolve(url).func, views.register_view)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'accounts/register.html')
+
+    def test_register_redirects_to_next_url(self):
+        """El registro exitoso redirige al parámetro next si es seguro."""
+        register_data = {
+            'full_name': 'Daniel Rivas',
+            'email': 'daniel.rivas@petly.com',
+            'phone_prefix': '+58',
+            'phone': '4123334455',
+            'id_type': 'V',
+            'id_number': '30111222',
+            'password': 'Password123',
+            'password_confirm': 'Password123',
+            'next': '/accounts/profile/',
+        }
+        response = self.client.post(
+            f'{reverse("accounts:register")}?next=/accounts/profile/', register_data
+        )
+        self.assertRedirects(response, '/accounts/profile/')
 
     def test_password_reset_url_and_view(self):
         url = reverse('accounts:password_reset')
@@ -53,6 +97,43 @@ class AccountsViewsTests(TestCase):
         response_auth = self.client.get(url)
         self.assertEqual(response_auth.status_code, 200)
         self.assertTemplateUsed(response_auth, 'accounts/user_profile.html')
+        self.assertIn('user_pets', response_auth.context)
+        self.assertEqual(response_auth.context['pets_count'], user.pets.count())
+        self.assertIn('active_connections_count', response_auth.context)
+
+    def test_profile_save_view_post_updates_profile(self):
+        url = reverse('accounts:profile_save')
+        self.assertEqual(resolve(url).func, views.profile_save_view)
+
+        user = User.objects.get(username='edwyn')
+        self.client.force_login(user)
+
+        response = self.client.post(
+            url,
+            {
+                'full_name': 'Edwyn Jesús',
+                'email': 'edwyn.updated@petly.com',
+                'phone': '+58 412 111 2233',
+                'state': 'Miranda',
+                'municipality': 'Chacao',
+                'neighborhood': 'Los Palos Grandes',
+                'favorite_color': 'Azul Eléctrico',
+                'latitude': '10.4990',
+                'longitude': '-66.8480',
+            },
+        )
+        self.assertRedirects(response, reverse('accounts:profile'))
+        user.refresh_from_db()
+        self.assertEqual(user.first_name, 'Edwyn')
+        self.assertEqual(user.last_name, 'Jesús')
+        self.assertEqual(user.profile.phone_number, '+58 412 111 2233')
+        self.assertEqual(user.profile.state, 'Miranda')
+        self.assertEqual(user.profile.municipality, 'Chacao')
+        self.assertEqual(user.profile.neighborhood, 'Los Palos Grandes')
+        self.assertEqual(user.profile.city, 'Chacao')
+        self.assertEqual(user.profile.favorite_color, 'Azul Eléctrico')
+        self.assertEqual(user.profile.latitude, 10.4990)
+        self.assertEqual(user.profile.longitude, -66.8480)
 
 
 class AccountsSecurityAndAuditTests(TestCase):
@@ -76,7 +157,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'password_confirm': 'Password123',
         }
         response = self.client.post(reverse('accounts:register'), register_data)
-        self.assertRedirects(response, reverse('pets:pet_select'))
+        self.assertRedirects(response, reverse('pets:pet_select'), target_status_code=302)
 
         user = User.objects.filter(email='carlos@petly.com').first()
         self.assertIsNotNone(user)
@@ -130,7 +211,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'password_confirm': 'Password123',
         }
         response = self.client.post(reverse('accounts:register'), foreigner_data)
-        self.assertRedirects(response, reverse('pets:pet_select'))
+        self.assertRedirects(response, reverse('pets:pet_select'), target_status_code=302)
 
         user = User.objects.filter(email='hans.muller@petly.com').first()
         self.assertIsNotNone(user)
@@ -147,7 +228,7 @@ class AccountsSecurityAndAuditTests(TestCase):
             'remember_me': True,
         }
         response = self.client.post(reverse('accounts:login'), login_data)
-        self.assertRedirects(response, reverse('pets:pet_select'))
+        self.assertRedirects(response, reverse('pets:pet_select'), target_status_code=302)
 
         user = User.objects.get(username='edwyn')
         login_log = AuditLog.objects.filter(action='LOGIN_SUCCESS', user=user).first()

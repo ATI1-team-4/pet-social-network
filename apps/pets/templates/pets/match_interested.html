@@ -6,7 +6,7 @@
 {% block content %}
 <div class="max-w-6xl mx-auto py-2 sm:py-6 space-y-6">
 
-    <!-- Mensajes flash del sistema si existen -->
+    <!-- Mensajes flash del sistema alineados con el contenedor de la página -->
     {% include 'components/messages.html' %}
 
     <!-- Miga de pan de navegación oficial -->
@@ -15,12 +15,19 @@
     {% translate "Mascotas interesadas" as current_bc %}
     {% include 'components/breadcrumbs.html' with parent_label=parent_bc parent_url=feed_url current_label=current_bc %}
 
-
     <!-- Banner superior de pretendientes esperando respuesta -->
     <div class="flex items-center gap-2">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-petly-lilac text-petly-purple shadow-xs">
+        <span
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-petly-lilac text-petly-purple shadow-xs">
             <span class="w-2 h-2 rounded-full bg-purple-600 animate-pulse"></span>
-            <span>{% blocktranslate count counter=interested_count %}{{ counter }} pretendiente esperando respuesta{% plural %}{{ counter }} pretendientes esperando respuesta{% endblocktranslate %}</span>
+            <span id="banner-interested-text">
+                <span id="counter-banner-interested">{{ tab_counters.interested }}</span>
+                {% if tab_counters.interested == 1 %}
+                {% translate "pretendiente esperando respuesta" %}
+                {% else %}
+                {% translate "pretendientes esperando respuesta" %}
+                {% endif %}
+            </span>
         </span>
     </div>
 
@@ -28,31 +35,44 @@
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
             <h1 class="title-h3 sm:title-h2 text-neutral-900 font-bold tracking-tight">
+                {% if active_pet %}
                 {% blocktranslate with name=active_pet.name %}Mascotas interesadas en {{ name }}{% endblocktranslate %}
+                {% else %}
+                {% translate "Bandeja de interesados y solicitudes" %}
+                {% endif %}
             </h1>
             <p class="hidden md:block text-xs sm:text-sm text-neutral-500 max-w-2xl mt-1 leading-relaxed">
+                {% if active_pet %}
                 {% blocktranslate with name=active_pet.name %}
                 Estos tutores han mostrado interés en {{ name }} para cruza responsable o socialización canina. Revisa sus credenciales de salud, compatibilidad y coordina un encuentro seguro en espacios certificados.
                 {% endblocktranslate %}
+                {% else %}
+                {% translate "Gestiona solicitudes recibidas y enviadas para la búsqueda de parejas o socialización canina." %}
+                {% endif %}
             </p>
         </div>
 
         <!-- Selector de mascota activa a la derecha -->
         <div class="flex items-center gap-3 shrink-0">
-            <div class="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white border border-neutral-300 shadow-xs">
-                <div class="relative w-8 h-8 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200">
-                    <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}" class="w-full h-full object-cover">
-                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white"></span>
+            {% if active_pet %}
+            <div
+                class="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white border border-neutral-300 shadow-xs">
+                <div
+                    class="relative w-8 h-8 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200">
+                    <img src="{{ active_pet.photo_url }}" alt="{{ active_pet.name }}"
+                        class="w-full h-full object-cover">
                 </div>
                 <div class="text-xs">
                     <span class="font-bold text-neutral-900 block leading-tight">{{ active_pet.name }}</span>
-                    <span class="text-[11px] text-neutral-500">{{ active_pet.breed }} • {{ active_pet.gender_label }}</span>
+                    <span class="text-[11px] text-neutral-500">{{ active_pet.breed }} • {{ active_pet.gender_label}}</span>
                 </div>
-                <a href="{% url 'pets:pet_select' %}" class="text-xs font-semibold text-petly-coral hover:underline pl-1 inline-flex items-center gap-0.5" title="{% translate 'Cambiar de mascota activa' %}">
+                <a href="{% url 'pets:pet_select' %}"
+                    class="text-xs font-semibold text-petly-coral hover:underline pl-1 inline-flex items-center"
+                    title="{% translate 'Cambiar de mascota activa' %}">
                     <span>{% translate "Cambiar" %}</span>
-                    <span class="text-xs">⇄</span>
                 </a>
             </div>
+            {% endif %}
 
             <!-- Botón para volver a explorar parejas en el feed (solo escritorio) -->
             <div class="hidden md:block">
@@ -66,27 +86,56 @@
     <!-- Barra de filtros horizontales y ordenación interactiva -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
         <div class="flex items-center gap-2 overflow-x-auto py-1" id="filter-pills-bar">
-            <button type="button" data-filter="all" onclick="filterSuitors('all', this)" class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-[#A53B42] text-white shadow-xs whitespace-nowrap cursor-pointer transition-all">
-                {% translate "Todos" %} ({{ interested_count }})
+            <!-- Pestaña Todos -->
+            <button type="button" onclick="filterSuitors('all', this)" data-filter="all"
+                class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs {% if current_tab == 'all' or not current_tab %}font-semibold bg-[#A53B42] text-white{% else %}font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300{% endif %} shadow-xs whitespace-nowrap cursor-pointer transition-all">
+                {% translate "Todos" %} (<span id="counter-all">{{ tab_counters.all }}</span>)
             </button>
-            <button type="button" data-filter="breeding" onclick="filterSuitors('breeding', this)" class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all">
-                {% translate "Cruza responsable / pedigrí" %} (2)
+
+            <!-- Pestaña Interesados (Recibidas) -->
+            <button type="button" onclick="filterSuitors('interested', this)" data-filter="interested"
+                class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs {% if current_tab == 'interested' %}font-semibold bg-[#A53B42] text-white{% else %}font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300{% endif %} shadow-xs whitespace-nowrap cursor-pointer transition-all">
+                {% translate "Interesados" %} (<span id="counter-interested">{{ tab_counters.interested }}</span>)
             </button>
-            <button type="button" data-filter="social" onclick="filterSuitors('social', this)" class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all">
-                {% translate "Citas de socialización" %} (1)
+
+            <!-- Pestaña Mis solicitudes (Enviadas) -->
+            <button type="button" onclick="filterSuitors('sent', this)" data-filter="sent"
+                class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs {% if current_tab == 'sent' %}font-semibold bg-[#A53B42] text-white{% else %}font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300{% endif %} shadow-xs whitespace-nowrap cursor-pointer transition-all">
+                {% translate "Mis solicitudes" %} (<span id="counter-sent">{{ tab_counters.sent }}</span>)
             </button>
-            <button type="button" data-filter="near" onclick="filterSuitors('near', this)" class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all">
-                {% translate "Cerca de ti (< 5 km)" %}
+
+            <!-- Pestaña Matches aceptados -->
+            <button type="button" onclick="filterSuitors('matches', this)" data-filter="matches"
+                class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs {% if current_tab == 'matches' %}font-semibold bg-[#A53B42] text-white{% else %}font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300{% endif %} shadow-xs whitespace-nowrap cursor-pointer transition-all">
+                {% translate "Matches" %} (<span id="counter-matches">{{ tab_counters.matches }}</span>)
+            </button>
+
+            <!-- Subfiltro Cruza responsable -->
+            <button type="button" onclick="filterSuitors('breeding', this)" data-filter="breeding"
+                class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs {% if current_tab == 'breeding' %}font-semibold bg-[#A53B42] text-white{% else %}font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300{% endif %} shadow-xs whitespace-nowrap cursor-pointer transition-all">
+                {% translate "Cruza responsable / pedigrí" %}
+            </button>
+
+            <!-- Subfiltro Socialización -->
+            <button type="button" onclick="filterSuitors('social', this)" data-filter="social"
+                class="suitor-filter-btn px-4 py-1.5 rounded-full text-xs {% if current_tab == 'social' %}font-semibold bg-[#A53B42] text-white{% else %}font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300{% endif %} shadow-xs whitespace-nowrap cursor-pointer transition-all">
+                {% translate "Socialización" %}
             </button>
         </div>
 
         <div class="flex items-center gap-2 text-xs text-neutral-600 shrink-0">
             <label for="sort-suitors" class="font-medium text-neutral-500">{% translate "Ordenar por:" %}</label>
-            <select id="sort-suitors" onchange="sortSuitors(this.value)" class="bg-white border border-neutral-300 rounded-full px-3 py-1.5 text-xs font-semibold text-neutral-800 focus:outline-none focus:border-petly-coral cursor-pointer shadow-xs">
-                <option value="compatibility">{% translate "Mayor compatibilidad" %}</option>
-                <option value="distance">{% translate "Más cercanos" %}</option>
-                <option value="recent">{% translate "Más recientes" %}</option>
-            </select>
+            <div class="relative inline-flex items-center">
+                <select id="sort-suitors" onchange="sortSuitors(this.value)"
+                    class="appearance-none bg-white border border-neutral-300 rounded-full pl-3.5 pr-8 py-1.5 text-xs font-semibold text-neutral-800 focus:outline-none focus:border-petly-coral cursor-pointer shadow-xs transition-colors">
+                    <option value="compatibility" {% if current_sort == 'compatibility' or not current_sort %}selected{% endif %}>{% translate "Mayor compatibilidad" %}</option>
+                    <option value="distance" {% if current_sort == 'distance' %}selected{% endif %}>{% translate "Más cercanos" %}</option>
+                    <option value="recent" {% if current_sort == 'recent' %}selected{% endif %}>{% translate "Más recientes" %}</option>
+                </select>
+                <span class="absolute right-2.5 pointer-events-none text-neutral-400 flex items-center justify-center">
+                    {% include 'components/icon.html' with name="chevron-down" class="w-3.5 h-3.5" %}
+                </span>
+            </div>
         </div>
     </div>
 
@@ -100,119 +149,62 @@
         <!-- ============================================== -->
         <div class="lg:col-span-8 space-y-4" id="suitors-list-container">
 
-            <!-- PRETENDIENTE DESTACADO 1: KIRA (Pomerania Mini) -->
-            <div class="suitor-card card-petly p-5 sm:p-6 bg-white border border-neutral-300/80 rounded-3xl shadow-sm hover:shadow-md transition-all"
-                 data-name="{{ featured_suitor.name }}"
-                 data-category="breeding"
-                 data-compatibility="98"
-                 data-distance="2.4">
-                <div class="flex flex-col sm:flex-row gap-5 items-stretch">
-                    <!-- Fotografía cuadrada redondeada de Kira -->
-                    <div class="relative w-full sm:w-72 sm:h-80 rounded-2xl overflow-hidden bg-petly-ice shrink-0 shadow-xs border border-neutral-200">
-                        <img src="{{ featured_suitor.photo_url }}"
-                             alt="{{ featured_suitor.name }}"
-                             class="w-full h-full object-cover select-none">
-                    </div>
-
-                    <!-- Ficha descriptiva y opciones de Kira -->
-                    <div class="flex-1 flex flex-col justify-between space-y-3">
-                        <div>
-                            <!-- Fila de título y badge de match reciente (escritorio) -->
-                            <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
-                                <div class="flex items-center gap-1.5">
-                                    <h2 class="title-h3 text-neutral-900 font-bold leading-tight">
-                                        {{ featured_suitor.name }}
-                                    </h2>
-                                    <span class="text-sm font-bold text-petly-coral">
-                                        {{ featured_suitor.gender_symbol }}
-                                    </span>
-                                    <span class="text-neutral-400">•</span>
-                                    <span class="text-xs font-semibold text-neutral-600">
-                                        {{ featured_suitor.breed }}
-                                    </span>
-                                </div>
-                                <span class="hidden sm:inline-flex badge-tag text-[11px] font-semibold py-1 px-2.5">
-                                    {{ featured_suitor.recent_label }}
-                                </span>
-                            </div>
-
-                            <!-- Insignias de salud, certificado y temperamento -->
-                            <div class="flex flex-wrap items-center gap-1.5 mb-3">
-                                {% translate "Hembra" as female_label %}
-                                {% include 'components/badge.html' with text=female_label variant="female" icon="female" class="text-xs py-0.5 px-2.5" %}
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-petly-ice text-neutral-700">
-                                    {% include 'components/icon.html' with name="calendar" class="w-3 h-3 text-neutral-500" %}
-                                    <span>{{ featured_suitor.birth_date }}</span>
-                                </span>
-                                <span class="badge-compat text-xs py-0.5 px-2.5 font-bold">
-                                    {% include 'components/icon.html' with name="award" class="w-3 h-3 text-emerald-900" %}
-                                    <span>{{ featured_suitor.certificate }}</span>
-                                </span>
-                                {% for trait in featured_suitor.temperaments %}
-                                    <span class="badge-tag text-xs font-medium py-0.5 px-2.5">
-                                        {{ trait }}
-                                    </span>
-                                {% endfor %}
-                            </div>
-
-                            <!-- Caja de mensaje directo del tutor -->
-                            <div class="p-3.5 rounded-2xl bg-petly-ice/70 border border-petly-blue/80 text-xs text-neutral-700 leading-relaxed space-y-1">
-                                <p class="italic">
-                                    "{{ featured_suitor.quote }}"
-                                </p>
-                                <span class="text-[11px] font-bold text-neutral-500 block">
-                                    — {{ featured_suitor.tutor_signature }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Botones de acción principales -->
-                        <div class="pt-2 flex flex-wrap items-center justify-between gap-2.5">
-                            <div class="flex items-center gap-2 w-full sm:w-auto">
-                                {% translate "Concertar encuentro" as meeting_label %}
-                                <button type="button"
-                                        onclick="openMeetingModal('{{ featured_suitor.name }}', '{{ featured_suitor.photo_url }}')"
-                                        class="btn-petly-primary flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold shadow-md inline-flex items-center justify-center gap-1.5">
-                                    {% include 'components/icon.html' with name="calendar" class="w-4 h-4 text-white" %}
-                                    <span>{{ meeting_label }}</span>
-                                </button>
-                                {% translate "Enviar mensaje" as msg_label %}
-                                <button type="button"
-                                        onclick="openMessageModal('{{ featured_suitor.name }}', 'Mariana Ríos')"
-                                        class="btn-petly-lilac flex-1 sm:flex-initial text-xs px-4 py-2.5 font-semibold inline-flex items-center justify-center gap-1.5 shadow-xs">
-                                    {% include 'components/icon.html' with name="message-square" class="w-4 h-4 text-purple-800" %}
-                                    <span>{{ msg_label }}</span>
-                                </button>
-                            </div>
-
-                            <button type="button"
-                                    onclick="dismissSuitor('{{ featured_suitor.name }}')"
-                                    class="text-xs font-semibold text-neutral-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1 py-1 cursor-pointer">
-                                <span>{% translate "Negar interés" %}</span>
-                                <span>✕</span>
-                            </button>
-                        </div>
-                    </div>
+            {% if not suitors %}
+            <!-- Estado vacío global cuando no existen solicitudes -->
+            <div id="suitors-global-empty-state"
+                class="card-petly p-10 bg-white border border-neutral-300/80 rounded-3xl text-center space-y-4">
+                <div
+                    class="w-16 h-16 rounded-full bg-petly-ice flex items-center justify-center text-neutral-400 mx-auto">
+                    {% include 'components/icon.html' with name="inbox" class="w-8 h-8 text-neutral-400" %}
+                </div>
+                <div class="space-y-1">
+                    <h2 class="title-h4 font-bold text-neutral-800">{% translate "No hay solicitudes ni interesados pendientes" %}</h2>
+                    <p class="text-xs sm:text-sm text-neutral-500 max-w-md mx-auto">
+                        {% translate "Aún no tienes pretendientes ni solicitudes registradas para tu mascota activa. Explora perfiles compatibles en el feed de emparejamiento para conectar." %}
+                    </p>
+                </div>
+                <div class="pt-2">
+                    {% translate "Explorar parejas compatibles" as explore_btn_label %}
+                    {% url 'pets:match_feed' as match_feed_url %}
+                    {% include 'components/button.html' with href=match_feed_url text=explore_btn_label icon="heart-filled" icon_class="w-4 h-4 text-white" class="text-xs px-6 py-2.5 font-bold shadow-md no-underline inline-flex items-center gap-2" %}
                 </div>
             </div>
+            {% else %}
+            <!-- LISTA DE PRETENDIENTES CON DATOS REALES DEL ORM -->
+            {% for suitor in suitors %}
+            <div class="suitor-card card-petly relative bg-white border border-neutral-300/80 rounded-3xl shadow-xs hover:shadow-md transition-all {% if forloop.first %}is-expanded p-5 sm:p-6{% else %}p-4 sm:p-5{% endif %}"
+                id="suitor-card-{{ suitor.id }}" data-suitor-id="{{ suitor.id }}"
+                data-request-id="{{ suitor.request_id }}" data-type="{{ suitor.type }}"
+                data-status="{{ suitor.status }}" data-name="{{ suitor.name }}"
+                data-category="{{ suitor.category|default:'breeding' }}"
+                data-compatibility="{{ suitor.compatibility_val|default:0 }}"
+                data-distance="{{ suitor.distance_val|stringformat:'.2f'|default:'0' }}"
+                data-timestamp="{{ suitor.created_timestamp|default:0 }}">
 
-            <!-- PRETENDIENTES SECUNDARIOS (CHLOE Y MAYA) -->
-            {% for suitor in secondary_suitors %}
-                <div class="suitor-card card-petly p-4 sm:p-5 bg-white border border-neutral-300/80 rounded-2xl shadow-xs hover:shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                     data-name="{{ suitor.name }}"
-                     data-category="{% if forloop.first %}breeding{% else %}social{% endif %}"
-                     data-compatibility="{% if forloop.first %}92{% else %}88{% endif %}"
-                     data-distance="{% if forloop.first %}3.8{% else %}4.2{% endif %}">
+                <!-- VISTA COLAPSADA -->
+                <div class="suitor-collapsed-content {% if forloop.first %}hidden{% else %}flex{% endif %} flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer select-none group"
+                    onclick="toggleSuitorCard('suitor-card-{{ suitor.id }}')"
+                    onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleSuitorCard('suitor-card-{{ suitor.id }}'); }"
+                    role="button" tabindex="0" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                    aria-label="{% blocktranslate with name=suitor.name %}Ver más información de {{ name }}{% endblocktranslate %}">
                     <div class="flex items-center gap-4">
-                        <div class="relative w-14 h-14 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200 shadow-xs">
-                            <img src="{{ suitor.photo_url }}" alt="{{ suitor.name }}" class="w-full h-full object-cover">
+                        <div
+                            class="relative w-14 h-14 rounded-full overflow-hidden bg-petly-ice shrink-0 border border-neutral-200 shadow-xs group-hover:scale-105 transition-transform">
+                            <img src="{{ suitor.photo_url }}" alt="{{ suitor.name }}"
+                                class="w-full h-full object-cover">
                         </div>
 
                         <div>
                             <div class="flex items-center gap-2">
-                                <h2 class="title-h5 text-neutral-900 font-bold leading-tight">
+                                <h2
+                                    class="title-h5 text-neutral-900 font-bold leading-tight group-hover:text-petly-coral transition-colors">
                                     {{ suitor.name }}
                                 </h2>
+                                {% if suitor.is_hembra or suitor.gender == 'H' or suitor.gender == 'hembra' %}
+                                {% include 'components/icon.html' with name="female" class="w-3.5 h-3.5 text-petly-coral" %}
+                                {% else %}
+                                {% include 'components/icon.html' with name="male" class="w-3.5 h-3.5 text-sky-600" %}
+                                {% endif %}
                                 <span class="badge-tag text-[10px] font-bold py-0.5 px-2">
                                     {{ suitor.match_percentage }} {% translate "Match" %}
                                 </span>
@@ -220,101 +212,318 @@
                             <p class="text-caption text-neutral-500 mt-0.5">
                                 {{ suitor.breed }} • {{ suitor.age }} • {{ suitor.distance }}
                             </p>
-                            {% if suitor.badge_label %}
-                                <span class="text-[11px] font-semibold text-petly-coral block mt-0.5">
-                                    {{ suitor.badge_label }}
-                                </span>
-                            {% endif %}
+                            <span
+                                class="suitor-badge-label text-[11px] font-semibold {% if suitor.status == 'accepted' %}text-emerald-600{% else %}text-petly-coral{% endif %} block mt-0.5"
+                                id="card-badge-{{ suitor.request_id }}">
+                                {{ suitor.badge_label }}
+                            </span>
                         </div>
                     </div>
 
-                    <!-- Botones de acción secundarios -->
-                    <div class="flex items-center gap-2 self-end sm:self-center">
+                    <!-- Botones de acción secundarios en vista colapsada -->
+                    <div class="flex items-center gap-2 self-end sm:self-center" onclick="event.stopPropagation()">
+                        {% if suitor.is_received and suitor.status == 'pending' %}
                         <button type="button"
-                                onclick="openMeetingModal('{{ suitor.name }}', '{{ suitor.photo_url }}')"
-                                class="btn-petly-primary text-xs px-4 py-2 font-bold shadow-xs inline-flex items-center gap-1.5">
-                            {% include 'components/icon.html' with name="calendar" class="w-3.5 h-3.5 text-white" %}
-                            <span>{% translate "Agendar cita" %}</span>
+                            onclick="handleAcceptRequest('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}');"
+                            class="btn-accept-request text-xs px-3.5 py-1.5 font-bold rounded-full bg-petly-coral text-white hover:bg-petly-coral/90 shadow-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                            title="{% translate 'Aceptar solicitud de match' %}">
+                            {% include 'components/icon.html' with name="heart-filled" class="w-3.5 h-3.5 text-white" %}
+                            <span>{% translate "Aceptar" %}</span>
                         </button>
+                        {% elif suitor.status == 'accepted' %}
                         <button type="button"
-                                onclick="openMessageModal('{{ suitor.name }}', 'Tutor de {{ suitor.name }}')"
-                                class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-600 hover:text-petly-coral hover:border-petly-coral/50 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
-                                title="{% translate 'Enviar mensaje' %}">
+                            onclick="openMeetingModal('{{ suitor.name|escapejs }}', '{{ suitor.candidate_pet_id }}', '{{ suitor.request_id }}')"
+                            class="text-xs px-3.5 py-1.5 font-bold rounded-full bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                            title="{% translate 'Agendar encuentro seguro' %}">
+                            {% include 'components/icon.html' with name="calendar" class="w-3.5 h-3.5 text-white" %}
+                            <span>{% translate "Cita" %}</span>
+                        </button>
+                        {% endif %}
+
+                        <button type="button"
+                            data-request-id="{{ suitor.request_id }}"
+                            data-name="{{ suitor.name }}"
+                            data-tutor-signature="{{ suitor.tutor_signature }}"
+                            data-quote="{{ suitor.sent_note|default:suitor.quote }}"
+                            data-is-sent="{{ suitor.is_sent_num }}"
+                            data-sender-email="{{ suitor.sender_email }}"
+                            onclick="openNoteModalFromButton(this)"
+                            class="w-8 h-8 rounded-full p-0 flex items-center justify-center border border-neutral-300 text-neutral-600 hover:text-petly-coral hover:border-petly-coral/50 shadow-xs cursor-pointer transition-colors"
+                            title="{% if suitor.is_sent %}{% translate 'Editar nota inicial' %}{% else %}{% translate 'Ver nota inicial' %}{% endif %}"
+                            aria-label="{% if suitor.is_sent %}{% translate 'Editar nota inicial' %}{% else %}{% translate 'Ver nota inicial' %}{% endif %}">
                             {% include 'components/icon.html' with name="message-square" class="w-3.5 h-3.5" %}
                         </button>
+
                         <button type="button"
-                                onclick="dismissSuitor('{{ suitor.name }}')"
-                                class="w-8 h-8 rounded-full bg-white border border-neutral-300 text-neutral-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
-                                title="{% translate 'Descartar solicitud' %}">
+                            onclick="handleRejectRequest('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}', '{{ suitor.action_type }}')"
+                            class="btn-reject-request w-8 h-8 rounded-full p-0 flex items-center justify-center border border-neutral-300 text-neutral-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 shadow-xs cursor-pointer transition-colors"
+                            title="{% if suitor.status == 'accepted' %}{% translate 'Cancelar match' %}{% elif suitor.is_sent %}{% translate 'Cancelar solicitud' %}{% else %}{% translate 'Descartar solicitud' %}{% endif %}"
+                            aria-label="{% if suitor.status == 'accepted' %}{% translate 'Cancelar match' %}{% elif suitor.is_sent %}{% translate 'Cancelar solicitud' %}{% else %}{% translate 'Descartar solicitud' %}{% endif %}">
                             {% include 'components/icon.html' with name="trash" class="w-3.5 h-3.5" %}
+                        </button>
+
+                        <!-- Indicador de desplegar información -->
+                        <button type="button" onclick="toggleSuitorCard('suitor-card-{{ suitor.id }}')"
+                            class="w-8 h-8 rounded-full flex items-center justify-center bg-petly-ice text-neutral-500 group-hover:bg-petly-coral/10 group-hover:text-petly-coral transition-colors cursor-pointer"
+                            title="{% translate 'Desplegar información completa' %}">
+                            {% include 'components/icon.html' with name="chevron-down" class="w-4 h-4" %}
                         </button>
                     </div>
                 </div>
-            {% endfor %}
 
-            <!-- Estado vacío cuando ningún pretendiente coincide con el filtro -->
-            <div id="suitors-empty-state" class="hidden card-petly p-8 bg-white border border-neutral-300/80 rounded-3xl text-center space-y-2">
-                <div class="w-12 h-12 rounded-full bg-petly-ice flex items-center justify-center text-neutral-400 mx-auto">
+                <!-- VISTA DESPLEGADA -->
+                <div class="suitor-expanded-content {% if forloop.first %}block{% else %}hidden{% endif %}">
+                    <!-- Botón para plegar tarjeta fijado en la esquina superior derecha -->
+                    <button type="button" onclick="toggleSuitorCard('suitor-card-{{ suitor.id }}')"
+                        class="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 w-8 h-8 rounded-full flex items-center justify-center bg-white/95 hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 shadow-xs border border-neutral-200/80 transition-all cursor-pointer z-10"
+                        title="{% translate 'Plegar tarjeta' %}"
+                        aria-label="{% translate 'Plegar tarjeta' %}">
+                        {% include 'components/icon.html' with name="chevron-up" class="w-4 h-4" %}
+                    </button>
+
+                    <div class="flex flex-col sm:flex-row gap-5 items-stretch">
+                        <!-- Fotografía grande cuadrada redondeada -->
+                        <div
+                            class="relative w-full sm:w-72 sm:h-80 rounded-2xl overflow-hidden bg-petly-ice shrink-0 shadow-xs border border-neutral-200">
+                            <img src="{{ suitor.photo_url }}" alt="{{ suitor.name }}"
+                                class="w-full h-full object-cover select-none">
+                        </div>
+
+                        <!-- Ficha descriptiva y opciones -->
+                        <div class="flex-1 flex flex-col justify-between space-y-3">
+                            <div>
+                                <!-- Fila de título y badge de match -->
+                                <div class="mb-2 pr-10">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <h2 class="title-h3 text-neutral-900 font-bold leading-tight">
+                                            {{ suitor.name }}
+                                        </h2>
+                                        {% if suitor.is_hembra or suitor.gender == 'H' or suitor.gender == 'hembra' %}
+                                        {% include 'components/icon.html' with name="female" class="w-4 h-4 text-petly-coral" %}
+                                        {% else %}
+                                        {% include 'components/icon.html' with name="male" class="w-4 h-4 text-sky-600" %}
+                                        {% endif %}
+                                        <span class="text-neutral-400">•</span>
+                                        <span class="text-xs font-semibold text-neutral-600">
+                                            {{ suitor.breed }}
+                                        </span>
+                                    </div>
+                                    <div class="mt-1.5">
+                                        <span
+                                            class="suitor-badge-label-expanded badge-tag text-[11px] font-semibold py-1 px-2.5 inline-block {% if suitor.status == 'accepted' %}bg-emerald-50 text-emerald-700 border-emerald-200{% endif %}"
+                                            id="expanded-badge-{{ suitor.request_id }}">
+                                            {{ suitor.badge_label }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Insignias de salud, certificado y temperamento -->
+                                <div class="flex flex-wrap items-center gap-1.5 mb-3">
+                                    {% if suitor.gender == 'hembra' %}
+                                    {% translate "Hembra" as female_label %}
+                                    {% include 'components/badge.html' with text=female_label variant="female" icon="female" class="text-xs py-0.5 px-2.5" %}
+                                    {% else %}
+                                    {% translate "Macho" as male_label %}
+                                    {% include 'components/badge.html' with text=male_label variant="male" icon="male" class="text-xs py-0.5 px-2.5" %}
+                                    {% endif %}
+
+                                    {% if suitor.birth_date %}
+                                    <span
+                                        class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-petly-ice text-neutral-700">
+                                        {% include 'components/icon.html' with name="calendar" class="w-3 h-3 text-neutral-500" %}
+                                        <span>{{ suitor.birth_date }}</span>
+                                    </span>
+                                    {% endif %}
+
+                                    {% if suitor.certificate %}
+                                    <span class="badge-compat text-xs py-0.5 px-2.5 font-bold">
+                                        {% include 'components/icon.html' with name="award" class="w-3.5 h-3.5 text-emerald-900" %}
+                                        <span>{{ suitor.certificate }}</span>
+                                    </span>
+                                    {% endif %}
+
+                                    {% for trait in suitor.temperaments %}
+                                    <span class="badge-tag text-xs font-medium py-0.5 px-2.5">
+                                        {{ trait }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Caja de presentación o nota del tutor -->
+                                <div
+                                    class="p-3.5 rounded-2xl bg-petly-ice/70 border border-petly-blue/80 text-xs text-neutral-700 leading-relaxed space-y-1">
+                                    <p class="italic" id="suitor-quote-{{ suitor.request_id }}" data-is-sent="{{ suitor.is_sent|yesno:'true,false' }}">
+                                        "{{ suitor.quote }}"
+                                    </p>
+                                    <span class="text-[11px] font-bold text-neutral-500 block">
+                                        — {{ suitor.tutor_signature }}{% if suitor.sender_email %} • <a href="mailto:{{ suitor.sender_email }}" class="text-petly-coral hover:underline">{{ suitor.sender_email }}</a>{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Botones de acción principales en vista desplegada -->
+                            <div class="pt-3 space-y-2.5" id="expanded-actions-{{ suitor.request_id }}">
+                                <div class="flex flex-wrap items-center gap-2.5">
+                                    {% if suitor.is_received and suitor.status == 'pending' %}
+                                    <button type="button"
+                                        onclick="handleAcceptRequest('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}')"
+                                        class="btn-accept-request-exp flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold rounded-xl bg-petly-coral text-white hover:bg-petly-coral/90 shadow-md inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                                        {% include 'components/icon.html' with name="heart-filled" class="w-4 h-4 text-white" %}
+                                        <span>{% translate "Aceptar match" %}</span>
+                                    </button>
+                                    {% elif suitor.status == 'accepted' %}
+                                    <button type="button"
+                                        onclick="openMeetingModal('{{ suitor.name|escapejs }}', '{{ suitor.candidate_pet_id }}', '{{ suitor.request_id }}')"
+                                        class="flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-md inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                                        {% include 'components/icon.html' with name="calendar" class="w-4 h-4 text-white" %}
+                                        <span>{% translate "Concertar encuentro" %}</span>
+                                    </button>
+                                    {% endif %}
+
+                                    <button type="button"
+                                        data-request-id="{{ suitor.request_id }}"
+                                        data-name="{{ suitor.name }}"
+                                        data-tutor-signature="{{ suitor.tutor_signature }}"
+                                        data-quote="{{ suitor.sent_note|default:suitor.quote }}"
+                                        data-is-sent="{{ suitor.is_sent_num }}"
+                                        data-sender-email="{{ suitor.sender_email }}"
+                                        onclick="openNoteModalFromButton(this)"
+                                        class="flex-1 sm:flex-initial text-xs px-4 py-2.5 font-semibold rounded-xl bg-petly-lilac text-petly-purple hover:bg-petly-lilac/80 shadow-xs inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                                        {% include 'components/icon.html' with name="message-square" class="w-4 h-4 text-purple-800" %}
+                                        <span>{% if suitor.is_sent %}{% translate "Editar nota" %}{% else %}{% translate "Ver nota inicial" %}{% endif %}</span>
+                                    </button>
+                                </div>
+
+                                <div class="btn-reject-request-wrapper">
+                                    <button type="button"
+                                        onclick="handleRejectRequest('{{ suitor.request_id }}', '{{ suitor.name|escapejs }}', '{{ suitor.action_type }}')"
+                                        class="btn-reject-request text-xs font-semibold text-neutral-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1.5 py-1 cursor-pointer group">
+                                        <span>
+                                            {% if suitor.status == 'accepted' %}
+                                            {% translate "Cancelar match" %}
+                                            {% elif suitor.is_sent %}
+                                            {% translate "Cancelar solicitud" %}
+                                            {% else %}
+                                            {% translate "Descartar solicitud" %}
+                                            {% endif %}
+                                        </span>
+                                        {% include 'components/icon.html' with name="close" class="w-3.5 h-3.5 text-neutral-400 group-hover:text-rose-600" %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- Estado vacío dinámico al filtrar por pestañas -->
+            <div id="suitors-empty-state"
+                class="hidden card-petly p-8 bg-white border border-neutral-300/80 rounded-3xl text-center space-y-2">
+                <div
+                    class="w-12 h-12 rounded-full bg-petly-ice flex items-center justify-center text-neutral-400 mx-auto">
                     {% include 'components/icon.html' with name="users" class="w-6 h-6" %}
                 </div>
-                <h3 class="text-sm font-bold text-neutral-800">{% translate "No se encontraron pretendientes en esta categoría" %}</h3>
-                <p class="text-xs text-neutral-500">{% translate "Prueba cambiando el filtro para ver más candidatos disponibles." %}</p>
+                <h3 class="text-sm font-bold text-neutral-800">{% translate "No se encontraron solicitudes en esta categoría" %}</h3>
+                <p class="text-xs text-neutral-500">{% translate "Prueba cambiando de pestaña para ver más candidatos disponibles." %}</p>
             </div>
 
         </div>
 
         <!-- ============================================== -->
-        <!-- COLUMNA DERECHA: CITAS CONFIRMADAS             -->
+        <!-- COLUMNA DERECHA: CITAS Y ENCUENTROS               -->
         <!-- ============================================== -->
         <div class="lg:col-span-4 sticky top-24 space-y-4">
 
-            <!-- Tarjeta de Citas Confirmadas -->
+            <!-- Tarjeta de Citas y Encuentros -->
             <div class="card-petly p-5 sm:p-6 bg-white border border-neutral-300/80 shadow-md space-y-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                        <div
+                            class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
                             {% include 'components/icon.html' with name="calendar-days" class="w-4 h-4 text-emerald-700" %}
                         </div>
                         <h2 class="title-h4 text-neutral-900 font-bold text-sm">
-                            {% translate "Citas confirmadas" %}
+                            {% translate "Citas y encuentros" %}
                         </h2>
                     </div>
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" title="{% translate 'Citas activas' %}"></span>
+                    <span id="meetups-pulse-indicator"
+                        class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse {% if not confirmed_dates %}hidden{% endif %}"
+                        title="{% translate 'Citas activas' %}"></span>
                 </div>
 
-                <!-- Lista de citas confirmadas -->
-                <div class="space-y-3">
+                <!-- Lista de citas confirmadas del modelo PetMeetup -->
+                <div class="space-y-3" id="confirmed-meetups-container">
+                    {% if confirmed_dates %}
                     {% for date in confirmed_dates %}
-                        <div class="p-3.5 rounded-2xl bg-petly-ice/50 border border-petly-blue/80 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="badge-compat text-[10px] font-bold py-0.5 px-2">
-                                    {{ date.badge }}
-                                </span>
-                                <span class="text-caption font-semibold text-neutral-500">
-                                    {{ date.day }}
-                                </span>
-                            </div>
+                    <div class="meetup-card p-3.5 rounded-2xl bg-petly-ice/50 border border-petly-blue/80 space-y-2"
+                        id="meetup-card-{{ date.meetup_id|default:date.id }}">
+                        <div class="flex items-center justify-between">
+                            <span class="badge-compat text-[10px] font-bold py-0.5 px-2">
+                                {{ date.badge }}
+                            </span>
+                            <span class="text-caption font-semibold text-neutral-500">
+                                {{ date.day }}
+                            </span>
+                        </div>
 
-                            <div>
-                                <h3 class="text-xs font-bold text-neutral-900 leading-tight">
-                                    {{ date.title }}
-                                </h3>
-                                <p class="text-[11px] text-neutral-600 inline-flex items-center gap-1 mt-0.5">
-                                    {% include 'components/icon.html' with name="location" class="w-3 h-3 text-neutral-500" %}
-                                    <span>{{ date.location }}</span>
-                                </p>
-                            </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-neutral-900 leading-tight">
+                                {{ date.title }}
+                            </h3>
+                            <p class="text-[11px] text-neutral-600 inline-flex items-center gap-1 mt-0.5">
+                                {% include 'components/icon.html' with name="location" class="w-3.5 h-3.5 text-neutral-500" %}
+                                <span>{{ date.location }}</span>
+                            </p>
+                        </div>
 
-                            <div class="flex items-center justify-between pt-1 border-t border-petly-blue/40 text-xs">
-                                <span class="font-bold text-neutral-800">
-                                    🕒 {{ date.time }}
-                                </span>
-                                <button type="button" onclick="alert('Detalles de cita: {{ date.title }}\nLugar: {{ date.location }}\nHora: {{ date.time }}')" class="font-bold text-petly-coral hover:underline cursor-pointer">
+                        <div class="flex items-center justify-between pt-1 border-t border-petly-blue/40 text-xs">
+                            <span class="inline-flex items-center gap-1.5 font-bold text-neutral-800">
+                                {% include 'components/icon.html' with name="clock" class="w-3.5 h-3.5 text-neutral-500" %}
+                                {{ date.time }}
+                            </span>
+                            <div class="flex items-center gap-2">
+                                {% with meetup_raw_id=date.meetup_id|default:date.id %}
+                                {% with clean_meetup_id=meetup_raw_id|cut:'meetup-' %}
+                                <button type="button"
+                                    data-title="{{ date.title }}"
+                                    data-location="{{ date.location }}"
+                                    data-time="{{ date.day }} {{ date.time }}"
+                                    data-meetup-id="{{ clean_meetup_id }}"
+                                    data-status="{{ date.status }}"
+                                    data-badge="{{ date.badge }}"
+                                    data-is-organizer="{% if date.is_organizer %}true{% else %}false{% endif %}"
+                                    data-notes="{{ date.notes|default:'' }}"
+                                    onclick="showMeetupDetailsFromButton(this)"
+                                    class="font-bold text-petly-coral hover:underline cursor-pointer">
                                     {% translate "Ver detalles" %}
                                 </button>
+                                {% if date.status != 'completed' and date.status != 'cancelled' %}
+                                <button type="button"
+                                    onclick="handleCancelMeeting('{{ clean_meetup_id }}', '{{ date.pet_name|default:date.title|escapejs }}');"
+                                    class="btn-cancel-meetup font-bold text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
+                                    title="{% translate 'Cancelar cita' %}">
+                                    {% translate "Cancelar" %}
+                                </button>
+                                {% endif %}
+                                {% endwith %}
+                                {% endwith %}
                             </div>
                         </div>
+                    </div>
                     {% endfor %}
+                    {% else %}
+                    <div id="meetups-empty-state"
+                        class="p-4 rounded-2xl bg-petly-ice/40 border border-dashed border-neutral-300 text-center space-y-1.5">
+                        <p class="text-xs font-semibold text-neutral-600">
+                            {% translate "No tienes encuentros agendados próximos" %}
+                        </p>
+                        <p class="text-[11px] text-neutral-400 leading-relaxed">
+                            {% translate "Acepta un match y concierta un encuentro seguro en un parque verificado." %}
+                        </p>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Enlace de ayuda o recomendaciones -->
@@ -343,14 +552,13 @@
 <!-- MODALES INTERACTIVOS PARA CITAS Y MENSAJES     -->
 <!-- ============================================== -->
 
-<!-- Modal: Concertar Encuentro -->
-<div id="modal-schedule-meeting" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-meeting-title">
-    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-schedule-meeting')" aria-hidden="true"></div>
+<!-- Modal: Concertar Encuentro Seguro -->
+<div id="modal-schedule-meeting" data-petly-modal="true"
+    class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true"
+    aria-labelledby="modal-meeting-title">
+    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity"
+        onclick="closeModal('modal-schedule-meeting')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        <button type="button" onclick="closeModal('modal-schedule-meeting')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none" aria-label="{% translate 'Cerrar' %}">
-            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
-        </button>
-
         <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-full bg-petly-coral-light text-petly-coral flex items-center justify-center">
                 {% include 'components/icon.html' with name="calendar" class="w-5 h-5" %}
@@ -360,79 +568,279 @@
                     {% translate "Concertar encuentro seguro" %}
                 </h3>
                 <p class="text-caption text-neutral-500">
-                    {% translate "Cita con" %} <span id="meeting-pet-name" class="font-bold text-neutral-800">Kira</span>
+                    {% translate "Cita con" %} <span id="meeting-pet-name"
+                        class="font-bold text-neutral-800">Kira</span>
                 </p>
             </div>
         </div>
 
-        <form onsubmit="handleConfirmMeeting(event)" class="space-y-3.5 text-xs">
+        <form id="form-schedule-meeting" onsubmit="handleScheduleMeetingSubmit(event)" class="space-y-3.5 text-xs">
+            <input type="hidden" id="meeting-target-pet-id" name="target_pet_id" value="">
+            <input type="hidden" id="meeting-target-pet-name" name="target_pet_name" value="">
+            <input type="hidden" id="meeting-request-id" name="match_request_id" value="">
+
             <div>
-                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Fecha propuesta" %}</label>
-                <input type="date" value="2026-10-18" class="input-petly text-xs" required>
+                {% translate "Fecha propuesta" as meeting_date_label %}
+                {% include 'components/input.html' with name="date" id="meeting-date" type="date" label=meeting_date_label icon="calendar" input_class="text-xs" required=True %}
             </div>
 
             <div>
-                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Hora estimada" %}</label>
-                <input type="time" value="10:30" class="input-petly text-xs" required>
+                {% translate "Hora estimada" as meeting_time_label %}
+                {% include 'components/input.html' with name="time" id="meeting-time" type="time" label=meeting_time_label icon="clock" input_class="text-xs" required=True %}
             </div>
 
             <div>
-                <label class="font-semibold text-neutral-700 block mb-1">{% translate "Lugar de encuentro canino verificado" %}</label>
-                <select class="input-petly text-xs">
-                    <option>{% translate "Parque España (Zona canina verificada)" %}</option>
-                    <option>{% translate "Parque del Este (Área de recreación canina)" %}</option>
-                    <option>{% translate "Parque Vizcaya (Espacio cercado)" %}</option>
-                </select>
+                {% translate "Lugar del encuentro" as meeting_location_label %}
+                {% translate "Ej. Parque España, Parque del Este (Zona canina)..." as meeting_location_placeholder %}
+                {% include 'components/input.html' with name="location_name" id="meeting-location" type="text" label=meeting_location_label placeholder=meeting_location_placeholder icon="location" input_class="text-xs" required=True %}
+            </div>
+
+            <div>
+                <label for="meeting-notes" class="font-semibold text-neutral-700 block mb-1">{% translate "Notas o acuerdos (opcional)" %}</label>
+                <textarea id="meeting-notes" name="notes" rows="2" class="textarea-petly text-xs w-full"
+                    placeholder="{% translate 'Indicaciones, cartilla de vacunación o temperamento a considerar' %}"></textarea>
             </div>
 
             <div class="pt-3 flex justify-end gap-2">
                 {% translate "Cancelar" as cancel_label %}
                 {% include 'components/button.html' with text=cancel_label type="button" variant="outline" onclick="closeModal('modal-schedule-meeting')" class="text-xs px-4 py-2 bg-white" %}
-                {% translate "Confirmar cita" as confirm_label %}
-                {% include 'components/button.html' with text=confirm_label type="submit" variant="primary" class="text-xs px-5 py-2 font-bold shadow-md" %}
+                {% translate "Proponer encuentro" as submit_meeting_label %}
+                {% include 'components/button.html' with id="btn-submit-meeting" text=submit_meeting_label type="submit" variant="primary" class="text-xs px-5 py-2 font-bold shadow-md cursor-pointer" %}
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal: Enviar Mensaje -->
-<div id="modal-send-message" data-petly-modal="true" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-msg-title">
-    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity" onclick="closeModal('modal-send-message')" aria-hidden="true"></div>
+<!-- Modal: Nota inicial / Nota de solicitud -->
+<div id="modal-send-note" data-petly-modal="true"
+    class="fixed inset-0 z-[100] hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true"
+    aria-labelledby="modal-note-title">
+    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity"
+        onclick="closeModal('modal-send-note')" aria-hidden="true"></div>
     <div class="relative w-full max-w-md bg-white card-petly p-6 shadow-2xl border border-neutral-300 z-10 text-left">
-        <button type="button" onclick="closeModal('modal-send-message')" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 select-none" aria-label="{% translate 'Cerrar' %}">
-            {% include 'components/icon.html' with name="close" class="w-4 h-4" %}
-        </button>
-
         <div class="flex items-center gap-3 mb-3">
             <div class="w-10 h-10 rounded-full bg-petly-lilac text-petly-purple flex items-center justify-center">
                 {% include 'components/icon.html' with name="message-square" class="w-5 h-5" %}
             </div>
             <div>
-                <h3 id="modal-msg-title" class="title-h4 text-neutral-900 font-bold">
-                    {% translate "Mensaje directo" %}
+                <h3 id="modal-note-title" class="title-h4 text-neutral-900 font-bold">
+                    {% translate "Nota inicial de contacto" %}
                 </h3>
                 <p class="text-caption text-neutral-500">
-                    {% translate "Conversación con" %} <span id="msg-tutor-name" class="font-bold text-neutral-800">Mariana Ríos</span>
+                    <span id="note-tutor-preposition">{% translate "Para" %}</span> <span id="note-tutor-name" class="font-bold text-neutral-800">Tutor</span>
                 </p>
             </div>
         </div>
 
-        <form onsubmit="handleSendMessage(event)" class="space-y-3 text-xs">
-            <textarea rows="3" class="textarea-petly text-xs" placeholder="{% translate 'Escribe tu mensaje sobre acuerdos de cruza o socialización...' %}" required></textarea>
+        <form onsubmit="handleSendNote(event)" class="space-y-3 text-xs">
+            <input type="hidden" id="note-request-id" value="">
+            <div>
+                <label for="note-textarea" id="note-textarea-label" class="font-medium text-neutral-700 block mb-1">
+                    {% translate "Escribe una nota para iniciar la conversación:" %}
+                </label>
+                <textarea id="note-textarea" rows="4" class="textarea-petly text-xs w-full"
+                    placeholder="{% translate '¡Hola! Nos encanta tu mascota y queremos acordar un primer encuentro de socialización o evaluar compatibilidad...' %}"></textarea>
+                <p id="note-sender-email" class="hidden text-neutral-500 text-xs mt-1.5 font-medium">
+                    {% translate "Correo de contacto:" %} <a id="note-sender-email-link" href="#" class="font-bold text-petly-coral hover:underline"></a>
+                </p>
+            </div>
+
             <div class="flex justify-end gap-2 pt-2">
-                {% translate "Cancelar" as cancel_msg_label %}
-                {% include 'components/button.html' with text=cancel_msg_label type="button" variant="outline" onclick="closeModal('modal-send-message')" class="text-xs px-4 py-2 bg-white" %}
-                {% translate "Enviar mensaje" as send_msg_btn_label %}
-                {% include 'components/button.html' with text=send_msg_btn_label type="submit" variant="primary" class="text-xs px-5 py-2 font-bold shadow-md" %}
+                <span id="btn-cancel-note-container">
+                    {% translate "Cancelar" as cancel_msg_label %}
+                    {% include 'components/button.html' with text=cancel_msg_label type="button" variant="outline" onclick="closeModal('modal-send-note')" class="text-xs px-4 py-2 bg-white" %}
+                </span>
+                <span id="btn-close-note-container" class="hidden">
+                    {% translate "Cerrar" as close_msg_label %}
+                    {% include 'components/button.html' with text=close_msg_label type="button" variant="outline" onclick="closeModal('modal-send-note')" class="text-xs px-5 py-2 bg-white" %}
+                </span>
+                <span id="btn-submit-note-container">
+                    {% translate "Guardar nota" as send_msg_btn_label %}
+                    {% include 'components/button.html' with id="btn-submit-note" text=send_msg_btn_label type="submit" variant="primary" class="text-xs px-5 py-2 font-bold shadow-md cursor-pointer" %}
+                </span>
             </div>
         </form>
     </div>
 </div>
 
+<!-- Modal: detalles de la cita -->
+<div id="modal-meetup-details"
+     data-petly-modal="true"
+     class="fixed inset-0 z-[110] hidden items-center justify-center p-4"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="meetup-details-title">
+
+    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-sm"
+         onclick="closeModal('modal-meetup-details')">
+    </div>
+
+    <div class="relative z-10 w-full max-w-md rounded-3xl
+                border border-neutral-200 bg-white p-6 shadow-2xl">
+
+        <div class="flex items-center gap-3.5 mb-5">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-petly-ice text-petly-coral">
+                {% include 'components/icon.html' with name="calendar-days" class="w-6 h-6" %}
+            </div>
+            <div>
+                <h3 id="meetup-details-title"
+                    class="text-lg font-bold text-neutral-900 leading-tight">
+                    {% translate "Detalles de la cita" %}
+                </h3>
+                <p class="mt-0.5 text-xs text-neutral-500">
+                    {% translate "Aquí puedes consultar la información del encuentro." %}
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-5 space-y-4 rounded-2xl bg-neutral-50 p-4">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide
+                          text-neutral-500">
+                    {% translate "Estado" %}
+                </p>
+                <p id="meetup-details-status"
+                   class="mt-1 font-semibold text-neutral-900">
+                    —
+                </p>
+            </div>
+
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide
+                          text-neutral-500">
+                    {% translate "Mascota" %}
+                </p>
+                <p id="meetup-details-pet"
+                   class="mt-1 font-semibold text-neutral-900">
+                    —
+                </p>
+            </div>
+
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide
+                          text-neutral-500">
+                    {% translate "Lugar del encuentro" %}
+                </p>
+                <p id="meetup-details-location"
+                   class="mt-1 text-sm text-neutral-800">
+                    —
+                </p>
+            </div>
+
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide
+                          text-neutral-500">
+                    {% translate "Fecha y hora" %}
+                </p>
+                <p id="meetup-details-time"
+                   class="mt-1 text-sm text-neutral-800">
+                    —
+                </p>
+            </div>
+
+            <div id="meetup-details-notes-container" class="hidden">
+                <p class="text-xs font-semibold uppercase tracking-wide
+                          text-neutral-500">
+                    {% translate "Notas del encuentro" %}
+                </p>
+                <p id="meetup-details-notes"
+                   class="mt-1 text-sm text-neutral-800 break-words whitespace-pre-wrap">
+                    —
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-6 flex flex-col gap-2">
+            <button type="button"
+                    id="btn-meetup-confirm"
+                    onclick="handleConfirmMeeting(currentActiveMeetupId)"
+                    class="hidden w-full rounded-full bg-petly-coral
+                           px-5 py-2.5 text-xs font-bold text-white shadow-md
+                           transition hover:opacity-90 cursor-pointer">
+                {% translate "Confirmar cita" %}
+            </button>
+
+            <button type="button"
+                    id="btn-meetup-complete"
+                    onclick="handleCompleteMeeting(currentActiveMeetupId)"
+                    class="hidden w-full rounded-full bg-petly-coral
+                           px-5 py-2.5 text-xs font-bold text-white shadow-md
+                           transition hover:opacity-90 cursor-pointer">
+                {% translate "Cita completada" %}
+            </button>
+
+            <button type="button"
+                    onclick="closeModal('modal-meetup-details')"
+                    class="w-full rounded-full border border-neutral-300 bg-white
+                           px-5 py-2.5 text-xs font-bold text-neutral-700
+                           transition hover:bg-neutral-100 cursor-pointer">
+                {% translate "Cerrar" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal de notificaciones Petly -->
+<div id="modal-petly-feedback"
+     class="fixed inset-0 z-[120] hidden items-center justify-center p-4"
+     role="dialog" aria-modal="true"
+     aria-labelledby="petly-feedback-title">
+
+    <div class="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs"
+         onclick="closeModal('modal-petly-feedback')"></div>
+
+    <div class="relative z-10 w-full max-w-sm rounded-3xl
+                bg-white p-6 shadow-2xl border border-neutral-200">
+
+        <div id="petly-feedback-icon"
+            class="mx-auto mb-4 flex h-14 w-14 items-center
+                    justify-center rounded-full bg-petly-ice text-petly-coral">
+            {% include 'components/icon.html' with name="paw" class="w-5 h-5 text-petly-coral" %}
+        </div>
+
+        <h3 id="petly-feedback-title"
+            class="text-center text-lg font-bold text-neutral-900">
+            Aviso
+        </h3>
+
+        <p id="petly-feedback-message"
+           class="mt-2 text-center text-sm text-neutral-600 leading-relaxed">
+        </p>
+
+        <div id="petly-feedback-actions"
+             class="mt-6 flex justify-center gap-3">
+            <button type="button"
+                    onclick="closeModal('modal-petly-feedback')"
+                    class="rounded-full border border-neutral-300 bg-white px-6 py-2
+                           text-xs font-bold text-neutral-700 hover:bg-neutral-100 transition cursor-pointer">
+                {% translate "Entendido" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
     function openModal(id) {
         const modal = document.getElementById(id);
         if (modal) {
@@ -451,37 +859,884 @@
         }
     }
 
-    function openMeetingModal(petName, photoUrl) {
-        const titleName = document.getElementById('meeting-pet-name');
-        if (titleName) titleName.textContent = petName;
-        openModal('modal-schedule-meeting');
+    let currentActiveMeetupId = null;
+    const meetupsStateCache = {};
+
+    function showMeetupDetailsFromButton(btn) {
+        if (!btn || !btn.dataset) return;
+        const d = btn.dataset;
+        showMeetupDetails(
+            d.title || '',
+            d.location || '',
+            d.time || '',
+            d.meetupId || null,
+            d.status || null,
+            d.badge || null,
+            d.isOrganizer === 'true',
+            d.notes || ''
+        );
     }
 
-    function openMessageModal(petName, tutorName) {
-        const titleName = document.getElementById('msg-tutor-name');
-        if (titleName) titleName.textContent = tutorName;
-        openModal('modal-send-message');
+    function showMeetupDetails(title, location, time, id = null, status = null, badge = null, isOrganizer = false, notes = '') {
+        currentActiveMeetupId = id;
+
+        const effectiveStatus = (id && meetupsStateCache[id]?.status) || status;
+        const effectiveBadge = (id && meetupsStateCache[id]?.badge) || badge;
+        const effectiveNotes = (id && meetupsStateCache[id]?.notes !== undefined) ? meetupsStateCache[id].notes : notes;
+
+        document.getElementById('meetup-details-pet').textContent =
+            title || 'Sin información';
+
+        document.getElementById('meetup-details-location').textContent =
+            location || 'Lugar no especificado';
+
+        document.getElementById('meetup-details-time').textContent =
+            time || 'Fecha y hora no especificadas';
+
+        const statusEl = document.getElementById('meetup-details-status');
+        if (statusEl) {
+            statusEl.textContent = effectiveBadge || (effectiveStatus === 'confirmed' ? '{% filter escapejs %}{% translate "Confirmado" %}{% endfilter %}' : (effectiveStatus === 'completed' ? '{% filter escapejs %}{% translate "Completado" %}{% endfilter %}' : '{% filter escapejs %}{% translate "Propuesto" %}{% endfilter %}'));
+        }
+
+        const notesContainer = document.getElementById('meetup-details-notes-container');
+        const notesEl = document.getElementById('meetup-details-notes');
+        if (notesContainer && notesEl) {
+            if (effectiveNotes && String(effectiveNotes).trim()) {
+                notesEl.textContent = String(effectiveNotes).trim();
+                notesContainer.classList.remove('hidden');
+            } else {
+                notesEl.textContent = '—';
+                notesContainer.classList.add('hidden');
+            }
+        }
+
+        const confirmBtn = document.getElementById('btn-meetup-confirm');
+        const completeBtn = document.getElementById('btn-meetup-complete');
+
+        if (confirmBtn) {
+            // El botón de confirmar solo le sale al invitado (no al organizador) cuando la cita está propuesta/pendiente
+            if (effectiveStatus === 'proposed' && !isOrganizer) {
+                confirmBtn.classList.remove('hidden');
+            } else {
+                confirmBtn.classList.add('hidden');
+            }
+        }
+
+        if (completeBtn) {
+            // El botón de cita completada sale cuando la cita ya está confirmada
+            if (effectiveStatus === 'confirmed') {
+                completeBtn.classList.remove('hidden');
+            } else {
+                completeBtn.classList.add('hidden');
+            }
+        }
+
+        openModal('modal-meetup-details');
+    }
+    
+    let petlyDialogAction = null;
+
+    function showPetlyDialog(message, title = 'Aviso') {
+        const titleEl = document.getElementById('petly-feedback-title');
+        const messageEl = document.getElementById('petly-feedback-message');
+        const actionsEl = document.getElementById('petly-feedback-actions');
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        actionsEl.innerHTML = `
+            <button type="button"
+                onclick="closeModal('modal-petly-feedback')"
+                class="rounded-full bg-petly-coral px-6 py-2.5
+                    text-xs font-bold text-white hover:opacity-90 shadow-md
+                    transition cursor-pointer">
+                {% translate "Entendido" %}
+            </button>
+        `;
+
+        petlyDialogAction = null;
+        openModal('modal-petly-feedback');
     }
 
-    function handleConfirmMeeting(event) {
-        event.preventDefault();
-        alert('{% translate "¡Cita agendada con éxito! Se ha notificado al tutor de la mascota." %}');
-        closeModal('modal-schedule-meeting');
+    function showPetlyConfirm(message, onConfirm, title = '{% filter escapejs %}{% translate "¿Estás seguro?" %}{% endfilter %}') {
+        document.getElementById('petly-feedback-title').textContent = title;
+        document.getElementById('petly-feedback-message').textContent = message;
+
+        document.getElementById('petly-feedback-actions').innerHTML = `
+            <button type="button"
+                onclick="closeModal('modal-petly-feedback')"
+                class="rounded-full border border-neutral-300 bg-white px-5 py-2.5
+                    text-xs font-bold text-neutral-700 hover:bg-neutral-100
+                    transition cursor-pointer">
+                {% translate "Cancelar" %}
+            </button>
+            <button type="button"
+                onclick="confirmPetlyAction()"
+                class="rounded-full bg-petly-coral px-5 py-2.5
+                    text-xs font-bold text-white hover:opacity-90 shadow-md
+                    transition cursor-pointer">
+                {% translate "Confirmar" %}
+            </button>
+        `;
+
+        petlyDialogAction = onConfirm;
+        openModal('modal-petly-feedback');
     }
 
-    function handleSendMessage(event) {
-        event.preventDefault();
-        alert('{% translate "¡Mensaje enviado exitosamente!" %}');
-        closeModal('modal-send-message');
-    }
+    function confirmPetlyAction() {
+        const action = petlyDialogAction;
+        petlyDialogAction = null;
+        closeModal('modal-petly-feedback');
 
-    function dismissSuitor(petName) {
-        if (confirm(`{% translate "¿Deseas negar el interés de" %} ${petName}?`)) {
-            alert(`{% translate "Se ha descartado la solicitud de" %} ${petName}.`);
+        if (typeof action === 'function') {
+            action();
         }
     }
 
+
+    function toggleSuitorCard(cardId) {
+        const card = document.getElementById(cardId);
+        if (!card) return;
+        const isExpanded = card.classList.contains('is-expanded');
+
+        // Cerrar otras tarjetas abiertas para mantener acordeón limpio
+        document.querySelectorAll('.suitor-card.is-expanded').forEach(c => {
+            if (c !== card) {
+                collapseCard(c);
+            }
+        });
+
+        if (isExpanded) {
+            collapseCard(card);
+        } else {
+            expandCard(card);
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    function expandCard(card) {
+        card.classList.add('is-expanded');
+        card.classList.remove('p-4', 'sm:p-5');
+        card.classList.add('p-5', 'sm:p-6');
+        const collapsed = card.querySelector('.suitor-collapsed-content');
+        const expanded = card.querySelector('.suitor-expanded-content');
+        if (collapsed) {
+            collapsed.classList.add('hidden');
+            collapsed.classList.remove('flex');
+            collapsed.setAttribute('aria-expanded', 'true');
+        }
+        if (expanded) {
+            expanded.classList.remove('hidden');
+            expanded.classList.add('block');
+        }
+    }
+
+    function collapseCard(card) {
+        card.classList.remove('is-expanded');
+        card.classList.remove('p-5', 'sm:p-6');
+        card.classList.add('p-4', 'sm:p-5');
+        const collapsed = card.querySelector('.suitor-collapsed-content');
+        const expanded = card.querySelector('.suitor-expanded-content');
+        if (collapsed) {
+            collapsed.classList.remove('hidden');
+            collapsed.classList.add('flex');
+            collapsed.setAttribute('aria-expanded', 'false');
+        }
+        if (expanded) {
+            expanded.classList.add('hidden');
+            expanded.classList.remove('block');
+        }
+    }
+
+    function updateCountersDOM(counters) {
+        if (!counters) return;
+        const elAll = document.getElementById('counter-all');
+        const elInterested = document.getElementById('counter-interested');
+        const elSent = document.getElementById('counter-sent');
+        const elBanner = document.getElementById('counter-banner-interested');
+
+        if (elAll && counters.all !== undefined) elAll.textContent = counters.all;
+        if (elInterested && counters.interested !== undefined) elInterested.textContent = counters.interested;
+        if (elSent && counters.sent !== undefined) elSent.textContent = counters.sent;
+        if (elBanner && counters.interested !== undefined) elBanner.textContent = counters.interested;
+    }
+
+    // Acción AJAX: Aceptar solicitud de match
+    function handleAcceptRequest(requestId, petName) {
+        const acceptUrl = "{% url 'pets:match_accept_request' request_id=0 %}".replace('/0/', `/${requestId}/`);
+        fetch(acceptUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Actualizar distintivos en la tarjeta
+                    const card = document.querySelector(`.suitor-card[data-request-id="${requestId}"]`);
+                    if (card) {
+                        card.setAttribute('data-status', 'accepted');
+                        const badgeCollapsed = document.getElementById(`card-badge-${requestId}`);
+                        if (badgeCollapsed) {
+                            badgeCollapsed.textContent = '{% filter escapejs %}{% translate "Match aceptado" %}{% endfilter %}';
+                            badgeCollapsed.className = 'suitor-badge-label text-[11px] font-semibold text-emerald-600 block mt-0.5';
+                        }
+                        const badgeExp = document.getElementById(`expanded-badge-${requestId}`);
+                        if (badgeExp) {
+                            badgeExp.textContent = '{% filter escapejs %}{% translate "Match aceptado" %}{% endfilter %}';
+                            badgeExp.className = 'suitor-badge-label-expanded badge-tag text-[11px] font-semibold py-1 px-2.5 bg-emerald-50 text-emerald-700 border-emerald-200';
+                        }
+                        // Transformar botones de aceptar a agendar cita
+                        const btnCollapsed = card.querySelector('.btn-accept-request');
+                        if (btnCollapsed) {
+                            btnCollapsed.outerHTML = `
+                            <button type="button"
+                                    onclick="openMeetingModal('${petName}', '', '${requestId}')"
+                                    class="text-xs px-3.5 py-1.5 font-bold rounded-full bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    title="{% filter escapejs %}{% translate 'Agendar encuentro seguro' %}{% endfilter %}">
+
+                                    {% include 'components/icon.html' with name="calendar" class="w-3.5 h-3.5" %}
+                                <span>{% filter escapejs %}{% translate "Cita" %}{% endfilter %}</span>
+                            </button>
+                        `;
+                        }
+                        const btnExp = card.querySelector('.btn-accept-request-exp');
+                        if (btnExp) {
+                            btnExp.outerHTML = `
+                            <button type="button"
+                                    onclick="openMeetingModal('${petName}', '', '${requestId}')"
+                                    class="flex-1 sm:flex-initial text-xs px-5 py-2.5 font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-md inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                                
+                                {% include 'components/icon.html' with name="calendar" class="w-4 h-4" %}
+
+                                <span>{% filter escapejs %}{% translate "Concertar encuentro" %}{% endfilter %}</span>
+                            </button>
+                        `;
+                        }
+                        // Actualizar botones de cancelar/descartar a "Cancelar match"
+                        const rejectBtnCollapsed = card.querySelector('.btn-reject-request.rounded-full');
+                        if (rejectBtnCollapsed) {
+                            rejectBtnCollapsed.setAttribute('title', '{% filter escapejs %}{% translate "Cancelar match" %}{% endfilter %}');
+                            rejectBtnCollapsed.setAttribute('aria-label', '{% filter escapejs %}{% translate "Cancelar match" %}{% endfilter %}');
+                            rejectBtnCollapsed.setAttribute('onclick', `handleRejectRequest(${requestId}, '${petName}', 'match')`);
+                        }
+                        const rejectBtnExpSpan = card.querySelector('.btn-reject-request-wrapper .btn-reject-request span');
+                        if (rejectBtnExpSpan) {
+                            rejectBtnExpSpan.textContent = '{% filter escapejs %}{% translate "Cancelar match" %}{% endfilter %}';
+                            const rejectBtnExp = card.querySelector('.btn-reject-request-wrapper .btn-reject-request');
+                            if (rejectBtnExp) {
+                                rejectBtnExp.setAttribute('onclick', `handleRejectRequest(${requestId}, '${petName}', 'match')`);
+                            }
+                        }
+                    }
+
+                    if (data.tab_counters) {
+                        updateCountersDOM(data.tab_counters);
+                    }
+
+                    showPetlyDialog(
+                        data.message || '{% filter escapejs %}{% translate "Solicitud de match aceptada exitosamente." %}{% endfilter %}',
+                        '{% filter escapejs %}{% translate "¡Match aceptado!" %}{% endfilter %}'
+                    );
+                } else {
+                    alert(data.message || '{% filter escapejs %}{% translate "Ocurrió un error al aceptar la solicitud." %}{% endfilter %}');
+                }
+            })
+            .catch(err => {
+                console.error('Error al aceptar solicitud:', err);
+                alert('{% filter escapejs %}{% translate "Error de conexión al procesar la solicitud." %}{% endfilter %}');
+            });
+    }
+
+    // Acción AJAX: Cancelar match, solicitud enviada o descartar solicitud recibida
+    function handleRejectRequest(requestId, petName, actionType) {
+        let confirmMsg = `¿Estás seguro de cancelar la solicitud a ${petName}?`;
+        let successMsg = '{% filter escapejs %}{% translate "La solicitud se ha cancelado correctamente." %}{% endfilter %}';
+        if (actionType === 'match') {
+            confirmMsg = `¿Estás seguro de que deseas cancelar el match con ${petName}?`;
+            successMsg = '{% filter escapejs %}{% translate "El match se ha cancelado correctamente." %}{% endfilter %}';
+        } else if (actionType === 'received') {
+            confirmMsg = `¿Estás seguro de descartar la solicitud de ${petName}?`;
+            successMsg = '{% filter escapejs %}{% translate "La solicitud se ha descartado correctamente." %}{% endfilter %}';
+        }
+
+        showPetlyConfirm(
+            confirmMsg,
+            () => {
+                const rejectUrl = "{% url 'pets:match_reject_request' request_id=0 %}".replace('/0/', `/${requestId}/`);
+
+                fetch(rejectUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken,
+                    },
+                })
+                    .then(res =>
+                        res.json().then(data => ({
+                            ok: res.ok,
+                            data
+                        }))
+                    )
+                    .then(({ ok, data }) => {
+                        if (ok && data.status === 'success') {
+                            const card = document.querySelector(
+                                `.suitor-card[data-request-id="${requestId}"]`
+                            );
+
+                            if (card) {
+                                card.style.transition = 'all 0.3s ease';
+                                card.style.opacity = '0';
+                                card.style.transform = 'translateY(12px)';
+
+                                setTimeout(() => {
+                                    card.remove();
+                                    recheckVisibleCards();
+                                }, 300);
+                            }
+
+                            if (data.tab_counters) {
+                                updateCountersDOM(data.tab_counters);
+                            }
+
+                            showPetlyDialog(
+                                successMsg,
+                                '{% filter escapejs %}{% translate "Acción completada" %}{% endfilter %}'
+                            );
+                        } else {
+                            showPetlyDialog(
+                                data.message || '{% filter escapejs %}{% translate "No se pudo procesar la solicitud." %}{% endfilter %}',
+                                '{% filter escapejs %}{% translate "No se pudo completar" %}{% endfilter %}'
+                            );
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error al procesar la solicitud:', err);
+
+                        showPetlyDialog(
+                            '{% filter escapejs %}{% translate "Ocurrió un error de conexión al procesar la solicitud." %}{% endfilter %}',
+                            '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
+                        );
+                    });
+            },
+            '{% filter escapejs %}{% translate "Confirmar acción" %}{% endfilter %}'
+        );
+    }
+   
+
+    // Modal de nota / contacto inicial
+    function openNoteModalFromButton(btn) {
+        if (!btn || !btn.dataset) return;
+        const d = btn.dataset;
+        openNoteModal(
+            d.requestId,
+            d.name,
+            d.tutorSignature,
+            d.quote,
+            d.isSent,
+            d.senderEmail
+        );
+    }
+
+    function openNoteModal(requestId, petName, tutorSignature, currentQuote, isSent, senderEmail = '') {
+        document.getElementById('note-request-id').value = requestId;
+        const tutorNameEl = document.getElementById('note-tutor-name');
+        if (tutorNameEl) {
+            tutorNameEl.textContent = tutorSignature || petName;
+        }
+        const prepEl = document.getElementById('note-tutor-preposition');
+        const modalTitle = document.getElementById('modal-note-title');
+        const textareaLabel = document.getElementById('note-textarea-label');
+        const emailContainer = document.getElementById('note-sender-email');
+        const emailLink = document.getElementById('note-sender-email-link');
+        const submitBtnContainer = document.getElementById('btn-submit-note-container');
+        const cancelBtnContainer = document.getElementById('btn-cancel-note-container');
+        const closeBtnContainer = document.getElementById('btn-close-note-container');
+        const textarea = document.getElementById('note-textarea');
+
+        const isUserSender = isSent === true || isSent === '1' || isSent === 1;
+
+        if (isUserSender) {
+            // El usuario es quien envió la solicitud: puede redactar/editar su nota
+            if (modalTitle) modalTitle.textContent = '{% filter escapejs %}{% translate "Nota enviada al tutor" %}{% endfilter %}';
+            if (prepEl) prepEl.textContent = '{% filter escapejs %}{% translate "Para" %}{% endfilter %}';
+            if (textareaLabel) textareaLabel.textContent = '{% filter escapejs %}{% translate "Escribe una nota para iniciar la conversación:" %}{% endfilter %}';
+            if (emailContainer) emailContainer.classList.add('hidden');
+            if (submitBtnContainer) submitBtnContainer.classList.remove('hidden');
+            if (cancelBtnContainer) cancelBtnContainer.classList.remove('hidden');
+            if (closeBtnContainer) closeBtnContainer.classList.add('hidden');
+            if (textarea) {
+                textarea.readOnly = false;
+                textarea.required = true;
+                const ignoreDefaults = [
+                    'Interés registrado desde el feed de descubrimiento.',
+                    'Interest registered from discovery feed.',
+                    'Interesado en conectar y evaluar compatibilidad.',
+                    'Interested in connecting and evaluating compatibility.',
+                    'Mascota disponible para conectar y evaluar compatibilidad.',
+                    'Pet available to connect and evaluate compatibility.'
+                ];
+                textarea.value = (currentQuote && !ignoreDefaults.some(d => currentQuote.includes(d))) ? currentQuote : '';
+            }
+        } else {
+            // El usuario es el receptor: solo puede VER la nota dejada por quien hizo el match
+            if (modalTitle) modalTitle.textContent = '{% filter escapejs %}{% translate "Nota inicial recibida" %}{% endfilter %}';
+            if (prepEl) prepEl.textContent = '{% filter escapejs %}{% translate "De" %}{% endfilter %}';
+            if (textareaLabel) textareaLabel.textContent = '{% filter escapejs %}{% translate "Nota del tutor solicitante:" %}{% endfilter %}';
+            if (submitBtnContainer) submitBtnContainer.classList.add('hidden');
+            if (cancelBtnContainer) cancelBtnContainer.classList.add('hidden');
+            if (closeBtnContainer) closeBtnContainer.classList.remove('hidden');
+            if (textarea) {
+                textarea.readOnly = true;
+                textarea.required = false;
+                textarea.value = (currentQuote && currentQuote.trim()) ? currentQuote.trim() : '{% filter escapejs %}{% translate "El tutor no dejó una nota personalizada." %}{% endfilter %}';
+            }
+            if (emailContainer && emailLink) {
+                if (senderEmail && senderEmail.trim()) {
+                    emailLink.href = `mailto:${senderEmail.trim()}`;
+                    emailLink.textContent = senderEmail.trim();
+                    emailContainer.classList.remove('hidden');
+                } else {
+                    emailContainer.classList.add('hidden');
+                }
+            }
+        }
+
+        openModal('modal-send-note');
+    }
+
+    // Envío AJAX de mensaje inicial / nota de contacto
+    function handleSendNote(event) {
+        event.preventDefault();
+        const requestId = document.getElementById('note-request-id').value;
+        const messageText = document.getElementById('note-textarea').value.trim();
+
+        if (!requestId || !messageText) {
+            alert('{% filter escapejs %}{% translate "Por favor ingresa una nota válida." %}{% endfilter %}');
+            return;
+        }
+
+        const submitBtn = document.getElementById('btn-submit-note');
+        if (submitBtn) submitBtn.disabled = true;
+
+        const sendNoteUrl = "{% url 'pets:send_initial_note' request_id=0 %}".replace('/0/', `/${requestId}/`);
+        fetch(sendNoteUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ note: messageText, notes: messageText, message: messageText })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Actualizar texto de la nota en la tarjeta solo si no es solicitud enviada
+                    const quoteEl = document.getElementById(`suitor-quote-${requestId}`);
+                    if (quoteEl && quoteEl.getAttribute('data-is-sent') !== 'true') {
+                        quoteEl.textContent = `"${messageText}"`;
+                    }
+                    closeModal('modal-send-note');
+                    alert('{% filter escapejs %}{% translate "¡Nota guardada exitosamente!" %}{% endfilter %}');
+                } else {
+                    alert(data.message || '{% filter escapejs %}{% translate "Error al guardar la nota." %}{% endfilter %}');
+                }
+            })
+            .catch(err => {
+                console.error('Error al enviar nota:', err);
+                alert('{% filter escapejs %}{% translate "Error de conexión al guardar la nota." %}{% endfilter %}');
+            })
+            .finally(() => {
+                if (submitBtn) submitBtn.disabled = false;
+            });
+    }
+
+    function openMeetingModal(petName, targetPetId, requestId) {
+        const titleName = document.getElementById('meeting-pet-name');
+        if (titleName) titleName.textContent = petName || '';
+        const petIdInput = document.getElementById('meeting-target-pet-id');
+        if (petIdInput) petIdInput.value = targetPetId || '';
+        const petNameInput = document.getElementById('meeting-target-pet-name');
+        if (petNameInput) petNameInput.value = petName || '';
+        const reqIdInput = document.getElementById('meeting-request-id');
+        if (reqIdInput) reqIdInput.value = requestId || '';
+
+        // Sugerir fecha de mañana por defecto si está vacío
+        const dateInput = document.getElementById('meeting-date');
+        if (dateInput && !dateInput.value) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const yyyy = tomorrow.getFullYear();
+            const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+            const dd = String(tomorrow.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+        const timeInput = document.getElementById('meeting-time');
+        if (timeInput && !timeInput.value) {
+            timeInput.value = '10:00';
+        }
+        openModal('modal-schedule-meeting');
+    }
+
+    function handleScheduleMeetingSubmit(event) {
+        event.preventDefault();
+        const targetPetId = document.getElementById('meeting-target-pet-id')?.value;
+        const targetPetName = document.getElementById('meeting-target-pet-name')?.value;
+        const requestId = document.getElementById('meeting-request-id')?.value;
+        const dateVal = document.getElementById('meeting-date')?.value;
+        const timeVal = document.getElementById('meeting-time')?.value;
+        const locationVal = document.getElementById('meeting-location')?.value;
+        const notesVal = document.getElementById('meeting-notes')?.value;
+
+        if (!dateVal || !timeVal || !locationVal) {
+            showPetlyDialog(
+                '{% filter escapejs %}{% translate "Completa la fecha, hora y lugar del encuentro." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Datos incompletos" %}{% endfilter %}'
+            );
+            return;
+        }
+
+        const submitBtn = document.getElementById('btn-submit-meeting');
+        if (submitBtn) submitBtn.disabled = true;
+
+        fetch("{% url 'pets:schedule_meetup' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                target_pet_id: targetPetId,
+                target_pet_name: targetPetName,
+                match_request_id: requestId,
+                date: dateVal,
+                time: timeVal,
+                location_name: locationVal,
+                notes: notesVal,
+            }),
+        })
+            .then(res => res.json().then(data => ({ status: res.status, data })))
+            .then(({ status, data }) => {
+                if (status === 200 && data.status === 'scheduled') {
+                    closeModal('modal-schedule-meeting');
+                    addMeetupToSidebar(data.meetup);
+
+                    showPetlyDialog(
+                        data.message || '{% filter escapejs %}{% translate "¡Cita propuesta con éxito!" %}{% endfilter %}',
+                        '{% filter escapejs %}{% translate "Cita propuesta" %}{% endfilter %}'
+                    );
+                } else {
+                    showPetlyDialog(
+                        data.message || '{% filter escapejs %}{% translate "No se pudo agendar la cita." %}{% endfilter %}',
+                        '{% filter escapejs %}{% translate "No se pudo agendar" %}{% endfilter %}'
+                    );
+                }
+            })
+            .catch(err => {
+                console.error('Error al agendar cita:', err);
+                showPetlyDialog(
+                    '{% filter escapejs %}{% translate "Ocurrió un error de conexión al agendar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
+                );
+            })
+            .finally(() => {
+                if (submitBtn) submitBtn.disabled = false;
+            });
+
+    }
+
+    
+    function handleCancelMeeting(meetupId, petName) {
+        if (meetupsStateCache[meetupId]?.status === 'completed') {
+            showPetlyDialog(
+                '{% filter escapejs %}{% translate "No se puede cancelar una cita que ya ha sido completada." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Acción no permitida" %}{% endfilter %}'
+            );
+            return;
+        }
+        showPetlyConfirm(
+            `¿Deseas cancelar la cita con ${petName}?`,
+            () => cancelMeetingRequest(meetupId),
+            '{% filter escapejs %}{% translate "Cancelar cita" %}{% endfilter %}'
+        );
+    }
+
+    function cancelMeetingRequest(meetupId) {
+        const cancelUrl = "{% url 'pets:cancel_meetup' meetup_id=0 %}".replace('/0/', `/${meetupId}/`);
+        fetch(cancelUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                reason: ''
+            }),
+        })
+        .then(res => res.json().then(data => ({
+            status: res.status,
+            data
+        })))
+        .then(({ status, data }) => {
+            if (status === 200 && data.status === 'cancelled') {
+                closeModal('modal-meetup-details');
+                removeMeetupFromSidebar(meetupId);
+
+                showPetlyDialog(
+                    data.message || '{% filter escapejs %}{% translate "La cita se canceló correctamente." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Cita cancelada" %}{% endfilter %}'
+                );
+            } else {
+                showPetlyDialog(
+                    data.message || '{% filter escapejs %}{% translate "No se pudo cancelar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error al cancelar" %}{% endfilter %}'
+                );
+            }
+        })
+        .catch(err => {
+            console.error('Error al cancelar cita:', err);
+            showPetlyDialog(
+                '{% filter escapejs %}{% translate "Ocurrió un error de conexión al cancelar la cita." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
+            );
+        });
+    }
+
+    function handleConfirmMeeting(meetupId) {
+        if (!meetupId) return;
+        const confirmBtn = document.getElementById('btn-meetup-confirm');
+        if (confirmBtn) confirmBtn.disabled = true;
+
+        const confirmUrl = "{% url 'pets:confirm_meetup' meetup_id=0 %}".replace('/0/', `/${meetupId}/`);
+        fetch(confirmUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+        })
+        .then(res => res.json().then(data => ({ status: res.status, data })))
+        .then(({ status, data }) => {
+            if (status === 200 && data.status === 'confirmed') {
+                closeModal('modal-meetup-details');
+                const newBadge = data.meetup && data.meetup.badge ? data.meetup.badge : '{% filter escapejs %}{% translate "Confirmado" %}{% endfilter %}';
+                meetupsStateCache[meetupId] = {
+                    ...(meetupsStateCache[meetupId] || {}),
+                    status: 'confirmed',
+                    badge: newBadge,
+                };
+                const card = document.getElementById(`meetup-card-${meetupId}`);
+                if (card) {
+                    const badge = card.querySelector('.badge-compat');
+                    if (badge) {
+                        badge.textContent = newBadge;
+                    }
+                }
+                showPetlyDialog(
+                    data.message || '{% filter escapejs %}{% translate "¡Cita confirmada exitosamente!" %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "¡Cita confirmada!" %}{% endfilter %}'
+                );
+            } else {
+                showPetlyDialog(
+                    data.message || '{% filter escapejs %}{% translate "No se pudo confirmar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error al confirmar" %}{% endfilter %}'
+                );
+            }
+        })
+        .catch(err => {
+            console.error('Error al confirmar cita:', err);
+            showPetlyDialog(
+                '{% filter escapejs %}{% translate "Ocurrió un error de conexión al confirmar la cita." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
+            );
+        })
+        .finally(() => {
+            if (confirmBtn) confirmBtn.disabled = false;
+        });
+    }
+
+    function handleCompleteMeeting(meetupId) {
+        if (!meetupId) return;
+        const completeBtn = document.getElementById('btn-meetup-complete');
+        if (completeBtn) completeBtn.disabled = true;
+
+        const completeUrl = "{% url 'pets:complete_meetup' meetup_id=0 %}".replace('/0/', `/${meetupId}/`);
+        fetch(completeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+        })
+        .then(res => res.json().then(data => ({ status: res.status, data })))
+        .then(({ status, data }) => {
+            if (status === 200 && data.status === 'completed') {
+                closeModal('modal-meetup-details');
+                const newBadge = data.meetup && data.meetup.badge ? data.meetup.badge : '{% filter escapejs %}{% translate "Completado" %}{% endfilter %}';
+                meetupsStateCache[meetupId] = {
+                    ...(meetupsStateCache[meetupId] || {}),
+                    status: 'completed',
+                    badge: newBadge,
+                };
+                const card = document.getElementById(`meetup-card-${meetupId}`);
+                if (card) {
+                    const badge = card.querySelector('.badge-compat');
+                    if (badge) {
+                        badge.textContent = newBadge;
+                    }
+                    const cancelBtn = card.querySelector('.btn-cancel-meetup');
+                    if (cancelBtn) {
+                        cancelBtn.remove();
+                    }
+                }
+                showPetlyDialog(
+                    data.message || '{% filter escapejs %}{% translate "¡Cita completada exitosamente!" %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "¡Cita completada!" %}{% endfilter %}'
+                );
+            } else {
+                showPetlyDialog(
+                    data.message || '{% filter escapejs %}{% translate "No se pudo completar la cita." %}{% endfilter %}',
+                    '{% filter escapejs %}{% translate "Error al completar" %}{% endfilter %}'
+                );
+            }
+        })
+        .catch(err => {
+            console.error('Error al completar cita:', err);
+            showPetlyDialog(
+                '{% filter escapejs %}{% translate "Ocurrió un error de conexión al completar la cita." %}{% endfilter %}',
+                '{% filter escapejs %}{% translate "Error de conexión" %}{% endfilter %}'
+            );
+        })
+        .finally(() => {
+            if (completeBtn) completeBtn.disabled = false;
+        });
+    }
+
+
+    function addMeetupToSidebar(meetup) {
+        if (!meetup) return;
+        const container = document.getElementById('confirmed-meetups-container');
+        if (!container) return;
+
+        const emptyState = document.getElementById('meetups-empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+
+        const pulseIndicator = document.getElementById('meetups-pulse-indicator');
+        if (pulseIndicator) {
+            pulseIndicator.classList.remove('hidden');
+        }
+
+        const cardId = meetup.meetup_id || (meetup.id ? String(meetup.id).replace('meetup-', '') : '');
+        const card = document.createElement('div');
+        card.id = `meetup-card-${cardId}`;
+        card.className = 'meetup-card p-3.5 rounded-2xl bg-petly-ice/50 border border-petly-blue/80 space-y-2 transition-all';
+        card.innerHTML = `
+            <div class="flex items-center justify-between">
+                <span class="badge-compat text-[10px] font-bold py-0.5 px-2">
+                    ${meetup.badge || '{% filter escapejs %}{% translate "Propuesto" %}{% endfilter %}'}
+                </span>
+                <span class="text-caption font-semibold text-neutral-500">
+                    ${meetup.day}
+                </span>
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold text-neutral-900 leading-tight">
+                    ${meetup.title}
+                </h3>
+                <p class="text-[11px] text-neutral-600 inline-flex items-center gap-1 mt-0.5">
+                {% include 'components/icon.html' with name="location" class="w-3.5 h-3.5 text-neutral-500" %}
+
+                    <span>${meetup.location}</span>
+                </p>
+            </div>
+
+            <div class="flex items-center justify-between pt-1 border-t border-petly-blue/40 text-xs">
+                
+                <span class="inline-flex items-center gap-1.5 font-bold text-neutral-800">
+                    {% include 'components/icon.html' with name="clock" class="w-3.5 h-3.5 text-neutral-500" %}
+                    ${meetup.time}
+                </span>
+
+                <div class="flex items-center gap-2">
+                    <button type="button"
+                        class="meetup-details-button font-bold text-petly-coral hover:underline cursor-pointer">
+                        {% translate "Ver detalles" %}
+                    </button>
+                    <button type="button"
+                            onclick="handleCancelMeeting(${cardId}, '${meetup.pet_name || ''}')"
+                            class="btn-cancel-meetup font-bold text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
+                            title="{% filter escapejs %}{% translate 'Cancelar cita' %}{% endfilter %}">
+                        {% translate "Cancelar" %}
+                    </button>
+                </div>
+            </div>
+        `;
+        const detailsButton = card.querySelector('.meetup-details-button');
+
+        detailsButton.addEventListener('click', () => {
+            const dateTime = [meetup.day, meetup.time]
+                .filter(Boolean)
+                .join(' ');
+
+            showMeetupDetails(
+                meetup.title || '',
+                meetup.location || '',
+                dateTime,
+                cardId,
+                meetup.status || 'proposed',
+                meetup.badge || '{% filter escapejs %}{% translate "Propuesto" %}{% endfilter %}',
+                meetup.is_organizer !== undefined ? meetup.is_organizer : true,
+                meetup.notes || ''
+            );
+        });
+        container.prepend(card);
+    }
+
+    function removeMeetupFromSidebar(meetupId) {
+        const card = document.getElementById(`meetup-card-${meetupId}`);
+        if (card) {
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                card.remove();
+                const container = document.getElementById('confirmed-meetups-container');
+                if (container && container.querySelectorAll('.meetup-card').length === 0) {
+                    container.innerHTML = `
+                        <div id="meetups-empty-state" class="p-4 rounded-2xl bg-petly-ice/40 border border-dashed border-neutral-300 text-center space-y-1.5">
+                            <p class="text-xs font-semibold text-neutral-600">
+                                {% translate "No tienes encuentros agendados próximos" %}
+                            </p>
+                            <p class="text-[11px] text-neutral-400 leading-relaxed">
+                                {% translate "Acepta un match y concierta un encuentro seguro en un parque verificado." %}
+                            </p>
+                        </div>
+                    `;
+                    const pulseIndicator = document.getElementById('meetups-pulse-indicator');
+                    if (pulseIndicator) {
+                        pulseIndicator.classList.add('hidden');
+                    }
+                }
+            }, 300);
+        }
+    }
+
+    let currentFilter = '{{ current_tab|default:"all" }}';
+
     function filterSuitors(filter, btn) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const serverTab = urlParams.get('tab');
+        if (serverTab && serverTab !== 'all' && serverTab !== filter) {
+            urlParams.set('tab', filter);
+            window.location.search = urlParams.toString();
+            return;
+        }
+
+        currentFilter = filter;
         document.querySelectorAll('.suitor-filter-btn').forEach(b => {
             b.className = 'suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white hover:bg-petly-ice text-neutral-700 border border-neutral-300 shadow-xs whitespace-nowrap cursor-pointer transition-all';
         });
@@ -489,20 +1744,42 @@
             btn.className = 'suitor-filter-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-[#A53B42] text-white shadow-xs whitespace-nowrap cursor-pointer transition-all';
         }
 
+        recheckVisibleCards();
+
+        if (window.history && window.history.replaceState) {
+            const newUrl = new URL(window.location);
+            if (filter === 'all') {
+                newUrl.searchParams.delete('tab');
+            } else {
+                newUrl.searchParams.set('tab', filter);
+            }
+            window.history.replaceState(null, '', newUrl.toString());
+        }
+    }
+
+    function recheckVisibleCards() {
         const cards = document.querySelectorAll('.suitor-card');
         let visibleCount = 0;
         cards.forEach(card => {
-            const cat = card.getAttribute('data-category') || 'all';
+            const cardType = card.getAttribute('data-type') || 'interested';
+            const cardStatus = card.getAttribute('data-status') || 'pending';
+            const cat = card.getAttribute('data-category') || 'breeding';
             const dist = parseFloat(card.getAttribute('data-distance') || '0');
             let match = false;
 
-            if (filter === 'all') {
+            if (currentFilter === 'all') {
                 match = true;
-            } else if (filter === 'breeding') {
+            } else if (currentFilter === 'interested') {
+                match = (cardType === 'interested');
+            } else if (currentFilter === 'sent') {
+                match = (cardType === 'sent');
+            } else if (currentFilter === 'matches') {
+                match = (cardStatus === 'accepted');
+            } else if (currentFilter === 'breeding') {
                 match = (cat === 'breeding');
-            } else if (filter === 'social') {
+            } else if (currentFilter === 'social') {
                 match = (cat === 'social');
-            } else if (filter === 'near') {
+            } else if (currentFilter === 'near') {
                 match = (dist <= 5.0);
             }
 
@@ -516,10 +1793,37 @@
 
         const emptyState = document.getElementById('suitors-empty-state');
         if (emptyState) {
-            if (visibleCount === 0) {
+            if (visibleCount === 0 && cards.length > 0) {
                 emptyState.classList.remove('hidden');
             } else {
                 emptyState.classList.add('hidden');
+            }
+        }
+
+        const globalEmpty = document.getElementById('suitors-global-empty-state');
+        if (cards.length === 0 && !globalEmpty) {
+            const container = document.getElementById('suitors-list-container');
+            if (container) {
+                container.innerHTML = `
+                    <div id="suitors-global-empty-state" class="card-petly p-10 bg-white border border-neutral-300/80 rounded-3xl text-center space-y-4">
+                        <div class="w-16 h-16 rounded-full bg-petly-ice flex items-center justify-center text-neutral-400 mx-auto">
+                           
+                            {% include 'components/icon.html' with name="inbox" class="w-7 h-7 text-neutral-400" %}
+
+                        </div>
+                        <div class="space-y-1">
+                            <h2 class="title-h4 font-bold text-neutral-800">{% translate "No hay solicitudes ni interesados pendientes" %}</h2>
+                            <p class="text-xs sm:text-sm text-neutral-500 max-w-md mx-auto">
+                                {% translate "Aún no tienes pretendientes ni solicitudes registradas para tu mascota activa. Explora perfiles compatibles en el feed de emparejamiento para conectar." %}
+                            </p>
+                        </div>
+                        <div class="pt-2">
+                            <a href="{% url 'pets:match_feed' %}" class="text-xs px-6 py-2.5 font-bold rounded-xl bg-petly-coral text-white hover:bg-petly-coral/90 shadow-md no-underline inline-flex items-center gap-2">
+                                <span>{% translate "Explorar parejas compatibles" %}</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
             }
         }
     }
@@ -528,22 +1832,34 @@
         const container = document.getElementById('suitors-list-container');
         if (!container) return;
         const cards = Array.from(container.querySelectorAll('.suitor-card'));
+        if (cards.length === 0) return;
 
         cards.sort((a, b) => {
+            const timeA = parseInt(a.getAttribute('data-timestamp') || '0', 10);
+            const timeB = parseInt(b.getAttribute('data-timestamp') || '0', 10);
+
             if (criteria === 'compatibility') {
                 const compatA = parseInt(a.getAttribute('data-compatibility') || '0', 10);
                 const compatB = parseInt(b.getAttribute('data-compatibility') || '0', 10);
-                return compatB - compatA;
+                if (compatB !== compatA) return compatB - compatA;
+                return timeB - timeA;
             } else if (criteria === 'distance') {
-                const distA = parseFloat(a.getAttribute('data-distance') || '0');
-                const distB = parseFloat(b.getAttribute('data-distance') || '0');
-                return distA - distB;
-            } else {
-                return 0;
+                const distA = parseFloat((a.getAttribute('data-distance') || '0').replace(',', '.'));
+                const distB = parseFloat((b.getAttribute('data-distance') || '0').replace(',', '.'));
+                if (distA !== distB) return distA - distB;
+                return timeB - timeA;
+            } else if (criteria === 'recent') {
+                return timeB - timeA;
             }
+            return 0;
         });
 
         cards.forEach(card => container.appendChild(card));
+
+        const emptyState = document.getElementById('suitors-empty-state');
+        if (emptyState) {
+            container.appendChild(emptyState);
+        }
     }
 </script>
 {% endblock %}
