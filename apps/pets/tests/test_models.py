@@ -211,14 +211,15 @@ class PetMeetupModelTests(TestCase):
 
     def test_pet_meetup_creation_and_str(self):
         meetup = PetMeetup.objects.create(
-            pet1=self.pet1,
-            pet2=self.pet2,
+            host_pet=self.pet1,
+            guest_pet=self.pet2,
             date=date(2026, 10, 18),
             time=time(11, 0),
             location_name='Parque España (Zona Canina Verificada)',
             status=PetMeetup.MeetupStatus.CONFIRMED,
         )
         self.assertEqual(meetup.status, PetMeetup.MeetupStatus.CONFIRMED)
+        self.assertEqual(meetup.scheduled_by, self.user1)
         self.assertIn('Toby', str(meetup))
         self.assertIn('Kira', str(meetup))
         self.assertIn('Confirmado', str(meetup))

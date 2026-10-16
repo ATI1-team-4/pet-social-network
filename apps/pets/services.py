@@ -756,13 +756,13 @@ def get_upcoming_pet_meetups(active_pet: Optional[Pet]) -> QuerySet[PetMeetup]:
     if not active_pet or not getattr(active_pet, 'id', None):
         return PetMeetup.objects.none()
     return (
-        PetMeetup.objects.filter(Q(pet1=active_pet) | Q(pet2=active_pet))
-        .exclude(pet1__owner=F('pet2__owner'))
+        PetMeetup.objects.filter(Q(host_pet=active_pet) | Q(guest_pet=active_pet))
+        .exclude(host_pet__owner=F('guest_pet__owner'))
         .filter(
             date__gte=date.today(),
             status__in=[PetMeetup.MeetupStatus.CONFIRMED, PetMeetup.MeetupStatus.PROPOSED],
         )
-        .select_related('pet1', 'pet2', 'pet1__owner', 'pet2__owner')
+        .select_related('host_pet', 'guest_pet', 'host_pet__owner', 'guest_pet__owner')
         .order_by('date', 'time')
     )
 
@@ -771,8 +771,14 @@ def serialize_pet_meetup(active_pet: Pet, meetup: PetMeetup) -> dict[str, Any]:
     """
     Serializa un encuentro de PetMeetup para su renderizado en la barra lateral de citas confirmadas.
     """
-    other_pet = meetup.pet2 if meetup.pet1_id == active_pet.id else meetup.pet1
+    other_pet = meetup.guest_pet if meetup.host_pet_id == active_pet.id else meetup.host_pet
     time_str = meetup.time.strftime('%I:%M %p') if meetup.time else ''
+    scheduled_by_user = meetup.scheduled_by
+    scheduled_by_name = (
+        scheduled_by_user.get_full_name() or scheduled_by_user.username
+        if scheduled_by_user
+        else ''
+    )
     return {
         'id': f'meetup-{meetup.id}',
         'meetup_id': meetup.id,
@@ -784,6 +790,7 @@ def serialize_pet_meetup(active_pet: Pet, meetup: PetMeetup) -> dict[str, Any]:
         'time': time_str,
         'status': meetup.status,
         'notes': meetup.notes,
+        'scheduled_by': scheduled_by_name,
     }
 
 
@@ -833,7 +840,7 @@ def schedule_pet_meetup(
     ]
 
     has_conflict = PetMeetup.objects.filter(
-        Q(pet1__in=[requester_pet, target_pet]) | Q(pet2__in=[requester_pet, target_pet]),
+        Q(host_pet__in=[requester_pet, target_pet]) | Q(guest_pet__in=[requester_pet, target_pet]),
         date=meeting_date,
         time=meeting_time,
         status__in=active_statuses,
@@ -854,8 +861,8 @@ def schedule_pet_meetup(
 
     meetup = PetMeetup.objects.create(
         match_request=match_req,
-        pet1=requester_pet,
-        pet2=target_pet,
+        host_pet=requester_pet,
+        guest_pet=target_pet,
         date=meeting_date,
         time=meeting_time,
         location_name=location_name,
@@ -870,19 +877,19 @@ def cancel_pet_meetup(meetup_id: int, user: Any, reason: str = '') -> PetMeetup:
     Cancela una cita de encuentro previamente acordada.
 
     Requerimientos:
-    - Validar que el usuario sea tutor de `pet1` o de `pet2` (o staff).
+    - Validar que el usuario sea tutor de `host_pet` o de `guest_pet` (o staff).
     - Actualizar estado de `PetMeetup` a `CANCELLED`.
     - Retornar la instancia cancelada.
     """
-    meetup = PetMeetup.objects.select_related('pet1', 'pet2', 'pet1__owner', 'pet2__owner').get(
-        id=meetup_id
-    )
+    meetup = PetMeetup.objects.select_related(
+        'host_pet', 'guest_pet', 'host_pet__owner', 'guest_pet__owner'
+    ).get(id=meetup_id)
 
-    is_pet1_owner = meetup.pet1.owner_id == user.id or meetup.pet1.owner == user
-    is_pet2_owner = meetup.pet2.owner_id == user.id or meetup.pet2.owner == user
+    is_host_owner = meetup.host_pet.owner_id == user.id or meetup.host_pet.owner == user
+    is_guest_owner = meetup.guest_pet.owner_id == user.id or meetup.guest_pet.owner == user
     is_staff = getattr(user, 'is_staff', False)
 
-    if not (is_pet1_owner or is_pet2_owner or is_staff):
+    if not (is_host_owner or is_guest_owner or is_staff):
         raise PermissionError(_('No tienes permiso para cancelar esta cita.'))
 
     meetup.status = PetMeetup.MeetupStatus.CANCELLED
@@ -900,15 +907,15 @@ def complete_pet_meetup(meetup_id: int, user: Optional[Any] = None) -> PetMeetup
     el contador de encuentros completados en el perfil de ambos tutores
     (Profile.completed_meetings_count).
     """
-    meetup = PetMeetup.objects.select_related('pet1', 'pet2', 'pet1__owner', 'pet2__owner').get(
-        id=meetup_id
-    )
+    meetup = PetMeetup.objects.select_related(
+        'host_pet', 'guest_pet', 'host_pet__owner', 'guest_pet__owner'
+    ).get(id=meetup_id)
 
     if user:
-        is_pet1_owner = meetup.pet1.owner_id == user.id or meetup.pet1.owner == user
-        is_pet2_owner = meetup.pet2.owner_id == user.id or meetup.pet2.owner == user
+        is_host_owner = meetup.host_pet.owner_id == user.id or meetup.host_pet.owner == user
+        is_guest_owner = meetup.guest_pet.owner_id == user.id or meetup.guest_pet.owner == user
         is_staff = getattr(user, 'is_staff', False)
-        if not (is_pet1_owner or is_pet2_owner or is_staff):
+        if not (is_host_owner or is_guest_owner or is_staff):
             raise PermissionError(_('No tienes permiso para marcar como completada esta cita.'))
 
     meetup.status = PetMeetup.MeetupStatus.COMPLETED

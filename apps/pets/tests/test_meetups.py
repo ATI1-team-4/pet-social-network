@@ -196,8 +196,8 @@ class PetMeetupTests(TestCase):
 
         # Comprobar en base de datos
         meetup = PetMeetup.objects.get(id=data['meetup_id'])
-        self.assertEqual(meetup.pet1, self.pet)
-        self.assertEqual(meetup.pet2, self.other_pet)
+        self.assertEqual(meetup.host_pet, self.pet)
+        self.assertEqual(meetup.guest_pet, self.other_pet)
         self.assertEqual(meetup.status, PetMeetup.MeetupStatus.CONFIRMED)
         self.assertEqual(meetup.location_name, self.location)
 
@@ -327,4 +327,4 @@ class PetMeetupTests(TestCase):
         self.assertIsNotNone(meetup1.id)
         self.assertIsNotNone(meetup2.id)
         self.assertNotEqual(meetup1.id, meetup2.id)
-        self.assertEqual(PetMeetup.objects.filter(pet1=self.pet).count(), 2)
+        self.assertEqual(PetMeetup.objects.filter(host_pet=self.pet).count(), 2)

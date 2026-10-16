@@ -215,7 +215,7 @@ class UserProfile(TimeStampedModel):
         from apps.pets.models import PetMeetup
 
         return PetMeetup.objects.filter(
-            models.Q(pet1__owner=self.user) | models.Q(pet2__owner=self.user),
+            models.Q(host_pet__owner=self.user) | models.Q(guest_pet__owner=self.user),
             status=PetMeetup.MeetupStatus.COMPLETED,
         ).count()
 

@@ -116,8 +116,8 @@ package "apps.pets" {
     + created_at : DateTimeField
     + updated_at : DateTimeField
     # match_request : ForeignKey <<FK>>
-    # pet1 : ForeignKey <<FK>>
-    # pet2 : ForeignKey <<FK>>
+    # host_pet : ForeignKey <<FK>>
+    # guest_pet : ForeignKey <<FK>>
     + date : DateField
     + time : TimeField
     + location_name : CharField
@@ -155,6 +155,6 @@ pets_matchrequest "N " ---- " 1" pets_pet : "enviar por >"
 pets_matchrequest "N " ---- " 1" pets_pet : "recibir por >"
 
 pets_petmeetup "N " ---- " 1" pets_matchrequest : "derivar solicitud >"
-pets_petmeetup "N " ---- " 1" pets_pet : "involucrar mascota 1 >"
-pets_petmeetup "N " ---- " 1" pets_pet : "involucrar mascota 2 >"
+pets_petmeetup "N " ---- " 1" pets_pet : "involucrar mascota anfitriona >"
+pets_petmeetup "N " ---- " 1" pets_pet : "involucrar mascota invitada >"
 @enduml

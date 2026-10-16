@@ -462,16 +462,16 @@ class PetMeetup(TimeStampedModel):
         related_name='meetups',
         verbose_name=_('Solicitud de match asociada'),
     )
-    pet1 = models.ForeignKey(
+    host_pet = models.ForeignKey(
         Pet,
         on_delete=models.CASCADE,
-        related_name='meetups_as_pet1',
+        related_name='meetups_as_host',
         verbose_name=_('Mascota anfitriona'),
     )
-    pet2 = models.ForeignKey(
+    guest_pet = models.ForeignKey(
         Pet,
         on_delete=models.CASCADE,
-        related_name='meetups_as_pet2',
+        related_name='meetups_as_guest',
         verbose_name=_('Mascota invitada'),
     )
     date = models.DateField(
@@ -512,14 +512,19 @@ class PetMeetup(TimeStampedModel):
         verbose_name_plural = _('Encuentros de mascotas')
         ordering = ['-date', '-time']
 
+    @property
+    def scheduled_by(self):
+        """Retorna el usuario tutor que organizó la cita (dueño de la mascota anfitriona)."""
+        return getattr(self.host_pet, 'owner', None)
+
     def clean(self):
         super().clean()
-        if self.pet1_id and self.pet2_id:
-            if self.pet1_id == self.pet2_id:
+        if self.host_pet_id and self.guest_pet_id:
+            if self.host_pet_id == self.guest_pet_id:
                 raise ValidationError(_('Una cita debe realizarse entre dos mascotas distintas.'))
-            p1_owner_id = getattr(self.pet1, 'owner_id', None)
-            p2_owner_id = getattr(self.pet2, 'owner_id', None)
-            if p1_owner_id and p2_owner_id and p1_owner_id == p2_owner_id:
+            host_owner_id = getattr(self.host_pet, 'owner_id', None)
+            guest_owner_id = getattr(self.guest_pet, 'owner_id', None)
+            if host_owner_id and guest_owner_id and host_owner_id == guest_owner_id:
                 raise ValidationError(
                     _('No se pueden programar citas entre mascotas del mismo tutor.')
                 )
@@ -529,4 +534,4 @@ class PetMeetup(TimeStampedModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'Cita entre {self.pet1.name} y {self.pet2.name} el {self.date} ({self.get_status_display()})'
+        return f'Cita entre {self.host_pet.name} y {self.guest_pet.name} el {self.date} ({self.get_status_display()})'

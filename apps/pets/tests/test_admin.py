@@ -52,8 +52,8 @@ class PetsAdminTests(TestCase):
         self.assertIn('status', self.match_admin.list_filter)
 
     def test_pet_meetup_admin_configuration(self):
-        self.assertIn('pet1', self.meetup_admin.list_display)
-        self.assertIn('pet2', self.meetup_admin.list_display)
+        self.assertIn('host_pet', self.meetup_admin.list_display)
+        self.assertIn('guest_pet', self.meetup_admin.list_display)
         self.assertIn('location_name', self.meetup_admin.list_display)
         self.assertIn('date', self.meetup_admin.list_filter)
 

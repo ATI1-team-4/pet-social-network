@@ -109,8 +109,8 @@ class MatchRequestAdmin(admin.ModelAdmin):
 class PetMeetupAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        'pet1',
-        'pet2',
+        'host_pet',
+        'guest_pet',
         'date',
         'time',
         'location_name',
@@ -119,8 +119,8 @@ class PetMeetupAdmin(admin.ModelAdmin):
     )
     list_filter = ('status', 'date')
     search_fields = (
-        'pet1__name',
-        'pet2__name',
+        'host_pet__name',
+        'guest_pet__name',
         'location_name',
         'notes',
     )

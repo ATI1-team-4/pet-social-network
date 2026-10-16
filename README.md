@@ -480,7 +480,7 @@ El sistema implementa un modelo de datos relacional normalizado y desacoplado pa
 | **`apps.pets`** | `pets_petspecies` | `PetSpecies` | Catálogo configurable de especies (Perro, Gato, etc.) con íconos dinámicos.<br>• **`1 : N`** con `Pet` (clasifica especies sin alterar código). |
 | **`apps.pets`** | `pets_pet` | `Pet` | Perfil biológico y social de la mascota (raza, sexo, fecha de nacimiento, peso, fotos, certificados FCI/pedigrí, marcas de búsqueda y color temático). |
 | **`apps.pets`** | `pets_matchrequest` | `MatchRequest` | Solicitudes direccionales de conexión entre mascotas (`from_pet` ➔ `to_pet`) con estados `pending`, `accepted` y `rejected`.<br>• Modela la relación **`N : M`** de interés entre mascotas con restricción de unicidad y check para evitar auto-emparejamiento. |
-| **`apps.pets`** | `pets_petmeetup` | `PetMeetup` | Citas y encuentros presenciales en parques caninos verificados, con fecha, hora, ubicación y estados `proposed`, `confirmed`, `completed` y `cancelled`.<br>• **`0..1 : N`** con `MatchRequest` (originada tras un match mutuo).<br>• Modela la relación **`N : M`** de encuentros entre `pet1` (anfitriona) y `pet2` (invitada). |
+| **`apps.pets`** | `pets_petmeetup` | `PetMeetup` | Citas y encuentros presenciales en parques caninos verificados, con fecha, hora, ubicación y estados `proposed`, `confirmed`, `completed` y `cancelled`.<br>• **`0..1 : N`** con `MatchRequest` (originada tras un match mutuo).<br>• Modela la relación **`N : M`** de encuentros entre `host_pet` (anfitriona) y `guest_pet` (invitada). |
 | **`apps.core`** | `core_auditlog` | `AuditLog` | Registro y trazabilidad de eventos de seguridad y accesos al sistema. |
 
 ### 🛡️ Regla arquitectónica general: Principio de Responsabilidad Única (SRP) en Vistas
