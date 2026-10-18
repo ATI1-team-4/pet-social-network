@@ -36,7 +36,12 @@
                          data-pet-id="{{ pet.id }}"
                          data-pet-name="{{ pet.name }}"
                          data-interested-count="{{ pet.interested_count|default:0 }}"
-                         class="desktop-pet-card card-petly p-5 bg-white rounded-3xl transition-all relative flex items-center justify-between gap-5 shadow-xs {% if pet.is_selected %}border-2 border-petly-coral ring-2 ring-petly-coral/20{% else %}border border-neutral-300/80 hover:border-neutral-400{% endif %}">
+                         onclick="selectActivePet('{{ pet.id }}', '{{ pet.name }}')"
+                         role="button"
+                         tabindex="0"
+                         aria-pressed="{% if pet.is_selected %}true{% else %}false{% endif %}"
+                         onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectActivePet('{{ pet.id }}', '{{ pet.name }}'); }"
+                         class="desktop-pet-card card-petly p-5 bg-white rounded-3xl transition-all duration-200 ease-in-out relative flex items-center justify-between gap-5 shadow-xs cursor-pointer hover:-translate-y-1 hover:shadow-md active:scale-[0.99] {% if pet.is_selected %}border-2 border-petly-coral ring-2 ring-petly-coral/20{% else %}border border-neutral-300/80 hover:border-petly-coral/60{% endif %}">
 
                         <div class="flex items-center gap-5 flex-1 min-w-0">
                             <!-- Fotografía cuadrada redondeada -->
@@ -73,18 +78,11 @@
                                     {% endif %}
                                 </div>
 
-                                <!-- Estado actual o botón de selección rápida -->
-                                <div class="pt-2">
+                                <!-- Indicador de selección activa -->
+                                <div class="pt-2 min-h-[28px] flex items-center">
                                     <div class="desktop-selected-indicator {% if pet.is_selected %}inline-flex{% else %}hidden{% endif %} items-center gap-1.5 text-xs font-semibold text-neutral-800">
                                         {% include 'components/icon.html' with name="check" class="w-4 h-4 text-petly-coral" %}
                                         <span>{% translate "Seleccionado actualmente" %}</span>
-                                    </div>
-                                    <div class="desktop-unselected-button {% if pet.is_selected %}hidden{% else %}block{% endif %}">
-                                        <button type="button"
-                                                onclick="selectActivePet('{{ pet.id }}', '{{ pet.name }}')"
-                                                class="btn-petly-outline text-xs px-4 py-1.5 bg-white hover:bg-petly-ice rounded-full font-semibold cursor-pointer">
-                                            {% with btn_select_text=_("Seleccionar a ")|add:pet.name %}{{ btn_select_text }}{% endwith %}
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -187,7 +185,12 @@
                          data-pet-id="{{ pet.id }}"
                          data-pet-name="{{ pet.name }}"
                          data-interested-count="{{ pet.interested_count|default:0 }}"
-                         class="mobile-pet-card card-petly p-3.5 bg-white rounded-2xl transition-all flex items-center justify-between gap-3 shadow-xs min-w-[320px] {% if pet.is_selected %}border-2 border-petly-coral{% else %}border border-neutral-300/80 hover:border-neutral-400{% endif %}">
+                         onclick="selectActivePet('{{ pet.id }}', '{{ pet.name }}')"
+                         role="button"
+                         tabindex="0"
+                         aria-pressed="{% if pet.is_selected %}true{% else %}false{% endif %}"
+                         onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectActivePet('{{ pet.id }}', '{{ pet.name }}'); }"
+                         class="mobile-pet-card card-petly p-3.5 bg-white rounded-2xl transition-all duration-200 ease-in-out flex items-center justify-between gap-3 shadow-xs min-w-[320px] cursor-pointer hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99] {% if pet.is_selected %}border-2 border-petly-coral{% else %}border border-neutral-300/80 hover:border-petly-coral/60{% endif %}">
 
                         <div class="flex items-center gap-3 flex-1 min-w-0">
                             <!-- Foto circular oficial de móvil -->
@@ -218,18 +221,11 @@
                                     </div>
                                 {% endif %}
 
-                                <!-- Estado actual o botón de selección rápida en móvil -->
-                                <div class="pt-1.5">
+                                <!-- Indicador de selección activa en móvil -->
+                                <div class="pt-1.5 min-h-[24px] flex items-center">
                                     <div class="mobile-selected-indicator {% if pet.is_selected %}inline-flex{% else %}hidden{% endif %} items-center gap-1 text-[11px] font-semibold text-neutral-800">
                                         {% include 'components/icon.html' with name="check" class="w-3 h-3 text-petly-coral" %}
                                         <span>{% translate "Seleccionado actualmente" %}</span>
-                                    </div>
-                                    <div class="mobile-unselected-button {% if pet.is_selected %}hidden{% else %}block{% endif %}">
-                                        <button type="button"
-                                                onclick="selectActivePet('{{ pet.id }}', '{{ pet.name }}')"
-                                                class="btn-petly-outline text-[11px] px-3 py-1 bg-white hover:bg-petly-ice rounded-full font-semibold cursor-pointer">
-                                            {% with btn_select_text=_("Seleccionar a ")|add:pet.name %}{{ btn_select_text }}{% endwith %}
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -383,24 +379,18 @@
         // Sincronizar estilos e indicadores en tarjetas de escritorio
         document.querySelectorAll('.desktop-pet-card').forEach(card => {
             const isSelected = card.getAttribute('data-pet-id') === petId;
+            card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
 
             if (isSelected) {
-                card.classList.remove('border', 'border-neutral-300/80', 'hover:border-neutral-400');
+                card.classList.remove('border', 'border-neutral-300/80', 'hover:border-neutral-400', 'hover:border-petly-coral/60');
                 card.classList.add('border-2', 'border-petly-coral', 'ring-2', 'ring-petly-coral/20');
 
-                // Indicador de estado y botón
+                // Indicador de estado
                 const selectedIndicator = card.querySelector('.desktop-selected-indicator');
                 if (selectedIndicator) {
                     selectedIndicator.classList.remove('hidden');
                     selectedIndicator.classList.add('inline-flex');
                     selectedIndicator.style.display = 'inline-flex';
-                }
-
-                const unselectedButton = card.querySelector('.desktop-unselected-button');
-                if (unselectedButton) {
-                    unselectedButton.classList.remove('block');
-                    unselectedButton.classList.add('hidden');
-                    unselectedButton.style.display = 'none';
                 }
 
                 // Radio circular (visual)
@@ -412,21 +402,14 @@
                 if (radioDot) radioDot.classList.remove('hidden');
             } else {
                 card.classList.remove('border-2', 'border-petly-coral', 'ring-2', 'ring-petly-coral/20');
-                card.classList.add('border', 'border-neutral-300/80', 'hover:border-neutral-400');
+                card.classList.add('border', 'border-neutral-300/80', 'hover:border-petly-coral/60');
 
-                // Indicador de estado y botón
+                // Indicador de estado
                 const selectedIndicator = card.querySelector('.desktop-selected-indicator');
                 if (selectedIndicator) {
                     selectedIndicator.classList.remove('inline-flex');
                     selectedIndicator.classList.add('hidden');
                     selectedIndicator.style.display = 'none';
-                }
-
-                const unselectedButton = card.querySelector('.desktop-unselected-button');
-                if (unselectedButton) {
-                    unselectedButton.classList.remove('hidden');
-                    unselectedButton.classList.add('block');
-                    unselectedButton.style.display = 'block';
                 }
 
                 // Radio circular (visual)
@@ -442,9 +425,10 @@
         // Sincronizar estilos e indicadores en tarjetas móviles
         document.querySelectorAll('.mobile-pet-card').forEach(card => {
             const isSelected = card.getAttribute('data-pet-id') === petId;
+            card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
 
             if (isSelected) {
-                card.classList.remove('border', 'border-neutral-300/80', 'hover:border-neutral-400');
+                card.classList.remove('border', 'border-neutral-300/80', 'hover:border-neutral-400', 'hover:border-petly-coral/60');
                 card.classList.add('border-2', 'border-petly-coral');
 
                 const selectedIndicator = card.querySelector('.mobile-selected-indicator');
@@ -452,13 +436,6 @@
                     selectedIndicator.classList.remove('hidden');
                     selectedIndicator.classList.add('inline-flex');
                     selectedIndicator.style.display = 'inline-flex';
-                }
-
-                const unselectedButton = card.querySelector('.mobile-unselected-button');
-                if (unselectedButton) {
-                    unselectedButton.classList.remove('block');
-                    unselectedButton.classList.add('hidden');
-                    unselectedButton.style.display = 'none';
                 }
 
                 const radioTarget = card.querySelector('.mobile-radio-target');
@@ -469,20 +446,13 @@
                 if (radioCheck) radioCheck.classList.remove('hidden');
             } else {
                 card.classList.remove('border-2', 'border-petly-coral');
-                card.classList.add('border', 'border-neutral-300/80', 'hover:border-neutral-400');
+                card.classList.add('border', 'border-neutral-300/80', 'hover:border-petly-coral/60');
 
                 const selectedIndicator = card.querySelector('.mobile-selected-indicator');
                 if (selectedIndicator) {
                     selectedIndicator.classList.remove('inline-flex');
                     selectedIndicator.classList.add('hidden');
                     selectedIndicator.style.display = 'none';
-                }
-
-                const unselectedButton = card.querySelector('.mobile-unselected-button');
-                if (unselectedButton) {
-                    unselectedButton.classList.remove('hidden');
-                    unselectedButton.classList.add('block');
-                    unselectedButton.style.display = 'block';
                 }
 
                 const radioTarget = card.querySelector('.mobile-radio-target');

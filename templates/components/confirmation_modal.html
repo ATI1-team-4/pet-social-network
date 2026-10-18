@@ -17,6 +17,7 @@ Parámetros disponibles:
 - confirm_action: Alias alternativo para código o función JavaScript a ejecutar al confirmar (opcional).
 - cancel_text: Texto del botón de cancelación en sentence case (ej. "Seguir editando").
 - cancel_variant: Variante del botón de cancelación ('outline' | 'secondary').
+- hide_close: Booleano para ocultar el botón 'X' de la esquina superior cuando el modal ya cuenta con botones explícitos de cierre/cancelación (opcional, por defecto False).
 - class: Clases CSS complementarias para la tarjeta interior.
 {% endcomment %}
 
@@ -27,14 +28,16 @@ Parámetros disponibles:
 
     <!-- Tarjeta central del diálogo de confirmación responsiva -->
     <div class="relative w-full max-w-md flex flex-col bg-white card-petly p-5 sm:p-7 shadow-2xl border border-neutral-300/80 z-10 transition-all transform duration-200 scale-100 overflow-hidden {{ class|default:'' }}">
+        {% if not hide_close %}
         <!-- Botón de cierre en la esquina superior -->
         {% translate 'Cerrar diálogo' as aria_close_conf %}
         {% with close_onclick="closeModal('"|add:modal_id|add:"')" %}
         {% include 'components/button.html' with variant="custom" icon="close" text="" icon_class="w-4 h-4" onclick=close_onclick aria_label=aria_close_conf class="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 active:scale-95 transition-all cursor-pointer select-none" %}
         {% endwith %}
+        {% endif %}
 
         <!-- Cabecera del diálogo: Ícono y título -->
-        <div class="flex items-start gap-3 sm:gap-3.5 mb-3 sm:mb-4 pr-6 sm:pr-8">
+        <div class="flex items-start gap-3 sm:gap-3.5 mb-3 sm:mb-4 {% if not hide_close %}pr-6 sm:pr-8{% endif %}">
             <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shrink-0 select-none {% if modal_variant == 'danger' %}bg-rose-100 border border-rose-200 text-rose-600{% elif modal_variant == 'warning' %}bg-amber-100 border border-amber-300 text-amber-800{% elif modal_variant == 'success' %}{% if icon == 'heart' or icon == 'heart-filled' %}bg-petly-coral-light border border-petly-coral/30 text-petly-coral{% else %}bg-emerald-100 border border-emerald-300 text-emerald-700{% endif %}{% else %}bg-petly-blue border border-petly-blue-dark/40 text-petly-coral{% endif %}">
                 {% if icon %}
                     {% include 'components/icon.html' with name=icon class="w-5 h-5" %}
