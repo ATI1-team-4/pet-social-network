@@ -1828,6 +1828,10 @@ msgstr ""
 msgid "Eliminar definitivamente"
 msgstr "Delete permanently"
 
+#: apps/pets/templates/pets/pet_management.html:482
+msgid "Eliminar"
+msgstr "Delete"
+
 #: apps/pets/templates/pets/pet_management.html:457
 msgid "Mantener mascota"
 msgstr "Keep pet"

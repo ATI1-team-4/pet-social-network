@@ -4,6 +4,7 @@ Renderiza un <button> o <a> interactivo según la presencia del parámetro 'href
 
 Parámetros principales:
 - text: Texto visible del botón (opcional si es botón de solo ícono / FAB).
+- text_class: Clases CSS de Tailwind adicionales para la etiqueta <span> del texto (ej. 'hidden sm:inline').
 - variant: 'primary' (predeterminado) | 'secondary' | 'soft' | 'lilac' | 'outline' | 'danger' | 'custom' (sin estilos base, usa class)
 - href: URL de destino. Si se define, renderiza una etiqueta <a>; si no, renderiza <button>.
 - type: 'button' (predeterminado) | 'submit' | 'reset'.
@@ -63,7 +64,7 @@ Ejemplos de uso rápido:
             {% elif variant == 'fab-add' and not text %}
                 <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="plus" class="w-6 h-6" %}</span>
             {% endif %}
-            {% if text %}<span {% if text_id %}id="{{ text_id }}"{% endif %}>{{ text }}</span>{% endif %}
+            {% if text %}<span class="{{ text_class|default:'' }}" {% if text_id %}id="{{ text_id }}"{% endif %}>{{ text }}</span>{% endif %}
             {% if text_end %}
                 <span class="{{ text_end_class|default:'' }}" {% if text_end_id %}id="{{ text_end_id }}"{% endif %}>{{ text_end }}</span>
             {% endif %}
@@ -104,7 +105,7 @@ Ejemplos de uso rápido:
             {% elif variant == 'fab-add' and not text %}
                 <span class="inline-flex items-center justify-center shrink-0">{% include 'components/icon.html' with name="plus" class="w-6 h-6" %}</span>
             {% endif %}
-            {% if text %}<span {% if text_id %}id="{{ text_id }}"{% endif %}>{{ text }}</span>{% endif %}
+            {% if text %}<span class="{{ text_class|default:'' }}" {% if text_id %}id="{{ text_id }}"{% endif %}>{{ text }}</span>{% endif %}
             {% if text_end %}
                 <span class="{{ text_end_class|default:'' }}" {% if text_end_id %}id="{{ text_end_id }}"{% endif %}>{{ text_end }}</span>
             {% endif %}
