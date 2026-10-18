@@ -672,6 +672,7 @@ Renderiza elementos `<button>` o enlaces `<a>` (cuando se pasa el parámetro `hr
 ```
 * **Variantes de botón:** `primary` (coral), `secondary` (azul suave), `soft` (rosa terciario), `lilac` (púrpura suave), `outline` (borde sutil), `danger` (rojo descarte).
 * **Variantes FAB:** `fab-dismiss` (descartar ✕), `fab-add` (añadir +), `fab-like` (me interesa ♥).
+* **Parámetro `text_class`:** Clases adicionales para la etiqueta `<span>` del texto (ej. `hidden sm:inline` para botones responsivos que colapsan a solo ícono en pantallas móviles sin perder accesibilidad).
 
 #### 3. Insignias y etiquetas (`badge.html`)
 Pastillas cromáticas para resaltar afinidad porcentual, temperamentos o género:
@@ -707,9 +708,10 @@ Contenedor base `.card-petly` con bordes redondeados (`rounded-3xl`), sombra sut
 #### 8. Modales de confirmación (`confirmation_modal.html`)
 Ventana emergente interactiva autocontenida para confirmar acciones importantes o destructivas:
 ```django
-{% include 'components/confirmation_modal.html' with id="modal-delete" variant="danger" icon="trash" title="¿Eliminar mascota?" text="Esta acción no se puede deshacer." confirm_text="Eliminar" cancel_text="Cancelar" %}
+{% include 'components/confirmation_modal.html' with id="modal-delete" variant="danger" icon="trash" title="¿Eliminar mascota?" text="Esta acción no se puede deshacer." confirm_text="Eliminar" cancel_text="Cancelar" hide_close=True %}
 ```
 * **Control mediante JavaScript:** Funciones globales `openModal('modal-id')` y `closeModal('modal-id')`, con soporte de cierre por tecla `Escape` o clic en el fondo semitransparente.
+* **Parámetro `hide_close`:** Booleano opcional para ocultar el botón 'X' de la esquina superior cuando el diálogo ya cuenta con botones inferiores de acción y cancelación explícitos.
 
 #### 9. Mensajes y alertas del sistema (`messages.html`)
 Banners de notificación integrados con el framework `django.contrib.messages` (éxito, error, advertencia e información) con botón de cierre accesible.
