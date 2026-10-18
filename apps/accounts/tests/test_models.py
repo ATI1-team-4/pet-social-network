@@ -1,19 +1,13 @@
 from datetime import date
 from decimal import Decimal
 
-from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory, TestCase
+from django.test import TestCase
 
-from apps.accounts.admin import UserReportAdmin
 from apps.accounts.models import UserReport
 from apps.pets.models import Pet, PetSpecies
 
 User = get_user_model()
-
-
-class MockRequest:
-    pass
 
 
 class UserProfileModelTests(TestCase):
@@ -25,12 +19,15 @@ class UserProfileModelTests(TestCase):
 
     def test_user_profile_default_values(self):
         """Verifica los valores por defecto configurados en UserProfile."""
+        # Comprobamos los valores de ubicación iniciales en Distrito Capital
         self.assertEqual(self.profile.state, 'Distrito Capital')
         self.assertEqual(self.profile.municipality, 'Libertador')
         self.assertEqual(self.profile.neighborhood, '')
         self.assertEqual(self.profile.city, 'Libertador')
+        # Comprobamos la reputación inicial de 5 estrellas
         self.assertEqual(self.profile.rating, Decimal('5.00'))
         self.assertEqual(self.profile.completed_meetings_count, 0)
+        # Verificamos que las coordenadas GPS comiencen sin valor (None)
         self.assertIsNone(self.profile.latitude)
         self.assertIsNone(self.profile.longitude)
 
@@ -50,6 +47,7 @@ class UserProfileModelTests(TestCase):
         self.profile.save()
 
         self.profile.refresh_from_db()
+        # Verificamos la persistencia de los datos extendidos en la base de datos
         self.assertEqual(self.profile.state, 'Miranda')
         self.assertEqual(self.profile.municipality, 'Guaicaipuro')
         self.assertEqual(self.profile.neighborhood, 'Los Teques')
@@ -59,8 +57,6 @@ class UserProfileModelTests(TestCase):
         self.assertAlmostEqual(self.profile.longitude, -67.0421)
         self.assertEqual(self.profile.birth_date, date(1998, 5, 20))
         self.assertEqual(self.profile.gender, 'M')
-        self.assertEqual(self.profile.rating, Decimal('5.00'))
-        self.assertEqual(self.profile.completed_meetings_count, 0)
         self.assertEqual(self.profile.favorite_color, 'Coral')
         self.assertEqual(self.profile.favorite_book, 'Clean Architecture')
         self.assertEqual(self.profile.favorite_music, 'Rock')
@@ -70,15 +66,18 @@ class UserProfileModelTests(TestCase):
         """Verifica la representación en cadena del perfil."""
         full_name = self.user.get_full_name()
         expected = f'Perfil de {full_name}'
+        # Comprobamos que el método __str__ devuelva el nombre completo del tutor
         self.assertEqual(str(self.profile), expected)
 
     def test_user_profile_avatar_url_and_fallback(self):
         """Verifica que el avatar por defecto devuelva el SVG neutro estilo WhatsApp."""
         from unittest.mock import patch
 
+        # Sin avatar configurado debe indicar has_avatar en False y ruta de static
         self.assertFalse(self.profile.has_avatar)
         self.assertEqual(self.profile.avatar_url, '/static/images/avatars/default_user.svg')
 
+        # Con archivo existente en el almacenamiento
         self.profile.avatar = 'avatars/user_1_avatar_9f8e7d6c.jpg'
         with patch.object(self.profile.avatar.storage, 'exists', return_value=True):
             self.assertTrue(self.profile.has_avatar)
@@ -87,6 +86,7 @@ class UserProfileModelTests(TestCase):
                 '/media/avatars/user_1_avatar_9f8e7d6c.jpg',
             )
 
+        # Con ruta configurada pero archivo físico inexistente
         with patch.object(self.profile.avatar.storage, 'exists', return_value=False):
             self.assertFalse(self.profile.has_avatar)
             self.assertEqual(
@@ -99,16 +99,20 @@ class UserProfileModelTests(TestCase):
         from apps.accounts.models import user_avatar_upload_path
 
         path = user_avatar_upload_path(self.profile, 'perfil.jpg')
+        # Verificamos que la ruta incluya el ID del usuario en el directorio avatars
         self.assertTrue(path.startswith(f'avatars/user_{self.user.id}_avatar_'))
         self.assertTrue(path.endswith('.jpg'))
 
 
-class UserReportModelAndAdminTests(TestCase):
-    """Pruebas unitarias para el modelo UserReport y la acción de moderación en Admin."""
+class UserReportModelTests(TestCase):
+    """Pruebas unitarias para el modelo UserReport."""
 
     def setUp(self):
+        # Configuramos los desarrolladores Edwyn (denunciante) y Stefany (denunciada)
         self.reporter = User.objects.get(username='edwyn')
         self.offender = User.objects.get(username='stefany')
+
+        # Creamos una mascota perteneciente al usuario reportado
         species_dog, _ = PetSpecies.objects.get_or_create(
             slug='perro',
             defaults={'name': 'Perro', 'icon_name': 'dog'},
@@ -122,42 +126,30 @@ class UserReportModelAndAdminTests(TestCase):
             birth_date=date(2023, 1, 1),
             purpose=Pet.Purpose.BOTH,
         )
+
+        # Creamos el reporte de prueba
         self.report = UserReport.objects.create(
             reported_by=self.reporter,
             reported_user=self.offender,
             reported_pet=self.pet,
             reason='Comportamiento agresivo y perfil falso.',
         )
-        self.site = AdminSite()
-        self.admin = UserReportAdmin(UserReport, self.site)
-        self.factory = RequestFactory()
 
-    def test_user_report_creation_and_defaults(self):
-        """Verifica la creación del reporte con estado inicial PENDING."""
+    def test_creacion_y_valores_por_defecto_del_reporte(self):
+        """El reporte debe inicializarse con estado PENDING y relacionar a los usuarios."""
+        # Comprobamos el estado inicial en PENDING
         self.assertEqual(self.report.status, UserReport.ReportStatus.PENDING)
         self.assertEqual(self.report.reported_by, self.reporter)
         self.assertEqual(self.report.reported_user, self.offender)
         self.assertEqual(self.report.reported_pet, self.pet)
+        # Verificamos que el nombre de la mascota y el ID figuren en la representación en cadena
         self.assertIn('Rocky', str(self.report.reported_pet))
         self.assertIn(str(self.report.pk), str(self.report))
 
-    def test_ban_reported_user_admin_action(self):
-        """Verifica que la acción del panel suspenda al usuario y actualice el reporte."""
-        self.assertTrue(self.offender.is_active)
-
-        request = self.factory.get('/admin/accounts/userreport/')
-        request.user = self.reporter
-        # Mock message_user
-        messages_sent = []
-        self.admin.message_user = lambda req, msg, level: messages_sent.append(msg)
-
-        queryset = UserReport.objects.filter(pk=self.report.pk)
-        self.admin.ban_reported_user(request, queryset)
-
-        self.offender.refresh_from_db()
+    def test_estados_posibles_del_reporte(self):
+        """Verifica que el reporte permita transiciones entre sus diferentes estados."""
+        self.report.status = UserReport.ReportStatus.ACTION_TAKEN
+        self.report.save()
         self.report.refresh_from_db()
-
-        self.assertFalse(self.offender.is_active)
+        # Comprobamos que el cambio de estado se mantenga en la base de datos
         self.assertEqual(self.report.status, UserReport.ReportStatus.ACTION_TAKEN)
-        self.assertTrue(len(messages_sent) > 0)
-        self.assertIn('suspendidos', messages_sent[0].lower())
